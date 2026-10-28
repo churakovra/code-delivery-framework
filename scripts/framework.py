@@ -503,14 +503,14 @@ def transaction(target, operations, expected=None):
     try:
         for index, (name, _) in enumerate(operations.items()):
             path = safe(target, name)
-            current = digest(path.read_bytes()) if path.exists() else None
+            data = path.read_bytes() if path.exists() else None
+            current = digest(data) if data is not None else None
             if expected is not None and current != expected.get(name):
                 raise FrameworkError(f'File changed during installation; preserve and resolve: {name}')
-            if path.exists():
-                data = path.read_bytes()
+            if data is not None:
                 backup_name = f'.codex/delivery-framework/transaction/{index}.bak'
                 atomic(safe(target, backup_name), data)
-                snapshots[name] = {'backup': backup_name, 'sha256': digest(data), 'mode': path.stat().st_mode & 0o777}
+                snapshots[name] = {'backup': backup_name, 'sha256': current, 'mode': path.stat().st_mode & 0o777}
             else:
                 snapshots[name] = None
         planned = {name: None if value is None else digest(value) for name, value in operations.items()}
@@ -693,6 +693,8 @@ def install_with_dependencies(target, dry_run=False, root=ROOT, global_mode=Fals
                 if digest(path.read_bytes()) != old_expected:
                     raise FrameworkError(f'Modified managed file: {name}')
             elif path.read_bytes() == content:
+                if name.startswith('.codex/delivery-framework/bin/') and not os.access(path, os.X_OK):
+                    raise FrameworkError(f'Existing user-owned binary is not executable: {name}')
                 reused[name] = digest(content)
                 del files[name]
             else:
@@ -793,9 +795,10 @@ def status(target):
             except (OSError, ValueError):
                 entry = None
             result['external_mcp'] = 'missing' if not path.is_file() or path.is_symlink() else 'clean' if os.access(path, os.X_OK) and digest(path.read_bytes()) == external['sha256'] and entry == external['config'] else 'modified'
-        for name in result['files']:
-            if name.startswith('.codex/delivery-framework/bin/') and result['files'][name] == 'clean' and not os.access(safe(target, name), os.X_OK):
-                result['files'][name] = 'not-executable'
+        for category in ('files', 'reused'):
+            for name in result[category]:
+                if name.startswith('.codex/delivery-framework/bin/') and result[category][name] == 'clean' and not os.access(safe(target, name), os.X_OK):
+                    result[category][name] = 'not-executable'
     return result
 
 def uninstall(target, dry_run=False):

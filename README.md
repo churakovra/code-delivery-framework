@@ -55,7 +55,7 @@ python3.11 scripts/framework.py install --target /path/to/project
 
 For global use, pass `--global` and set `--target PATH` to the same canonical path supplied as `--home PATH`. When `--home` is omitted it defaults to the current process home. For example: `python3.11 scripts/framework.py install --global --target /Users/alex --home /Users/alex --dry-run`. Installing at the home path without `--global` is rejected. A project install manages `<target>/AGENTS.md`; a global install manages `<home>/.codex/AGENTS.md`. The installer does not create a branch, commit, pull request, release, or deployment.
 
-To update an existing installation, use `upgrade` with the same `--target`, `--home`, and `--global` options used for its installation. `status` reports the recorded state; if a transaction was interrupted, run `recover` against the same target before retrying. `uninstall --dry-run` identifies preserved changes; uninstall leaves user-owned reused files and Codebase Memory indexes intact. Do not remove or overwrite modified user files to force an upgrade.
+To update an existing installation, use `upgrade` with the same `--target`, `--home`, and `--global` options used for its installation. `status` reports the recorded state; if a transaction was interrupted, run `recover` against the same target before retrying. Recovery stops if a file changed after the transaction began. Preserve that edit and resolve the conflict before retrying recovery. `uninstall --dry-run` identifies preserved changes; uninstall leaves user-owned reused files and Codebase Memory indexes intact. Do not remove or overwrite modified user files to force an upgrade.
 
 For example, update a global installation with:
 
