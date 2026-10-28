@@ -48,6 +48,16 @@ class InstallerTests(unittest.TestCase):
         (self.root/'roles.json').write_text(json.dumps({'qa':{'policy':'qa','skills':['test'],'read_only':True,'description':'QA'}}))
     def install(self, dry=False):
         return f.install(self.target,dry,self.root)
+    def test_install_exposes_role_guidance_for_runtime_policy_routing(self):
+        self.install()
+        role_path = self.target/'.codex/delivery-framework/roles.json'
+        roles = json.loads(role_path.read_text())
+        self.assertEqual(roles['qa']['policy'], 'qa')
+        self.assertEqual(roles['qa']['skills'], ['test'])
+        self.assertEqual(roles['qa']['instructions'], 'Inspect evidence.')
+        self.assertTrue(roles['qa']['read_only'])
+        self.assertEqual(set(f.status(self.target)['files'].values()), {'clean'})
+
     def test_framework_skill_is_grouped_and_role_can_find_it(self):
         self.install()
         skill = self.target/'.agents/skills/code-delivery-framework/test/SKILL.md'
@@ -239,6 +249,76 @@ class DependencyInstallerTests(InstallerTests):
         self.assertEqual((self.target/'.agents/skills/demo/SKILL.md').read_bytes(), self.skill)
         self.assertEqual(set(f.status(self.target)['files'].values()), {'clean'})
         self.assertEqual(f.uninstall(self.target)['state'], 'absent')
+    def test_sync_models_applies_edited_policy_and_preserves_role_instructions(self):
+        import tomllib
+        with self.enable(): self.install()
+        policy = self.target/'.codex/delivery-framework/model-policy.toml'
+        agent = self.target/'.codex/agents/delivery-qa.toml'
+        before = tomllib.loads(agent.read_text())
+        policy.write_text('[qa]\nmodel="new-model"\nreasoning_effort="medium"\n')
+        models = [{'model':'new-model','supportedReasoningEfforts':[{'reasoningEffort':'medium'}]}]
+        f.sync_models(self.target, {'qa': {'policy':'qa'}}, models)
+        after = tomllib.loads(agent.read_text())
+        self.assertEqual(after['model'], 'new-model')
+        self.assertEqual(after['model_reasoning_effort'], 'medium')
+        self.assertEqual(after['developer_instructions'], before['developer_instructions'])
+        self.assertEqual(set(f.status(self.target)['files'].values()), {'clean'})
+
+    def test_sync_models_refuses_invalid_policy_and_modified_agent(self):
+        with self.enable(): self.install()
+        policy = self.target/'.codex/delivery-framework/model-policy.toml'
+        agent = self.target/'.codex/agents/delivery-qa.toml'
+        original = agent.read_bytes()
+        roles = {'qa': {'policy':'qa'}}
+        models = [{'model':'test-model','supportedReasoningEfforts':[{'reasoningEffort':'low'}]}]
+        policy.write_text('[qa]\nmodel="missing"\nreasoning_effort="low"\n')
+        with self.assertRaisesRegex(f.FrameworkError, 'Unavailable model'):
+            f.sync_models(self.target, roles, models)
+        self.assertEqual(agent.read_bytes(), original)
+        policy.write_text('[qa]\nmodel="test-model"\nreasoning_effort="low"\n')
+        agent.write_bytes(original+b'# user edit\n')
+        with self.assertRaisesRegex(f.FrameworkError, 'Modified managed file'):
+            f.sync_models(self.target, roles, models)
+        self.assertEqual(agent.read_bytes(), original+b'# user edit\n')
+
+    def test_sync_models_recovers_interrupted_transaction(self):
+        with self.enable(): self.install()
+        policy = self.target/'.codex/delivery-framework/model-policy.toml'
+        policy.write_text('[qa]\nmodel="new-model"\nreasoning_effort="medium"\n')
+        original = policy.read_bytes()
+        agent = self.target/'.codex/agents/delivery-qa.toml'
+        agent_before = agent.read_bytes()
+        atomic = f.atomic
+        def interrupt(path, data):
+            if path == agent: raise KeyboardInterrupt()
+            return atomic(path, data)
+        with patch.object(f, 'atomic', side_effect=interrupt), self.assertRaises(KeyboardInterrupt):
+            f.sync_models(self.target, {'qa': {'policy':'qa'}}, [{'model':'new-model','supportedReasoningEfforts':[{'reasoningEffort':'medium'}]}])
+        self.assertEqual(f.status(self.target)['state'], 'recovery-required')
+        f.recover(self.target)
+        self.assertEqual(policy.read_bytes(), original)
+        self.assertEqual(agent.read_bytes(), agent_before)
+
+    def test_sync_models_detects_concurrent_policy_edit_and_allows_upgrade(self):
+        with self.enable(): self.install()
+        policy = self.target/'.codex/delivery-framework/model-policy.toml'
+        policy.write_text('[qa]\nmodel="test-model"\nreasoning_effort="low"\n[demanding_implementation]\nmodel="old"\nreasoning_effort="low"\n')
+        roles = {'qa': {'policy':'qa'}}
+        models = [{'model':'test-model','supportedReasoningEfforts':[{'reasoningEffort':'low'}]}]
+        original = policy.read_bytes()
+        transaction = f.transaction
+        def concurrent(target, operations, expected):
+            policy.write_bytes(original+b'# concurrent\n')
+            return transaction(target, operations, expected)
+        with patch.object(f, 'transaction', side_effect=concurrent), self.assertRaisesRegex(f.FrameworkError, 'File changed during installation'):
+            f.sync_models(self.target, roles, models)
+        self.assertEqual(policy.read_bytes(), original+b'# concurrent\n')
+        policy.write_bytes(original)
+        f.sync_models(self.target, roles, models)
+        with self.enable():
+            f.install_with_dependencies(self.target, root=self.root, upgrade=True, selected_policy=__import__('tomllib').loads(policy.read_text()))
+        self.assertEqual(set(f.status(self.target)['files'].values()), {'clean'})
+
     def test_apply_proposal_is_transactional_and_preserves_instructions(self):
         import tomllib
         with self.enable(): self.install()

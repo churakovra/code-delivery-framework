@@ -409,6 +409,7 @@ def payload(root=ROOT, selected_policy=None):
         if skill_name in names:
             raise FrameworkError(f'Duplicate skill name: {skill_name}')
         names.add(skill_name)
+    runtime_roles = {}
     for name, role in roles.items():
         entry = policy[role['policy']]
         if set(entry) != {'model', 'reasoning_effort'} or not all(isinstance(v, str) and v for v in entry.values()):
@@ -417,6 +418,7 @@ def payload(root=ROOT, selected_policy=None):
             if f'.agents/skills/code-delivery-framework/{skill}/SKILL.md' not in files:
                 raise FrameworkError(f'Missing required skill: {skill}')
         instruction = (root/'codex/agents'/f'{name}.txt').read_text()
+        runtime_roles[name] = dict(role, instructions=instruction.strip())
         instruction += '\nRead these required skills before work: '+', '.join(f'.agents/skills/code-delivery-framework/{s}/SKILL.md' for s in role['skills'])+'.\nDo not spawn subagents. Return evidence to the primary dispatcher.'
         if inventory:
             for subskill in inventory['roles'].get(name, []):
@@ -428,6 +430,7 @@ def payload(root=ROOT, selected_policy=None):
         content = '\n'.join(f'{key} = {json.dumps(value, ensure_ascii=False)}' for key, value in fields.items())+'\n'
         tomllib.loads(content)
         files[f'.codex/agents/delivery-{name}.toml'] = content.encode()
+    files['.codex/delivery-framework/roles.json'] = (json.dumps(runtime_roles, indent=2, ensure_ascii=False)+'\n').encode()
     files['.codex/delivery-framework/model-policy.toml'] = render_policy(policy) if selected_policy is not None else (root/'model-policy.toml').read_bytes()
     if inventory:
         files['.codex/delivery-framework/subskills.json'] = (root/'subskills.json').read_bytes()
@@ -929,9 +932,48 @@ def apply_model_proposal(target, roles, models, proposal):
     transaction(target,operations,expected)
     return {'action':'apply-models','state':'installed','report':report_name,'welcome':welcome(roles,selected)}
 
+def sync_models(target, roles, models):
+    manifest_path = safe(target, STATE)
+    manifest_bytes = manifest_path.read_bytes()
+    manifest = read_manifest(target)
+    if not manifest or manifest.get('schema') != 2 or manifest.get('state') != 'installed':
+        raise FrameworkError('A clean schema 2 installation is required')
+    if safe(target, '.codex/delivery-framework/transaction').exists():
+        raise FrameworkError('Recovery transaction exists; run recover first')
+    policy_name = '.codex/delivery-framework/model-policy.toml'
+    policy_bytes = safe(target, policy_name).read_bytes()
+    policy = tomllib.loads(policy_bytes.decode())
+    required = {role['policy'] for role in roles.values()}
+    if not required <= set(policy) or set(policy) - required - {'demanding_implementation'}:
+        raise FrameworkError('Invalid role policy sections')
+    for name, entry in policy.items():
+        if not isinstance(entry, dict) or set(entry) != {'model', 'reasoning_effort'} or not all(isinstance(v, str) and v for v in entry.values()):
+            raise FrameworkError(f'Invalid role policy: {name}')
+    compatibility(policy, roles, models)
+    if policy_name not in manifest['files']:
+        raise FrameworkError('Policy is not managed by this installation')
+    operations = {policy_name: policy_bytes}
+    expected = {STATE: digest(manifest_bytes), policy_name: digest(policy_bytes)}
+    for name, role in roles.items():
+        path_name = f'.codex/agents/delivery-{name}.toml'
+        path = safe(target, path_name)
+        agent_bytes = path.read_bytes()
+        if digest(agent_bytes) != manifest['files'].get(path_name):
+            raise FrameworkError(f'Modified managed file: {path_name}')
+        fields = tomllib.loads(agent_bytes.decode())
+        fields['model'] = policy[role['policy']]['model']
+        fields['model_reasoning_effort'] = policy[role['policy']]['reasoning_effort']
+        operations[path_name] = ('\n'.join(f'{key} = {json.dumps(value, ensure_ascii=False)}' for key, value in fields.items())+'\n').encode()
+        expected[path_name] = digest(agent_bytes)
+    manifest['files'].update({name: digest(content) for name, content in operations.items()})
+    operations[STATE] = json.dumps(manifest, indent=2).encode()
+    transaction(target, operations, expected)
+    return {'action': 'sync-models', 'state': 'installed', 'models': policy,
+            'activation': 'Restart Codex to load the updated role files.'}
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['install','upgrade','recover','status','uninstall','validate','select-models','apply-models'])
+    parser.add_argument('command', choices=['install','upgrade','recover','status','uninstall','validate','select-models','apply-models','sync-models'])
     parser.add_argument('--target', type=Path, default=Path.cwd())
     parser.add_argument('--home', type=Path, default=Path.home())
     parser.add_argument('--global', dest='global_mode', action='store_true')
@@ -954,19 +996,21 @@ def main(argv=None):
             raise FrameworkError('--offline is allowed only for static validate')
         if args.dry_run and args.command not in ('install','upgrade','uninstall'):
             raise FrameworkError('--dry-run applies only to install/upgrade/uninstall')
-        if args.command in ('install','upgrade','validate','select-models','apply-models'):
+        if args.command in ('install','upgrade','validate','select-models','apply-models','sync-models'):
             _, _, policy, roles = payload()
             if not args.offline:
                 version, models = probe(args.codex)
                 if args.command == 'validate':
                     installed = safe(target, '.codex/delivery-framework/model-policy.toml')
                     compatibility(tomllib.loads(installed.read_text()) if installed.is_file() else policy, roles, models)
-            if args.command in ('select-models','apply-models'):
+            if args.command in ('select-models','apply-models','sync-models'):
                 installed_manifest = read_manifest(target)
                 scope = 'global' if args.global_mode else 'project'
                 if not installed_manifest or installed_manifest.get('scope') != scope:
                     raise FrameworkError('Installation scope does not match target')
-            if args.command == 'select-models':
+            if args.command == 'sync-models':
+                result = sync_models(target, roles, models)
+            elif args.command == 'select-models':
                 if args.dry_run: raise FrameworkError('select-models does not use --dry-run')
                 installed = safe(target, '.codex/delivery-framework/model-policy.toml')
                 if not read_manifest(target) or not installed.is_file(): raise FrameworkError('No installed model policy')

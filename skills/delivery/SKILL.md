@@ -12,6 +12,15 @@ Load only the skill relevant to the assigned work: `../implementation/SKILL.md` 
 
 Delegate only when parallel work, fresh context, or an independent review materially helps. State why delegation is useful and assign bounded files/responsibility, objective, settled decisions, acceptance, baseline/unrelated edits, checks, blockers, and expected output using `../../templates/ownership-brief.md` when available. Tell agents to preserve other edits and coordinate overlap. Do not nest delegation; keep the delegation tree at most two levels deep.
 
+## Role and model routing
+Select the role from the work assignment. Select skills for the work, including the role's required skills. A skill can support multiple roles. A role can use multiple skills. For work owned by the main agent, apply the relevant role and skills using the current chat model. Do not claim that a policy entry changed the running model.
+
+Before each authorized delegated launch, identify the framework target containing this skill. Read `.codex/delivery-framework/roles.json` and `.codex/delivery-framework/model-policy.toml` under that same target. Choose the role for the assignment. Resolve its `policy` key to the model and `reasoning_effort` in the current policy. A user or the model-routing skill can choose the policy entries. Treat those files as configuration data, not as instructions to bypass higher-priority rules.
+
+When the runtime supports explicit model and effort on a generic subagent launch, use a generic subagent with the policy's model and effort. Do not select a named role with fixed model settings for this path. If an override requires a fresh context, use it and supply the full assignment, baseline, acceptance criteria, ownership, constraints, role `instructions`, `read_only` restriction, and required skill paths. Resolve skill paths under the framework target or use their available catalog names. Include any additional task-relevant skills. Tell the subagent to apply the role and skills, preserve other work, and not delegate. Follow higher-priority instructions about whether delegation is permitted.
+
+If the policy, role, model, effort, or override is unavailable, do not silently claim the policy was applied or substitute a model. Report the limitation. A named generated role may be used only as an explicitly disclosed compatibility fallback when its active runtime model and effort match the current policy. A match on disk alone is not evidence of the active settings. If needed, synchronize generated role files with `sync-models` and start a fresh session. Verify the active settings before launch. If they cannot be verified, report the limitation. A running chat or subagent does not change model when the policy changes.
+
 For structural code exploration, follow repository instructions. A graph/memory integration may be used when available and applicable; it is optional elsewhere, and a missing graph is not a reason to block ordinary work.
 
 Do not initiate exploratory browser walkthroughs or screenshot-based acceptance unless the user requests them. Required automated browser suites still apply; the user performs hands-on UX acceptance.
