@@ -381,7 +381,9 @@ def welcome(roles, policy):
             'activation':'Restart Codex and trust the project if applicable. Skill discovery and MCP activation require a fresh-session check.'}
 
 def payload(root=ROOT, selected_policy=None):
-    roles = json.loads((root/'roles.json').read_text())
+    registry = json.loads((root/'roles.json').read_text())
+    roles = registry['roles']
+    shared_instructions = ' '.join(registry['defaults']['instructions'])
     policy = selected_policy if selected_policy is not None else tomllib.loads((root/'model-policy.toml').read_text())
     inventory = dependency_inventory(root)
     files = {}
@@ -417,7 +419,7 @@ def payload(root=ROOT, selected_policy=None):
         for skill in role['skills']:
             if f'.agents/skills/code-delivery-framework/{skill}/SKILL.md' not in files:
                 raise FrameworkError(f'Missing required skill: {skill}')
-        instruction = (root/'codex/agents'/f'{name}.txt').read_text()
+        instruction = role['description'] + '\n' + shared_instructions + '\n'
         runtime_roles[name] = dict(role, instructions=instruction.strip())
         instruction += '\nRead these required skills before work: '+', '.join(f'.agents/skills/code-delivery-framework/{s}/SKILL.md' for s in role['skills'])+'.\nDo not spawn subagents. Return evidence to the primary dispatcher.'
         if inventory:

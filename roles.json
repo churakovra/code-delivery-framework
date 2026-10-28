@@ -1,60 +1,73 @@
 {
-  "planner": {
-    "policy": "planner",
-    "skills": [
-      "planning",
-      "decision-interview"
-    ],
-    "read_only": true,
-    "description": "Resolve scope and contracts into an actionable plan."
+  "defaults": {
+    "instructions": [
+      "Own only assigned files and responsibilities.",
+      "Preserve unrelated edits; you share the codebase.",
+      "Read affected sources, callers, tests and project instructions before changing files.",
+      "Use graph-first structural discovery with coverage checks and source fallback.",
+      "Return inspected files, exact commands/results, evidence limitations and concrete findings.",
+      "Never stage, commit, create PRs, merge, deploy or change branches without explicit user authorization.",
+      "After two failed repairs of the same requirement, stop and request independent diagnosis."
+    ]
   },
-  "implementation": {
-    "policy": "implementer",
-    "skills": [
-      "implementation"
-    ],
-    "read_only": false,
-    "description": "Implement approved bounded behavior and meaningful automated coverage."
-  },
-  "designer": {
-    "policy": "exceptional_design",
-    "skills": [
-      "interface-design",
-      "frontend-development"
-    ],
-    "read_only": false,
-    "description": "Resolve consequential interface design and implement approved design artifacts."
-  },
-  "qa": {
-    "policy": "qa",
-    "skills": [
-      "verification"
-    ],
-    "read_only": true,
-    "description": "Independently map acceptance to current automated evidence and limitations."
-  },
-  "reviewer": {
-    "policy": "reviewer",
-    "skills": [
-      "code-review"
-    ],
-    "read_only": true,
-    "description": "Independently inspect the complete actual diff, callers, failure paths and checks."
-  },
-  "documentation": {
-    "policy": "documentation",
-    "skills": [
-      "documentation"
-    ],
-    "read_only": false,
-    "description": "Own current documentation aligned with delivered behavior."
-  },
-  "diagnosis": {
-    "policy": "exceptional_diagnosis",
-    "skills": [
-      "debugging"
-    ],
-    "read_only": true,
-    "description": "Independently diagnose repeated failures before more implementation."
+  "roles": {
+    "planner": {
+      "policy": "planner",
+      "skills": [
+        "planning",
+        "decision-interview"
+      ],
+      "read_only": true,
+      "description": "Resolve scope and contracts into an actionable plan."
+    },
+    "implementation": {
+      "policy": "implementer",
+      "skills": [
+        "implementation"
+      ],
+      "read_only": false,
+      "description": "Implement approved bounded behavior and meaningful automated coverage."
+    },
+    "designer": {
+      "policy": "exceptional_design",
+      "skills": [
+        "interface-design",
+        "frontend-development"
+      ],
+      "read_only": false,
+      "description": "Resolve consequential interface design and implement approved design artifacts."
+    },
+    "qa": {
+      "policy": "qa",
+      "skills": [
+        "verification"
+      ],
+      "read_only": true,
+      "description": "Independently map acceptance to current automated evidence and limitations."
+    },
+    "reviewer": {
+      "policy": "reviewer",
+      "skills": [
+        "code-review"
+      ],
+      "read_only": true,
+      "description": "Independently inspect the complete actual diff, callers, failure paths and checks."
+    },
+    "documentation": {
+      "policy": "documentation",
+      "skills": [
+        "documentation"
+      ],
+      "read_only": false,
+      "description": "Own current documentation aligned with delivered behavior."
+    },
+    "diagnosis": {
+      "policy": "exceptional_diagnosis",
+      "skills": [
+        "debugging"
+      ],
+      "read_only": true,
+      "description": "Independently diagnose repeated failures before more implementation."
+    }
   }
 }

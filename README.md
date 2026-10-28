@@ -23,6 +23,8 @@ A non-dry-run installation invokes Codex with the model-routing skill and live w
 
 The framework selects an abstract role for each assignment. The role registry at `.codex/delivery-framework/roles.json` maps roles to required skills, role briefs, and policy keys. The installed `.codex/delivery-framework/model-policy.toml` maps those keys to models and reasoning efforts. Users or the model-routing skill can choose policy entries. Skills and roles are not one-to-one: select additional skills for the task as needed.
 
+The source `roles.json` contains role definitions and shared default instructions. The installer combines each role description with those instructions. Installed role instructions remain self-contained.
+
 For delegated work, the delivery skill instructs the main agent to read the current registry and policy at launch. Where the runtime supports explicit model and effort overrides, it requests a generic subagent with those settings and supplies the role brief. Runtime support and agent compliance need a fresh-session check; an instruction does not guarantee execution. Fixed named roles remain a compatibility fallback. They cannot read policy changes at launch. If used, the active runtime settings must match the policy. A match on disk alone does not establish the active settings. After editing the policy, run `sync-models` to update these generated files, then restart Codex and verify the active role settings:
 
 ```sh
