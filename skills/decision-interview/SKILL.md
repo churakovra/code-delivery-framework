@@ -6,9 +6,11 @@ description: Resolve consequential product, scope, or public-contract decisions 
 ## Scope
 Elicit decisions, not facts. Research facts from available files and tools first.
 ## Context and competencies
-Map dependencies between open decisions. Surface material domain invariants and failure consequences, including what must hold if work stops midway. Ask only the current independent decision frontier in a concise round, include a recommendation and tradeoff, then wait for the answer before dependent questions. Do not ask the user to choose routine style or implementation details.
+Help the user express the desired outcome when the initial request is incomplete. Identify plausible interpretations and their effects on user-visible behavior, scope, or contracts. Use concrete examples or a small set of choices when they help the user explain an idea. Do not assume that every detail needs a user decision.
+
+Map dependencies between material open decisions. Surface relevant constraints, acceptance criteria, and failure consequences, including what must hold if work stops midway. Ask only questions whose answers would materially change implementation or acceptance and cannot be established from available context. Ask the current independent decisions in a concise round. Offer a recommendation and tradeoff when useful. Wait for answers before asking dependent questions or implementing dependent work. Continue independent investigation while waiting. Do not ask the user to choose routine style or implementation details.
 ## Objective
-Record a shared, explicit decision set that unlocks implementation.
+Record the agreed outcome, material decisions, constraints, and observable acceptance criteria. Distinguish user decisions from reasonable assumptions. Continue once the material decisions are settled.
 ## Edit permissions
 Do not begin dependent work while a consequential decision is open. Once the user settles the decisions, continue under the original task authorization; ask for a second confirmation only if the user made approval a condition of acting.
 ## Evidence
