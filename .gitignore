@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+.DS_Store
+.pytest_cache/
+.coverage
+build/
+dist/
+*.egg-info/
+# Local, opt-in model evaluations, including prompts, results, and traces.
+/evaluations/

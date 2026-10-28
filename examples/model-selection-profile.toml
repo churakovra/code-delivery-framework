@@ -1,0 +1,12 @@
+# Copy and edit this file. Values are examples, not account facts.
+[environment]
+product = "Codex"
+plan = "Plus"
+
+[priorities]
+primary = "minimize usage per successful task while meeting quality requirements"
+workload = "Describe your typical work here"
+
+[preferences]
+# Add preferred models or effort settings for any roles when useful.
+# planner = "Example: model and effort, with escalation conditions"

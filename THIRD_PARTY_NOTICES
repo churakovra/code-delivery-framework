@@ -1,0 +1,12 @@
+This repository contains original, concise task guidance. It does not bundle or reproduce third-party skill text, executable code, or rule libraries. Upstream repositories, exact inspected revisions, and known license information are documented in sources.json. Separately fetched dependencies are governed by their own terms; installation must retain the applicable upstream license and attribution files with each downloaded package. Consult the dependency inventory and installed status for actual installation state.
+
+Additional research references for concise original guidance:
+- anomalyco/opencode AGENTS.md at fa1260d6ca484fe0fd868aa992ad81ab85343cf3 is MIT-licensed at that revision. No text is reproduced.
+- unclebob/ub-mode SKILL.md and README.md at 57a8bdd28e45ed41900ace0bafa2ff76dd9ed70f have no declared repository license in the inspected metadata/tree. They were inspected as research only; no text or tools are redistributed.
+See sources.json for pinned URLs and the specific guidance areas informed by this research.
+
+Model-routing research references the OpenAI model catalog and Work/Codex usage documentation, plus Artificial Analysis benchmark methodology. No third-party text, code, or model data is bundled; consult sources.json for the inspected URLs and dates.
+
+At the inspected Vercel agent-skills revision 1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62, the React skill's metadata declares MIT; no repository license file was found. The Web Design Guidelines skill did not declare a license and no repository license file was found. Do not represent the latter as MIT without further evidence. No Vercel skill or rule text is reproduced here.
+
+The ASD-STE100 skill at 8da6b6340aa22faf46fd07db8efbdea010cd38d9 is MIT-licensed. It informed original communication guidance; no text or tools are reproduced.

@@ -1,0 +1,48 @@
+# Editable inputs for model-routing recommendations. Update these preferences as
+# your roles, runtime, or priorities change. The skill should research live model
+# facts when run; do not pin transient rankings or pricing here.
+
+[environment]
+provider = "OpenAI"
+product = "Codex"
+plan = "Plus"
+authentication = "ChatGPT subscription"
+usage_window = "5-hour window plus any weekly allowance shown in account settings"
+checked_on = "2026-10-28"
+
+[priorities]
+primary = "maximize useful task quality per included usage allowance"
+secondary = "keep enough allowance for more work throughout the 5-hour window"
+api_billing = false
+prefer_evidence_from_own_tasks = true
+
+# Keep role IDs aligned to the role names used by your agent configuration.
+# The aliases below reflect the supplied conversation: developer means implementer.
+[roles.planner]
+responsibilities = ["scope and task decomposition", "identify risks and acceptance criteria"]
+stakes = "medium"
+frequency = "often"
+
+[roles.implementer]
+aliases = ["developer"]
+responsibilities = ["implement scoped code changes", "repair focused failures"]
+stakes = "high"
+frequency = "often"
+
+[roles.qa]
+responsibilities = ["map acceptance criteria to evidence", "run or assess focused checks"]
+stakes = "medium"
+frequency = "often"
+
+[roles.reviewer]
+responsibilities = ["independently inspect diffs and failure paths"]
+stakes = "high"
+frequency = "sometimes"
+
+[constraints]
+available_models = [] # Empty means discover the current selectable catalog.
+available_efforts = [] # Empty means discover supported settings per model.
+exclude_models = []
+allow_escalation_tiers = true
+max_default_effort = "medium"
+notes = "Past choices in the supplied discussion are context, not binding assignments."

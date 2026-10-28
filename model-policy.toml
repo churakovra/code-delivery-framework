@@ -1,0 +1,25 @@
+# Single model policy for delegated delivery. Role instructions contain no model overrides.
+# Resolve the selected entry when spawning; unavailable models/efforts are blockers,
+# never silently substitute. Use a context-free fork when the runtime requires it
+# for explicit model/effort overrides, and pass the complete task brief.
+[documentation]
+model = "gpt-6-luna"
+reasoning_effort = "low"
+[qa]
+model = "gpt-6-luna"
+reasoning_effort = "medium"
+[implementer]
+model = "gpt-6-luna"
+reasoning_effort = "high"
+[planner]
+model = "gpt-6.1-sol"
+reasoning_effort = "low"
+[reviewer]
+model = "gpt-6.1-terra"
+reasoning_effort = "medium"
+[exceptional_diagnosis]
+model = "gpt-6.1-sol"
+reasoning_effort = "medium"
+[exceptional_design]
+model = "gpt-6.1-sol"
+reasoning_effort = "high"
