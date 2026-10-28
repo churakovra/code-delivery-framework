@@ -231,6 +231,28 @@ class DependencyInstallerTests(InstallerTests):
     def enable(self):
         (self.root/'subskills.json').write_text(json.dumps(self.inventory))
         return patch.object(f,'fetch_dependencies',return_value=(dict(self.package),dict(self.versions)))
+    @unittest.skipIf(__import__('os').name == 'nt', 'Unix executable permissions')
+    def test_install_refuses_nonexecutable_identical_user_binary(self):
+        binary = self.target/'.codex/delivery-framework/bin'/self.binary_name
+        binary.parent.mkdir(parents=True)
+        binary.write_bytes(self.binary)
+        binary.chmod(0o644)
+        with self.enable(), self.assertRaisesRegex(f.FrameworkError, 'not executable'):
+            self.install()
+        self.assertEqual(binary.read_bytes(), self.binary)
+        self.assertFalse((self.target/f.STATE).exists())
+
+    @unittest.skipIf(__import__('os').name == 'nt', 'Unix executable permissions')
+    def test_status_detects_reused_binary_losing_executable_permission(self):
+        binary = self.target/'.codex/delivery-framework/bin'/self.binary_name
+        binary.parent.mkdir(parents=True)
+        binary.write_bytes(self.binary)
+        binary.chmod(0o755)
+        with self.enable(): self.install()
+        binary.chmod(0o644)
+        name = str(binary.relative_to(self.target))
+        self.assertEqual(f.status(self.target)['reused'][name], 'not-executable')
+
     def test_upgrade_moves_legacy_framework_skill_and_keeps_subskills(self):
         real_payload = f.payload
         def legacy_payload(root):
@@ -453,6 +475,22 @@ class DependencyInstallerTests(InstallerTests):
         (directory/'.delivery-partial').write_bytes(b'partial')
         self.assertEqual(f.recover(self.target)['state'],'recovered')
         self.assertFalse(directory.exists())
+
+    def test_transaction_preserves_edit_during_snapshot_read(self):
+        path = self.target/'user.txt'
+        path.write_bytes(b'original')
+        original_read = Path.read_bytes
+        changed = False
+        def read_and_edit(current):
+            nonlocal changed
+            data = original_read(current)
+            if current == path and not changed:
+                changed = True
+                path.write_bytes(b'concurrent edit')
+            return data
+        with patch.object(Path, 'read_bytes', read_and_edit), self.assertRaises(f.FrameworkError):
+            f.transaction(self.target, {'user.txt': b'replacement'}, {'user.txt': f.digest(b'original')})
+        self.assertEqual(path.read_bytes(), b'concurrent edit')
 
     def test_concurrent_edit_between_preflight_and_transaction_is_preserved(self):
         agents=self.target/'AGENTS.md'; agents.write_text('original instructions\n')
