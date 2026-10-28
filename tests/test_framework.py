@@ -42,10 +42,8 @@ class InstallerTests(unittest.TestCase):
         (self.root/'skills/model-routing/SKILL.md').write_text('---\nname: model-routing\ndescription: routing\n---\n')
         (self.root/'templates').mkdir()
         (self.root/'templates/AGENTS.md').write_text('Managed instructions\n')
-        (self.root/'codex/agents').mkdir(parents=True)
-        (self.root/'codex/agents/qa.txt').write_text('Inspect evidence.')
         (self.root/'model-policy.toml').write_text('[qa]\nmodel="test-model"\nreasoning_effort="low"\n')
-        (self.root/'roles.json').write_text(json.dumps({'qa':{'policy':'qa','skills':['test'],'read_only':True,'description':'QA'}}))
+        (self.root/'roles.json').write_text(json.dumps({'defaults':{'instructions':['Preserve other work.']},'roles':{'qa':{'policy':'qa','skills':['test'],'read_only':True,'description':'Inspect evidence.'}}}))
     def install(self, dry=False):
         return f.install(self.target,dry,self.root)
     def test_install_exposes_role_guidance_for_runtime_policy_routing(self):
@@ -54,7 +52,9 @@ class InstallerTests(unittest.TestCase):
         roles = json.loads(role_path.read_text())
         self.assertEqual(roles['qa']['policy'], 'qa')
         self.assertEqual(roles['qa']['skills'], ['test'])
-        self.assertEqual(roles['qa']['instructions'], 'Inspect evidence.')
+        self.assertEqual(roles['qa']['instructions'], 'Inspect evidence.\nPreserve other work.')
+        agent = __import__('tomllib').loads((self.target/'.codex/agents/delivery-qa.toml').read_text())
+        self.assertIn('Inspect evidence.\nPreserve other work.', agent['developer_instructions'])
         self.assertTrue(roles['qa']['read_only'])
         self.assertEqual(set(f.status(self.target)['files'].values()), {'clean'})
 

@@ -6,6 +6,8 @@ For every user-facing response and agent handoff, read and apply the installed `
 
 Preserve the user's scope and existing work. Do not stage, commit, open pull requests, merge, publish, release, deploy, or change branches without explicit authorization. Follow repository instructions and required checks.
 
+When the user requests a new branch, name it `feature/simple-description`, `fix/simple-description`, `chore/simple-description`, or `test/simple-description`. When the user requests commits, use `feature: message`, `fix: message`, `chore: message`, or `test: message`. An optional scope may follow the type, as in `fix(parser): message`. Group changes into logical commits. Do not combine unrelated changes in one commit or create a separate commit for each file by default. Honor a user-specified name or format.
+
 For each task, capture the baseline, requirements, ownership, and observable acceptance criteria. Inspect the complete task diff and relevant callers or failure paths. Keep edits within assigned files and coordinate overlapping ownership.
 
 Use one main agent loop for low or ordinary work. Ordinary implementation includes focused checks and self-review. Independent review is required for high-risk work such as authentication, permissions, money, persistent-data integrity, migrations, shared contracts, concurrency, or broad lifecycle changes; include relevant integration or compatibility evidence. QA may separately map acceptance criteria to checks when useful. Planning, design, and delegation are optional when complexity justifies them. Do not nest delegation: only the primary agent may assign agents, keeping the tree at two levels maximum. Give each agent a bounded ownership brief.
