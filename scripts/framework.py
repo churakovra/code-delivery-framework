@@ -41,11 +41,44 @@ CBM_ARCHIVES = {
     ('windows', 'arm64'): ('windows-arm64', '934ab6bd67a76c6ebd9e110d87b7090ffd629919bedaeddabe5a19175038b063'),
 }
 
-class FrameworkError(Exception):
-    pass
+# Keep the CLI usable from any working directory and when loaded by path in tests.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from framework_identity import FrameworkError, version_key, source_identity, check_upgrade_version
+from framework_identity import framework_version as _framework_version
 
 def digest(data):
     return hashlib.sha256(data).hexdigest()
+
+def framework_version(root=ROOT):
+    if root != ROOT and not (root/'pyproject.toml').is_file():
+        return None  # Legacy test bundles have no release metadata.
+    return _framework_version(root)
+
+def bundled_skill_conflicts(target, files, old_owned):
+    """Find duplicate names using only the bundled payload and local files."""
+    incoming = {}
+    conflicts = []
+    for name, content in files.items():
+        if not name.endswith('/SKILL.md'):
+            continue
+        match = re.search(rb'^name:\s*["\']?([^\r\n"\']+)', content, re.MULTILINE)
+        if not match:
+            conflicts.append(name + ': missing skill name')
+            continue
+        skill = match.group(1).strip()
+        if skill in incoming:
+            conflicts.append(name + ': duplicate incoming skill name')
+        incoming[skill] = name
+    for root in (target/'.agents/skills', target/'.codex/skills'):
+        if not root.exists():
+            continue
+        for entry in root.rglob('SKILL.md'):
+            existing = str(entry.relative_to(target))
+            safe(target, existing)
+            match = re.search(rb'^name:\s*["\']?([^\r\n"\']+)', entry.read_bytes(), re.MULTILINE)
+            if match and match.group(1).strip() in incoming and existing != incoming[match.group(1).strip()] and existing not in old_owned:
+                conflicts.append(existing + ': duplicate installed skill name')
+    return conflicts
 
 def safe(root, relative):
     rel = Path(relative)
@@ -105,162 +138,20 @@ def dependency_inventory(root=ROOT):
     return data
 
 def git_package(spec, dest, scratch):
-    """Read exact pinned Git blobs without placing third-party text in the repository."""
-    source = spec['path'].strip('/')
-    if '..' in Path(source).parts or (source != '.' and not source.startswith('skills/')):
-        raise FrameworkError('Unsafe upstream skill path')
-    git = ['git', '-C', str(scratch)]
-    try:
-        subprocess.run(['git', 'init', '-q', str(scratch)], check=True, capture_output=True, timeout=30)
-        subprocess.run(git+['fetch', '-q', '--depth=1', spec['repository'], spec['revision']], check=True, capture_output=True, timeout=180)
-        got = subprocess.run(git+['rev-parse', 'FETCH_HEAD'], check=True, capture_output=True, text=True, timeout=10).stdout.strip()
-        if got != spec['revision']:
-            raise FrameworkError('Pinned source revision mismatch')
-        listing = subprocess.run(git+['ls-tree', '-rz', '--full-tree', got] + ([] if source == '.' else ['--', source]), check=True, capture_output=True, timeout=30).stdout
-        files = {}
-        for record in listing.split(b'\0'):
-            if not record:
-                continue
-            meta, raw_path = record.split(b'\t', 1)
-            mode, kind, obj = meta.decode().split()
-            path = raw_path.decode('utf-8')
-            if mode not in ('100644', '100755') or kind != 'blob' or (source != '.' and not path.startswith(source+'/')):
-                raise FrameworkError(f'Unsafe upstream file: {path}')
-            relative = str(Path(dest)/(path if source == '.' else path[len(source)+1:]))
-            if '..' in Path(relative).parts:
-                raise FrameworkError(f'Unsafe upstream path: {path}')
-            files[relative] = subprocess.run(git+['cat-file', 'blob', obj], check=True, capture_output=True, timeout=30).stdout
-        if f'{dest}/SKILL.md' not in files:
-            raise FrameworkError(f'Missing upstream skill: {source}')
-        # Keep the source's repository-wide license alongside the installed
-        # package; package-local license files are already included above.
-        license_listing = subprocess.run(git+['ls-tree', '-z', got, '--', 'LICENSE'], check=True, capture_output=True, timeout=10).stdout
-        if license_listing:
-            record = license_listing.rstrip(b'\0').split(b'\t', 1)
-            mode, kind, obj = record[0].decode().split()
-            if mode != '100644' or kind != 'blob' or record[1] != b'LICENSE':
-                raise FrameworkError('Unsafe upstream license')
-            files[f'{dest}/UPSTREAM_LICENSE'] = subprocess.run(git+['cat-file', 'blob', obj], check=True, capture_output=True, timeout=10).stdout
-        return files
-    except (OSError, subprocess.SubprocessError) as exc:
-        raise FrameworkError(f'Unable to fetch {spec["repository"]} at {spec["revision"]}: {exc}') from exc
+    from framework_dependencies import git_package as implementation
+    return implementation(spec, dest, scratch, api=globals())
 
 def fetch_dependencies(inventory):
-    """Fetch all required packages before changing the installation target."""
-    if not inventory:
-        return {}, {}
-    files, versions = {}, {}
-    # Unix domain socket paths are short on macOS; avoid a long TMPDIR prefix.
-    temporary_base = '/tmp' if os.name != 'nt' and Path('/tmp').is_dir() else None
-    with tempfile.TemporaryDirectory(prefix='cdf-', dir=temporary_base) as temporary:
-        scratch = Path(temporary)
-        for index, (name, spec) in enumerate(inventory['subskills'].items()):
-            if spec['kind'] == 'skill':
-                package = git_package(spec, f'.agents/skills/{name}', scratch/f'git-{index}')
-                files.update(package)
-            elif spec['kind'] == 'mcp-integration' and name == 'codebase-memory':
-                files.update(fetch_codebase_memory(spec, scratch/'cbm'))
-            else:
-                raise FrameworkError(f'Unsupported required dependency: {name}')
-            versions[name] = {'revision': spec['revision'], 'kind': spec['kind'], 'license': spec.get('license', 'unverified')}
-            if 'release' in spec: versions[name]['release'] = spec['release']
-    return files, versions
+    from framework_dependencies import fetch_dependencies as implementation
+    return implementation(inventory, api=globals())
 
 def fetch_codebase_memory(spec, scratch):
-    system, machine = platform.system().lower(), platform.machine().lower()
-    if system == 'windows' and machine == 'x86_64': machine = 'amd64'
-    key = (system, machine)
-    if key not in CBM_ARCHIVES or spec.get('release') != 'v0.12.1':
-        raise FrameworkError(f'No verified Codebase Memory release for {system}/{machine}')
-    label, expected = CBM_ARCHIVES[key]
-    suffix = '.zip' if system == 'windows' else '.tar.gz'
-    url = f'https://github.com/DeusData/codebase-memory-mcp/releases/download/{spec["release"]}/codebase-memory-mcp-{label}{suffix}'
-    try:
-        with urllib.request.urlopen(url, timeout=120) as response:
-            archive = response.read(600_000_001)
-        if len(archive) > 600_000_000 or digest(archive) != expected:
-            raise FrameworkError('Codebase Memory archive checksum mismatch')
-        binary_name = 'codebase-memory-mcp.exe' if system == 'windows' else 'codebase-memory-mcp'
-        notices = {}
-        if system == 'windows':
-            with zipfile.ZipFile(io.BytesIO(archive)) as zipped:
-                candidates = [x for x in zipped.infolist() if x.filename == binary_name and x.file_size <= 400_000_000]
-                if len(candidates) != 1: raise FrameworkError('Invalid Codebase Memory archive')
-                binary = zipped.read(candidates[0])
-                for name in ('LICENSE', 'THIRD_PARTY_NOTICES.md'):
-                    if name not in zipped.namelist(): raise FrameworkError(f'Missing Codebase Memory {name}')
-                    notices[f'.codex/delivery-framework/licenses/codebase-memory/{name}'] = zipped.read(name)
-        else:
-            with tarfile.open(fileobj=io.BytesIO(archive), mode='r:gz') as tar:
-                candidates = [x for x in tar.getmembers() if x.name in (binary_name, './'+binary_name) and x.isfile() and x.size <= 400_000_000]
-                if len(candidates) != 1: raise FrameworkError('Invalid Codebase Memory archive')
-                binary = tar.extractfile(candidates[0]).read()
-                for name in ('LICENSE', 'THIRD_PARTY_NOTICES.md'):
-                    items = [x for x in tar.getmembers() if x.name in (name, './'+name) and x.isfile() and x.size <= 1_000_000]
-                    if len(items) != 1: raise FrameworkError(f'Missing Codebase Memory {name}')
-                    notices[f'.codex/delivery-framework/licenses/codebase-memory/{name}'] = tar.extractfile(items[0]).read()
-        scratch.mkdir(parents=True)
-        executable = scratch/binary_name
-        executable.write_bytes(binary); executable.chmod(0o755)
-        # The upstream binary supplies its exact versioned skill. Run its setup in an
-        # isolated temporary home and copy only the skill; never its config or hooks.
-        home = scratch/'home'; (home/'.codex').mkdir(parents=True)
-        runtime_dir = scratch/'r'; runtime_dir.mkdir(mode=0o700)
-        env = dict(os.environ, HOME=str(home), USERPROFILE=str(home), CODEX_HOME=str(home/'.codex'), XDG_CACHE_HOME=str(home/'.cache'), CBM_CACHE_DIR=str(home/'.cache/cbm'), CBM_RUNTIME_DIR=str(runtime_dir))
-        version = subprocess.run([str(executable), '--version'], env=env, check=True, capture_output=True, text=True, timeout=10).stdout.strip()
-        if version != 'codebase-memory-mcp '+spec['release'].lstrip('v'):
-            raise FrameworkError(f'Codebase Memory version mismatch: {version}')
-        verify_mcp(executable, env)
-        subprocess.run([str(executable), 'install', '--clients=codex', '-y', '--dir='+str(home/'.local/bin')], env=env, check=True, capture_output=True, timeout=180)
-        skill = home/'.codex/skills/codebase-memory'
-        result = {f'.codex/delivery-framework/bin/{binary_name}': binary, **notices}
-        for item in skill.rglob('*'):
-            if item.is_symlink(): raise FrameworkError('Unsafe Codebase Memory skill symlink')
-            if item.is_file(): result[str(Path('.agents/skills/codebase-memory')/item.relative_to(skill))] = item.read_bytes()
-        if '.agents/skills/codebase-memory/SKILL.md' not in result:
-            raise FrameworkError('Codebase Memory skill was not provided by its installer')
-        return result
-    except (OSError, ValueError, tarfile.TarError, zipfile.BadZipFile, subprocess.SubprocessError) as exc:
-        raise FrameworkError(f'Unable to prepare Codebase Memory: {exc}') from exc
+    from framework_dependencies import fetch_codebase_memory as implementation
+    return implementation(spec, scratch, api=globals())
 
 def verify_mcp(executable, env):
-    """Check a staged MCP server actually initializes and advertises graph tools."""
-    messages = queue.Queue()
-    with tempfile.TemporaryFile() as errors:
-        process = subprocess.Popen([str(executable)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=errors, env=env)
-        def reader():
-            try:
-                for line in process.stdout:
-                    if len(line) > 8_000_000: break
-                    messages.put(line)
-            finally:
-                messages.put(None)
-        thread = threading.Thread(target=reader, daemon=True); thread.start()
-        def call(number, method, params):
-            process.stdin.write((json.dumps({'jsonrpc':'2.0','id':number,'method':method,'params':params})+'\n').encode())
-            process.stdin.flush()
-            deadline = time.monotonic()+30
-            while time.monotonic() < deadline:
-                try: line = messages.get(timeout=max(0.01, deadline-time.monotonic()))
-                except queue.Empty: break
-                if line is None: break
-                response = json.loads(line)
-                if response.get('id') == number:
-                    if 'error' in response: raise FrameworkError(f'MCP rejected {method}')
-                    return response['result']
-            raise FrameworkError(f'MCP capability check failed: {method}')
-        try:
-            call(1, 'initialize', {'protocolVersion':'2024-11-05','capabilities':{},'clientInfo':{'name':'delivery-framework','version':'1'}})
-            process.stdin.write(b'{"jsonrpc":"2.0","method":"notifications/initialized"}\n'); process.stdin.flush()
-            result = call(2, 'tools/list', {})
-            names = {tool['name'] for tool in result.get('tools', [])}
-            if not {'index_repository','search_graph','check_index_coverage'}.issubset(names):
-                raise FrameworkError('Codebase Memory is missing required graph tools')
-        finally:
-            process.terminate()
-            try: process.wait(timeout=3)
-            except subprocess.TimeoutExpired: process.kill(); process.wait()
-            process.stdin.close(); process.stdout.close()
+    from framework_dependencies import verify_mcp as implementation
+    return implementation(executable, env, api=globals())
 
 def probe(codex, skill_cwd=None, env=None):
     """Read live runtime/model capabilities; never infer availability from a cache."""
@@ -413,6 +304,11 @@ def selection_report(selection, context):
             'context':context, 'selection':selection['policy'], 'explanation':selection['explanation'],
             'alternatives':selection['alternatives'], 'sources':selection['sources'],
             'limitations':'Sources and model quality are not independently verified; subscription usage is not measured.'}
+
+def provisional_report(policy, supplied):
+    return {'status': 'provisional', 'selection': policy,
+            'origin': 'supplied' if supplied else 'bundled',
+            'explanation': 'No model research or task evaluation was run. Use select-models to research alternatives.'}
 
 def model_proposal(current, proposed, report, target, manifest_hash):
     return {'target':str(target), 'manifest_sha256':manifest_hash, 'current':current, 'proposed':proposed, 'report':report}
@@ -583,7 +479,7 @@ def transaction(target, operations, expected=None):
         raise
     shutil.rmtree(directory)
 
-def install_with_dependencies(target, dry_run=False, root=ROOT, global_mode=False, upgrade=False, selected_policy=None, report=None):
+def install_with_dependencies(target, dry_run=False, root=ROOT, global_mode=False, upgrade=False, selected_policy=None, report=None, deep_preview=False):
     inventory = dependency_inventory(root)
     files, block, _, _ = payload(root) if selected_policy is None else payload(root, selected_policy)
     previous = read_manifest(target)
@@ -603,20 +499,83 @@ def install_with_dependencies(target, dry_run=False, root=ROOT, global_mode=Fals
         raise FrameworkError('Recovery transaction exists; run recover before continuing')
     if previous and previous['state'] != 'installed':
         raise FrameworkError('Existing installation needs recovery before upgrade')
-    if dry_run:
-        return {'action': 'upgrade' if upgrade else 'install', 'dry_run': True,
-                'dependencies': sorted(inventory['subskills']), 'mcp': 'codebase-memory',
-                'note': 'Downloads, conflicts, and runtime activation are not verified by dry run'}
-    dependencies, versions = fetch_dependencies(inventory)
-    files.update(dependencies)
-    watched_names = set(previous['files'] if previous else ()) | set(files) | {'.codex/AGENTS.md' if global_mode else 'AGENTS.md', '.codex/config.toml', STATE}
-    expected = {name: digest(safe(target, name).read_bytes()) if safe(target, name).is_file() else None for name in watched_names}
+    version = framework_version(root)
+    source = source_identity(root)
+    check_upgrade_version(previous, version)
+    if previous and previous.get('scope') and previous['scope'] != ('global' if global_mode else 'project'):
+        raise FrameworkError('Installation scope does not match target')
     if global_mode:
         for relative, content in list(files.items()):
             if relative.startswith('.codex/agents/'):
                 fields = tomllib.loads(content.decode('utf-8'))
                 fields['developer_instructions'] = fields['developer_instructions'].replace('.agents/skills/', str(target/'.agents/skills')+'/')
                 files[relative] = ('\n'.join(f'{key} = {json.dumps(value, ensure_ascii=False)}' for key, value in fields.items())+'\n').encode()
+    if dry_run and not deep_preview:
+        conflicts = []
+        agents_name = '.codex/AGENTS.md' if global_mode else 'AGENTS.md'
+        if not previous:
+            agents_path = safe(target, agents_name)
+            if agents_path.is_file():
+                existing = agents_path.read_bytes()
+                if START in existing or END in existing or any(marker in existing.lower() for marker in (b'delegated delivery workflow', b'agent-model-policy.toml', b'primary agent owns', b'primary chat model acts as dispatcher')):
+                    conflicts.append(agents_name + ': existing workflow requires migration')
+            config_path = safe(target, '.codex/config.toml')
+            if config_path.is_file() and (CONFIG_START in config_path.read_bytes() or CONFIG_END in config_path.read_bytes()):
+                conflicts.append('.codex/config.toml: unowned managed marker')
+        config_path = safe(target, '.codex/config.toml')
+        if config_path.is_file():
+            config = config_path.read_bytes()
+            encoded = (previous or {}).get('config_block')
+            if encoded:
+                old_block = base64.b64decode(encoded, validate=True)
+                if config.count(old_block) == 1:
+                    config = config.replace(old_block, b'', 1)
+                    if CONFIG_START in config or CONFIG_END in config:
+                        conflicts.append('.codex/config.toml: unowned managed marker')
+            try:
+                parsed_config = tomllib.loads(config.decode('utf-8'))
+                entry = parsed_config.get('mcp_servers', {}).get('codebase-memory-mcp')
+                if entry is not None and encoded:
+                    conflicts.append('.codex/config.toml: user-owned MCP entry overlaps managed entry')
+            except (ValueError, UnicodeDecodeError, AttributeError):
+                conflicts.append('.codex/config.toml: invalid configuration')
+        for name, expected_hash in (previous or {}).get('files', {}).items():
+            path = safe(target, name)
+            if name in (agents_name, '.codex/config.toml'):
+                key = 'agents_block' if name == agents_name else 'config_block'
+                encoded = previous.get(key)
+                if encoded and (not path.is_file() or path.read_bytes().count(base64.b64decode(encoded, validate=True)) != 1):
+                    conflicts.append(name + ': managed block modified or missing')
+            elif path.exists() and (not path.is_file() or digest(path.read_bytes()) != expected_hash):
+                conflicts.append(name + ': managed file modified')
+        for name, content in files.items():
+            path = safe(target, name)
+            if name not in (previous or {}).get('files', {}) and path.exists() and (not path.is_file() or path.read_bytes() != content):
+                conflicts.append(name + ': existing file conflict')
+        conflicts.extend(bundled_skill_conflicts(target, files, (previous or {}).get('files', {})))
+        changes = {'add': [], 'update': [], 'remove': [], 'unchanged': []}
+        old_owned = (previous or {}).get('files', {})
+        for name, content in files.items():
+            path = safe(target, name)
+            if not path.exists(): changes['add'].append(name)
+            elif path.is_file() and path.read_bytes() == content: changes['unchanged'].append(name)
+            elif name in old_owned: changes['update'].append(name)
+        for name in old_owned:
+            if name not in files and name not in (agents_name, '.codex/config.toml'):
+                # Dependency files are unavailable until the pinned package is fetched.
+                if name.startswith('.agents/skills/code-delivery-framework/') or name.startswith('.codex/agents/'):
+                    changes['remove'].append(name)
+        return {'action': 'upgrade' if upgrade else 'install', 'dry_run': True,
+                'state': 'blocked' if conflicts else 'incomplete', 'conflicts': conflicts,
+                'installed_version': (previous or {}).get('framework_version'), 'target_version': version,
+                'target_source': source,
+                'bundled_changes': {key: sorted(value) for key, value in changes.items()},
+                'dependencies': sorted(inventory['subskills']), 'mcp': 'codebase-memory',
+                'note': 'Dependency download, dependency skill names, some migration conflicts, and runtime activation are not verified by dry run'}
+    dependencies, versions = fetch_dependencies(inventory)
+    files.update(dependencies)
+    watched_names = set(previous['files'] if previous else ()) | set(files) | {'.codex/AGENTS.md' if global_mode else 'AGENTS.md', '.codex/config.toml', STATE}
+    expected = {name: digest(safe(target, name).read_bytes()) if safe(target, name).is_file() else None for name in watched_names}
     agents_name = '.codex/AGENTS.md' if global_mode else 'AGENTS.md'
     agents_path = safe(target, agents_name)
     old_agents = agents_path.read_bytes() if agents_path.exists() else b''
@@ -712,24 +671,11 @@ def install_with_dependencies(target, dry_run=False, root=ROOT, global_mode=Fals
             expected_prefix = str(target/'.agents/skills'/subskill)+'/' if global_mode else prefix
             fields['developer_instructions'] = fields['developer_instructions'].replace(expected_prefix, str(folder)+'/')
             files[role_name] = ('\n'.join(f'{key} = {json.dumps(value, ensure_ascii=False)}' for key,value in fields.items())+'\n').encode()
-    # Do not create another skill with the same advertised name elsewhere.
-    expected_names = {}
-    for name, content in files.items():
-        if not name.endswith('/SKILL.md'): continue
-        match = re.search(rb'^name:\s*["\']?([^\r\n"\']+)', content, re.MULTILINE)
-        if not match: raise FrameworkError(f'Missing skill name: {name}')
-        skill_name = match.group(1).strip()
-        if skill_name in expected_names: raise FrameworkError(f'Duplicate incoming skill name: {skill_name.decode()}')
-        expected_names[skill_name] = name
-    for root_path in (target/'.agents/skills', target/'.codex/skills'):
-        if not root_path.exists(): continue
-        for entry in root_path.rglob('SKILL.md'):
-            existing = str(entry.relative_to(target)); safe(target, existing)
-            match = re.search(rb'^name:\s*["\']?([^\r\n"\']+)', entry.read_bytes(), re.MULTILINE)
-            if match and match.group(1).strip() in expected_names:
-                incoming = expected_names[match.group(1).strip()]
-                if existing != incoming and existing not in old_owned:
-                    raise FrameworkError(f'Duplicate installed skill name: {existing}')
+    # The preview uses this same check for bundled skills; here it also sees
+    # the fetched dependency payload after reuse has been resolved.
+    skill_conflicts = bundled_skill_conflicts(target, files, old_owned)
+    if skill_conflicts:
+        raise FrameworkError(skill_conflicts[0])
     for name, content in list(files.items()):
         path = safe(target, name)
         if name in (agents_name, config_name): continue
@@ -755,13 +701,33 @@ def install_with_dependencies(target, dry_run=False, root=ROOT, global_mode=Fals
             operations[name] = None
     operations.update(files)
     manifest = {'schema': 2, 'state': 'installed', 'files': {n:digest(v) for n,v in files.items()},
+                'framework_version': version,
+                'source': source,
                 'backups': backups, 'agents_block': base64.b64encode(block).decode(),
                 'config_block': base64.b64encode(config_block).decode(), 'reused': reused,
                 'dependencies': versions, 'external_mcp': external_mcp, 'scope': 'global' if global_mode else 'project',
                 'activation': 'configured; restart Codex, and trust the project if applicable; MCP activity not yet verified'}
     operations[STATE] = json.dumps(manifest, indent=2).encode()
+    if dry_run:
+        changes = {'add': [], 'update': [], 'remove': [], 'unchanged': []}
+        for name, content in operations.items():
+            if name == STATE: continue
+            path = safe(target, name)
+            if content is None:
+                if path.exists(): changes['remove'].append(name)
+            elif not path.exists(): changes['add'].append(name)
+            elif path.is_file() and path.read_bytes() == content: changes['unchanged'].append(name)
+            else: changes['update'].append(name)
+        return {'action': 'upgrade' if upgrade else 'install', 'dry_run': True,
+                'state': 'ready', 'installed_version': (previous or {}).get('framework_version'),
+                'target_version': version, 'target_source': source,
+                'changes': {key: sorted(value) for key, value in changes.items()},
+                'reused': sorted(reused), 'dependencies': versions,
+                'activation': 'not verified; files can change after preview'}
     transaction(target, operations, expected)
     return {'action': 'upgrade' if upgrade else 'install', 'state': 'installed',
+            'framework_version': version,
+            'source': source,
             'dependencies': versions, 'reused': sorted(reused), 'activation': manifest['activation']}
 
 def install(target, dry_run=False, root=ROOT, global_mode=False, selected_policy=None, report=None):
@@ -828,8 +794,15 @@ def status(target):
     manifest = read_manifest(target)
     if not manifest:
         return {'state': 'recovery-required' if transaction_path.exists() else 'absent'}
-    result = {'state': 'recovery-required' if transaction_path.exists() else manifest['state'], 'files': {r: 'missing' if not safe(target,r).exists() else 'clean' if digest(safe(target,r).read_bytes()) == h else 'modified' for r,h in manifest['files'].items()}}
+    result = {'state': 'recovery-required' if transaction_path.exists() else manifest['state'], 'framework_version': manifest.get('framework_version'), 'source': manifest.get('source', {'revision': None, 'dirty': None}), 'scope': manifest.get('scope', 'unknown'), 'files': {r: 'missing' if not safe(target,r).exists() else 'clean' if digest(safe(target,r).read_bytes()) == h else 'modified' for r,h in manifest['files'].items()}}
     if manifest['schema'] == 2:
+        result['managed_blocks'] = {}
+        for name, key in ((('.codex/AGENTS.md' if manifest.get('scope') == 'global' else 'AGENTS.md'), 'agents_block'), ('.codex/config.toml', 'config_block')):
+            encoded = manifest.get(key)
+            if encoded:
+                path = safe(target, name)
+                block = base64.b64decode(encoded, validate=True)
+                result['managed_blocks'][name] = 'clean' if path.is_file() and path.read_bytes().count(block) == 1 else 'modified-or-missing'
         result['dependencies'] = manifest['dependencies']
         result['reused'] = {r: 'missing' if not safe(target,r).exists() else 'clean' if digest(safe(target,r).read_bytes()) == h else 'modified' for r,h in manifest.get('reused', {}).items()}
         result['activation'] = manifest['activation']
@@ -846,6 +819,13 @@ def status(target):
             for name in result[category]:
                 if name.startswith('.codex/delivery-framework/bin/') and result[category][name] == 'clean' and not os.access(safe(target, name), os.X_OK):
                     result[category][name] = 'not-executable'
+    issues = [name for category in ('files', 'reused') for name, state in result.get(category, {}).items() if state != 'clean']
+    if result.get('external_mcp', 'clean') != 'clean': issues.append('external MCP')
+    result['summary'] = {'files': 'clean' if not issues else 'attention-required', 'issues': sorted(issues),
+                         'next': 'Recover the interrupted transaction.' if result['state'] == 'recovery-required' else
+                                 'Resolve preserved files before installing again.' if result['state'] != 'installed' else
+                                 'Inspect modified or missing files before upgrading.' if issues else
+                                 'Check skill discovery and MCP activation in a fresh Codex session.'}
     return result
 
 def uninstall(target, dry_run=False):
@@ -1022,111 +1002,8 @@ def sync_models(target, roles, models):
             'activation': 'Restart Codex to load the updated role files.'}
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['install','upgrade','recover','status','uninstall','validate','select-models','apply-models','sync-models'])
-    parser.add_argument('--target', type=Path, default=Path.cwd())
-    parser.add_argument('--home', type=Path, default=Path.home())
-    parser.add_argument('--global', dest='global_mode', action='store_true')
-    parser.add_argument('--dry-run', action='store_true')
-    parser.add_argument('--offline', action='store_true')
-    parser.add_argument('--codex', default='codex')
-    parser.add_argument('--selection-profile', type=Path, help='User-provided TOML selection context')
-    parser.add_argument('--model-policy', type=Path, help='Explicit TOML role policy for installation (no research)')
-    parser.add_argument('--proposal', type=Path, help='Reviewed JSON model proposal to apply')
-    args = parser.parse_args(argv)
-    try:
-        target = args.target.absolute()
-        home = args.home.absolute()
-        if target.is_symlink() or target.resolve() != target:
-            raise FrameworkError('Target must be a canonical path without symlinks')
-        if args.global_mode and target != home:
-            raise FrameworkError('--global requires --target equal to --home')
-        if not args.global_mode and target == home:
-            raise FrameworkError('Installing at home requires explicit --global')
-        if args.model_policy and args.command != 'install':
-            raise FrameworkError('--model-policy applies only to install')
-        if args.selection_profile and args.command != 'select-models':
-            raise FrameworkError('--selection-profile applies only to select-models')
-        if args.offline and args.command != 'validate':
-            raise FrameworkError('--offline is allowed only for static validate')
-        if args.dry_run and args.command not in ('install','upgrade','uninstall'):
-            raise FrameworkError('--dry-run applies only to install/upgrade/uninstall')
-        if args.command in ('install','upgrade','validate','select-models','apply-models','sync-models'):
-            _, _, policy, roles = payload()
-            if args.model_policy:
-                policy = tomllib.loads(args.model_policy.read_text())
-                if set(policy) != {role['policy'] for role in roles.values()}:
-                    raise FrameworkError('Supplied policy must contain exactly the active role policy sections')
-                payload(selected_policy=policy)  # Validate fields before any target changes.
-            if not args.offline:
-                version, models = probe(args.codex)
-                if args.command == 'validate':
-                    installed = safe(target, '.codex/delivery-framework/model-policy.toml')
-                    compatibility(tomllib.loads(installed.read_text()) if installed.is_file() else policy, roles, models)
-            if args.command in ('select-models','apply-models','sync-models'):
-                installed_manifest = read_manifest(target)
-                scope = 'global' if args.global_mode else 'project'
-                if not installed_manifest or installed_manifest.get('scope') != scope:
-                    raise FrameworkError('Installation scope does not match target')
-            if args.command == 'sync-models':
-                result = sync_models(target, roles, models)
-            elif args.command == 'select-models':
-                if args.dry_run: raise FrameworkError('select-models does not use --dry-run')
-                installed = safe(target, '.codex/delivery-framework/model-policy.toml')
-                if not read_manifest(target) or not installed.is_file(): raise FrameworkError('No installed model policy')
-                health = status(target)
-                if health.get('state') != 'installed' or any(value != 'clean' for value in health.get('files', {}).values()) or any(value != 'clean' for value in health.get('reused', {}).values()) or health.get('external_mcp', 'clean') != 'clean':
-                    raise FrameworkError('Installation is not clean; resolve status before selecting models')
-                manifest_hash = digest(safe(target, STATE).read_bytes())
-                current = tomllib.loads(installed.read_text())
-                context = read_selection_profile(args.selection_profile)
-                selection = select_policy(args.codex, models, roles, context, current=current)
-                result = model_proposal(current, selection['policy'], selection_report(selection, context), target, manifest_hash)
-            elif args.command == 'apply-models':
-                if not args.proposal: raise FrameworkError('apply-models requires --proposal')
-                proposal = json.loads(args.proposal.read_text())
-                result = apply_model_proposal(target, roles, models, proposal)
-            elif args.command == 'validate':
-                result = {'static':'passed','runtime':'unchecked (offline)' if args.offline else version,'models':'unchecked (offline)' if args.offline else 'available'}
-            elif args.command == 'upgrade':
-                # Upgrades retain the installed policy and never silently reselect models.
-                installed = safe(target, '.codex/delivery-framework/model-policy.toml')
-                selected = tomllib.loads(installed.read_text()) if installed.is_file() else policy
-                if not args.offline: compatibility(selected, roles, models)
-                result = install_with_dependencies(target,args.dry_run,global_mode=args.global_mode,upgrade=True,selected_policy=selected)
-                if not args.dry_run:
-                    result['welcome'] = welcome(roles, selected)
-                    result['availability'] = installation_availability(args.codex, target, args.home, args.global_mode)
-            else:
-                if args.dry_run:
-                    if args.model_policy: compatibility(policy, roles, models)
-                    result = install(target,True,global_mode=args.global_mode,selected_policy=policy)
-                    result['model_selection'] = 'not run in dry run'
-                else:
-                    if read_manifest(target) or safe(target, '.codex/delivery-framework/transaction').exists():
-                        raise FrameworkError('Existing installation or recovery transaction: inspect status before installing')
-                    selected = policy
-                    compatibility(selected, roles, models)
-                    report = {'status': 'provisional', 'selection': selected,
-                              'origin': 'supplied' if args.model_policy else 'bundled',
-                              'explanation': 'No model research or task evaluation was run. Use select-models to research alternatives.'}
-                    result = install(target,False,global_mode=args.global_mode,selected_policy=selected,report=report)
-                    result['model_selection'] = report
-                    result['welcome'] = welcome(roles, selected)
-                if not args.dry_run:
-                    result['availability'] = installation_availability(args.codex, target, args.home, args.global_mode)
-        elif args.command == 'status':
-            result = status(target)
-        elif args.command == 'recover':
-            result = recover(target)
-        else:
-            result = uninstall(target,args.dry_run)
-        print(json.dumps(result,indent=2))
-        return 0
-    except (FrameworkError, OSError, ValueError, KeyError, TypeError) as exc:
-        print(json.dumps({'state': 'blocked', 'error': str(exc)}))
-        print(f'Blocked: {exc}',file=sys.stderr)
-        return 1
+    from framework_cli import main as cli_main
+    return cli_main(argv, globals())
 
 if __name__ == '__main__':
     sys.exit(main())
