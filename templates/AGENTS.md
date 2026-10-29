@@ -8,7 +8,7 @@ State the outcome first. Use clear active sentences. Preserve necessary facts, c
 
 Preserve existing work and authorization boundaries. Do not stage, commit, create pull requests, change branches, merge, publish, release, or deploy without explicit authorization. Follow project-required checks.
 
-Continue the delivery loop until acceptance is evidenced or a concrete blocker prevents further authorized progress. Use subagent results, ask for needed information, and continue independent work while waiting. Only the main agent launches agents; runtime restrictions apply.
+Before work, the master agent decomposes the task and chooses direct work, role-assigned subagents, or a mix. Continue the delivery loop until acceptance is evidenced or a concrete blocker prevents further authorized progress. Use subagent results, ask for needed information, and continue independent work while waiting. Only the master agent launches agents; runtime restrictions apply.
 
 Require independent review for medium/high risk, more than three changed code files, or more than 50 added/deleted code lines. Exclude documentation and generated files from counts. If required review is unavailable, prepare the patch and checks, then mark shipping blocked.
 

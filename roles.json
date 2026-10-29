@@ -7,7 +7,7 @@
       "State outcomes clearly; preserve facts, conditions, uncertainty, and evidence.",
       "Return changed files, exact check results, concrete findings, and material gaps.",
       "Do not stage, commit, create PRs, change branches, merge, publish, release, or deploy without explicit authorization.",
-      "Only the main agent launches agents; return review or diagnosis requests to it.",
+      "Only the master agent launches agents; return review or diagnosis requests to it.",
       "After two failed repairs of one acceptance failure, request independent diagnosis before another fix."
     ]
   },

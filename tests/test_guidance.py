@@ -15,7 +15,7 @@ class GuidanceContracts(unittest.TestCase):
         for entry in (ROOT / 'skills').rglob('SKILL.md'):
             if entry.parent.name == 'model-routing':
                 continue  # Explicit model research has a separate, on-demand entrypoint.
-            limits[entry] = 650 if entry.parent.name == 'delivery' else 250
+            limits[entry] = 700 if entry.parent.name == 'delivery' else 250
         for path, limit in limits.items():
             with self.subTest(path=path.relative_to(ROOT)):
                 self.assertLessEqual(len(path.read_text().split()), limit)
@@ -56,6 +56,34 @@ class GuidanceContracts(unittest.TestCase):
                 self.assertTrue(set(inventory['roles'][name]) <= available)
                 for skill in role['skills']:
                     self.assertTrue((ROOT / 'skills' / skill / 'SKILL.md').is_file())
+
+    def test_specialist_candidates_have_provenance_routes_and_fallbacks(self):
+        inventory = json.loads((ROOT / 'subskills.json').read_text())
+        roles = json.loads((ROOT / 'roles.json').read_text())['roles']
+        sources = {entry['id'] for entry in json.loads((ROOT / 'sources.json').read_text())['sources']}
+        candidates = inventory['specialist_skills']
+        self.assertTrue(candidates)
+        for name, candidate in candidates.items():
+            with self.subTest(candidate=name):
+                self.assertTrue(candidate['activation'].strip())
+                self.assertTrue(candidate['availability'].strip())
+                self.assertTrue(candidate['roles'])
+                self.assertTrue(set(candidate['roles']) <= set(roles))
+                self.assertIn(candidate['source'], sources)
+                fallback = ROOT / 'skills' / candidate['fallback']
+                self.assertTrue(fallback.is_file() or (fallback / 'SKILL.md').is_file())
+        self.assertIn('diagnosis', candidates['systematic-debugging']['roles'])
+        self.assertIn('planner', candidates['grilling']['roles'])
+        self.assertIn('reviewer', candidates['react-best-practices']['roles'])
+
+    def test_specialist_routing_is_explicit(self):
+        delivery = (ROOT / 'skills/delivery/SKILL.md').read_text()
+        routing = (ROOT / 'skills/helpers/specialist-routing.md').read_text()
+        self.assertIn('../helpers/specialist-routing.md', delivery)
+        self.assertIn('check the runtime skill catalog', routing.lower())
+        self.assertIn('Do not install skills automatically', routing)
+        self.assertIn('use its listed framework fallback', routing)
+        self.assertIn('specialist candidates', delivery)
 
     def test_local_markdown_references_resolve(self):
         for source in (ROOT / 'skills').rglob('*.md'):
@@ -104,7 +132,9 @@ class GuidanceContracts(unittest.TestCase):
             'review unavailable': 'mark shipping blocked',
             'repeated failure': 'After two failed repairs, obtain independent diagnosis',
             'updated patch review': 'Substantive repairs require updated review',
-            'no nested launch': 'Only the main agent launches agents',
+            'task decomposition': 'Before work, decompose the task',
+            'mixed ownership': 'a sequence of role-assigned subagents, or a mix',
+            'no nested launch': 'Only the master agent launches agents',
             'continue after partial work': 'A failed approach or partial milestone is not a reason to stop',
             'integrate delegated results': 'Integrate subagent findings',
             'questions and pending work': 'keep dependent work pending',

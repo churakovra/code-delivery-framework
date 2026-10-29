@@ -80,5 +80,47 @@
       "codebase-memory",
       "communication"
     ]
+  },
+  "specialist_skills": {
+    "grilling": {
+      "activation": "Consequential product or scope decisions remain unresolved after research and a deeper interview would help.",
+      "roles": [
+        "planner"
+      ],
+      "source": "mattpocock-grilling",
+      "fallback": "decision-interview",
+      "availability": "optional; use only if independently installed and discoverable"
+    },
+    "systematic-debugging": {
+      "activation": "A difficult reproducible failure needs deeper root-cause investigation.",
+      "roles": [
+        "implementation",
+        "diagnosis"
+      ],
+      "source": "obra-systematic-debugging",
+      "fallback": "debugging",
+      "availability": "optional; use only if independently installed and discoverable"
+    },
+    "frontend-design": {
+      "activation": "A substantial interface design needs specialist visual direction.",
+      "roles": [
+        "designer",
+        "implementation"
+      ],
+      "source": "anthropics-frontend-design",
+      "fallback": "interface-design",
+      "availability": "optional; use only if independently installed and discoverable"
+    },
+    "react-best-practices": {
+      "activation": "React or Next.js rendering, fetching, or performance concerns need deeper specialist guidance.",
+      "roles": [
+        "implementation",
+        "designer",
+        "reviewer"
+      ],
+      "source": "vercel-react-best-practices",
+      "fallback": "helpers/react.md",
+      "availability": "optional; use only if independently installed and discoverable"
+    }
   }
 }

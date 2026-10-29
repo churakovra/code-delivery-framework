@@ -1,6 +1,6 @@
 # Code Delivery Framework (experimental)
 
-A portable instruction framework for shipping code with focused skills and a Python standard-library installer. Delivery coordinates the work. The main agent works directly by default, selects the next role, and delegates when independent review, parallel ownership, specialist work, or diagnosis benefits the task. Runtime permissions and higher-priority instructions still govern execution.
+A portable instruction framework for shipping code with focused skills and a Python standard-library installer. Delivery coordinates the work. The master agent decomposes the task, works directly by default, and delegates when independent review, parallel ownership, specialist work, or diagnosis benefits the task. Runtime permissions and higher-priority instructions still govern execution.
 
 ## Workflow and context
 
@@ -8,11 +8,13 @@ The managed `AGENTS.md` block points to delivery and states shared boundaries. D
 
 Read delivery once while its contents remain available. Load only the active role and applicable helpers. Reread after relevant changes or context loss. Helpers are Markdown references under `skills/helpers/`, not separate automatically triggered skills. Installation no longer downloads broad external workflow skills such as `asd-ste100`, systematic debugging, or TDD. The shared instructions contain concise communication rules; an optional communication helper handles ambiguity-sensitive text. Explicit user requests for separately installed skills remain authoritative.
 
+The `specialist_skills` section of [subskills.json](subskills.json) is a curated set of optional existing skills, with activation, roles, provenance, and local fallbacks. The master agent considers matching entries for its own work and delegated assignments; subagents verify availability in their runtime catalog before reading a selected skill. The registry does not install or enable these skills, pin an independently installed version, or guarantee their selection. The recorded source revision is the revision researched, not proof of the installed version. When a candidate is unavailable, use the local fallback and disclose any material capability gap. Load specialist instructions only when their additional depth helps; user requests and higher-priority instructions prevail.
+
 Keep one compact checkpoint: objective, baseline, acceptance, ownership, risk, evidence, and next action. Small tasks need no separate planning artifact. Use project-authoritative checks and meaningful regression coverage. Universal TDD cycles, routine design interviews, and mandatory graph discovery are not framework requirements. Codebase Memory remains available for structural discovery, tracing, and impact analysis, with source fallback when needed.
 
 Delivery runs a task loop: select the next action and applicable skills, inspect results, update the checkpoint, and continue until acceptance is evidenced or a concrete blocker prevents further authorized progress. Partial work and failed approaches do not end the task while useful work remains. Ask for missing information or consequential decisions, continue independent work while waiting, and resume dependent work when answered.
 
-Only the main agent launches subagents. It supplies a compact ownership brief, relevant source locations, acceptance criteria, constraints, and current evidence. It uses their evidence and assigns follow-up when needed. Subagents may ask the user when the runtime permits, or relay questions to the main agent; they do not launch more agents. Runtime instructions and available tools may restrict delegation or questions.
+Before work, the master agent identifies responsibilities and dependencies and chooses direct work, a sequence of role-assigned subagents, or a mix. Simple tasks need no formal decomposition artifact; revisit the choice as the task changes. Only the master agent launches subagents. It supplies a compact ownership brief, relevant source locations, acceptance criteria, constraints, and current evidence. It uses their evidence and assigns follow-up when needed. Subagents may ask the user when the runtime permits, or relay questions to the master agent; they do not launch more agents. Runtime instructions and available tools may restrict delegation or questions.
 
 Independent review is required for medium or high risk, more than three changed code files, or more than 50 added/deleted code lines. Exclude generated files and documentation from size counts. Medium risk includes cross-component behavior and nontrivial failure handling. High risk includes authentication, permissions, money, persistent-data integrity, migrations, concurrency, shared contracts, and broad lifecycle changes. The reviewer inspects the actual diff, callers, failure paths, and raw check output. Substantive repairs require updated review. If required review is unavailable, prepare the authorized patch and checks, then report shipping as blocked. After two failed repairs of one acceptance failure, obtain independent diagnosis before another fix.
 
@@ -32,7 +34,7 @@ Commands are `install`, `upgrade`, `recover`, `status`, `uninstall`, `validate`,
 
 Installation uses the bundled provisional model policy, or an explicit TOML policy supplied with `install --model-policy PATH`. It validates the configured model/effort pairs against the runtime and stops when a required assignment is unavailable. It does not silently substitute models. Model research and task evaluations do not run during installation. The JSON selection report records whether the policy was bundled or supplied.
 
-Install and upgrade fetch only the pinned Codebase Memory MCP release and its versioned integration skill. The archive checksum, binary version, and staged MCP protocol/tool availability are checked before target changes. Network access is required. Framework roles and helpers ship in this repository. The schema 2 `subskills.json` inventory distinguishes the retained external integration from bundled helper paths and activation conditions.
+Install and upgrade fetch only the pinned Codebase Memory MCP release and its versioned integration skill. The archive checksum, binary version, and staged MCP protocol/tool availability are checked before target changes. Network access is required. Framework roles and helpers ship in this repository. The schema 2 `subskills.json` inventory distinguishes the retained external integration, bundled helpers, and optional specialist candidates.
 
 After install or upgrade, the installer checks file state and requests `skills/list` with `forceReload` from the runtime. It checks enabled skill paths against installed paths. Availability is reported separately:
 
@@ -60,7 +62,7 @@ A project installation manages `<target>/AGENTS.md`; a global installation manag
 
 ## Model policy
 
-`.codex/delivery-framework/roles.json` maps roles to instructions, skills, and policy keys. `.codex/delivery-framework/model-policy.toml` maps keys to models and reasoning efforts. The main agent uses the current chat model for work it owns. Policy files cannot change an already-running agent.
+`.codex/delivery-framework/roles.json` maps roles to instructions, skills, and policy keys. `.codex/delivery-framework/model-policy.toml` maps keys to models and reasoning efforts. The master agent uses the current chat model for work it owns. Policy files cannot change an already-running agent.
 
 For delegated work, delivery reads the current registry and policy at launch. It requests a generic agent with explicit model/effort where supported. Before using a fixed named role, it compares the runtime-advertised model and effort with the policy; both must match. It records requested settings and available runtime evidence, distinguishing requests from confirmed active settings. Unknown or mismatched settings make that delegation unavailable when a matching explicit launch is unavailable. Files on disk alone do not prove active settings.
 
@@ -106,7 +108,7 @@ Current development evidence (2026-10-29): 104 automated tests passed, including
 
 Installer structure assessment: version and source identity are in `scripts/framework_identity.py`, command parsing and dispatch are in `scripts/framework_cli.py`, pinned dependencies and their staged checks are in `scripts/framework_dependencies.py`, and transactional recovery and policy operations remain in `scripts/framework.py`. Removing recovery, conflict detection, dependency verification, or model compatibility checks would change documented safety or runtime behavior. This revision retains those capabilities; it does not claim an 80–90% reduction or a complete decomposition. Further extraction can be done without changing the lifecycle contract.
 
-Maintainability budgets are 300 words for the managed instructions, 650 for delivery, 250 for each role entrypoint, 400 for each helper, and under 100 for routine communication rules. The specialized, explicitly invoked model-routing skill is exempt from the role-entrypoint budget.
+Maintainability budgets are 300 words for the managed instructions, 700 for delivery, 250 for each role entrypoint, 400 for each helper, and under 100 for routine communication rules. The specialized, explicitly invoked model-routing skill is exempt from the role-entrypoint budget.
 
 Instruction size is not a measurement of tokens or subscription savings. Catalog metadata, task context, tool output, retries, and runtime behavior also affect usage. The static guidance checks enforce entrypoint word budgets, but do not measure task outcomes.
 

@@ -22,7 +22,7 @@ Status: **not configured**. Complete this document after model routing has check
 | Designer | _to fill_ | _to fill_ | _to fill_ | _to fill_ | _to fill_ |
 | Diagnosis | _to fill_ | _to fill_ | _to fill_ | _to fill_ | _to fill_ |
 
-The former `demanding_implementation` entry had no activation path. Escalate the implementation task explicitly through the main agent.
+The former `demanding_implementation` entry had no activation path. Escalate the implementation task explicitly through the master agent.
 
 ## Alternatives and evidence
 

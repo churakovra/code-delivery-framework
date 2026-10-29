@@ -367,7 +367,7 @@ def payload(root=ROOT, selected_policy=None):
                 path = '.agents/skills/code-delivery-framework/' + helper['path'][len('skills/'):] if helper else f'.agents/skills/{subskill}/SKILL.md'
                 activation = helper['activation'] if helper else inventory['subskills'][subskill]['activation']
                 instruction += f'\nOnly when applicable, read {path}: {activation}'
-            instruction += '\nUser, developer, and repository instructions take precedence over conflicting subskill guidance.'
+            instruction += '\nFor specialist work, consult specialist_skills in .codex/delivery-framework/subskills.json. Select matching role and activation only when extra depth helps; check the runtime catalog and read an available skill, or use its listed fallback if absent. Do not install skills automatically. User, developer, and repository instructions take precedence over conflicting subskill guidance.'
         if role['read_only']:
             instruction += '\nRead-only assignment: do not edit product files, assertions, or documentation.'
         fields = {'name': f'delivery_{name}', 'description': role['description'], 'model': entry['model'], 'model_reasoning_effort': entry['reasoning_effort'], 'developer_instructions': instruction}
