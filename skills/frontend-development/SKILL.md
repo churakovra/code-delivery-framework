@@ -15,3 +15,8 @@ Edit assigned UI files and focused tests. Do not initiate exploratory browser wa
 Run relevant unit, type, lint, build, and required browser checks; report what was actually run.
 ## Stopping
 Escalate unresolved product behavior; stop after two failed repair cycles for independent diagnosis.
+
+## Conditional helpers
+- Read `../helpers/regression-testing.md` only for: A behavior change or repair with a meaningful observable regression.
+- Read `../helpers/react.md` only for: React or Next.js code with relevant rendering, fetching, or performance concerns.
+- Read `../helpers/accessibility.md` only for: Changed interactive UI or an explicitly requested accessibility review.

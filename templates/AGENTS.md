@@ -1,19 +1,15 @@
 # Delivery defaults
 
-Before actionable repository work, read the delivery skill. Use its path from the available skills catalog when present. Otherwise, check `.agents/skills/code-delivery-framework/delivery/SKILL.md` in the repository and, if absent, `~/.agents/skills/code-delivery-framework/delivery/SKILL.md` for the default global installation. For a global installation with a custom home, use `<configured --home>/.agents/skills/code-delivery-framework/delivery/SKILL.md`. A global installation does not require a copy in each repository. Follow the delivery skill's routing and load only skills required by the assigned task; use exact skill paths named by any role-specific instructions. Only if the skill is unavailable at all applicable locations, follow this file without assuming other bundle skills exist.
+Before repository work, read the `delivery` skill from the available catalog. Otherwise use `.agents/skills/code-delivery-framework/delivery/SKILL.md` under the project or configured global home. A global installation needs no project copy. If unavailable, report the gap and follow applicable repository instructions.
 
-For every user-facing response and agent handoff, read and apply the installed `asd-ste100` skill. Use the available skills catalog or the framework target's `.agents/skills/asd-ste100/SKILL.md`. Preserve required facts, uncertainty, and evidence. Higher-priority instructions and the user's requested format take precedence.
+Keep its contents while available; reread only after relevant changes or context loss. Delivery coordinates roles, conditional helpers, delegation, review, and completion. Load only the current role and helpers whose conditions match the task. Explicit user requests and higher-priority instructions take precedence.
 
-Preserve the user's scope and existing work. Do not stage, commit, open pull requests, merge, publish, release, deploy, or change branches without explicit authorization. Follow repository instructions and required checks.
+State the outcome first. Use clear active sentences. Preserve necessary facts, conditions, uncertainty, and evidence. Keep replies proportional to the task. Read the communication helper only for ambiguity-sensitive instructions or handoffs.
 
-When the user requests a new branch, name it `feature/simple-description`, `fix/simple-description`, `chore/simple-description`, or `test/simple-description`. When the user requests commits, use `feature: message`, `fix: message`, `chore: message`, or `test: message`. An optional scope may follow the type, as in `fix(parser): message`. Group changes into logical commits. Do not combine unrelated changes in one commit or create a separate commit for each file by default. Honor a user-specified name or format.
+Preserve existing work and authorization boundaries. Do not stage, commit, create pull requests, change branches, merge, publish, release, or deploy without explicit authorization. Follow project-required checks.
 
-For each task, capture the baseline, requirements, ownership, and observable acceptance criteria. Inspect the complete task diff and relevant callers or failure paths. Keep edits within assigned files and coordinate overlapping ownership.
+Keep a compact checkpoint: objective, baseline, acceptance, ownership, risk, evidence, and next action. The main agent may work directly or launch bounded subagents. Only the main agent launches agents.
 
-Use one main agent loop for low or ordinary work. Ordinary implementation includes focused checks and self-review. Independent review is required for high-risk work such as authentication, permissions, money, persistent-data integrity, migrations, shared contracts, concurrency, or broad lifecycle changes; include relevant integration or compatibility evidence. QA may separately map acceptance criteria to checks when useful. Planning, design, and delegation are optional when complexity justifies them. Do not nest delegation: only the primary agent may assign agents, keeping the tree at two levels maximum. Give each agent a bounded ownership brief.
+Require independent review for medium/high risk, more than three changed code files, or more than 50 added/deleted code lines. Exclude documentation and generated files from counts. If required review is unavailable, prepare the patch and checks, then mark shipping blocked.
 
-Review raw diffs, command output, and artifacts rather than accepting an agent's success claim. Do not weaken requirements, assertions, or fixtures to get a pass. After two unsuccessful repair cycles for the same acceptance failure, stop and obtain independent diagnosis before another fix.
-
-Do not initiate exploratory browser walkthroughs or screenshot-based acceptance unless requested. Required automated browser suites still apply. The user performs manual UX acceptance.
-
-Report changed files, checks actually run and results, limitations, blockers, and a short manual acceptance checklist. Mark missing required checks or reviewers as blocked; never imply unrun evaluations passed.
+Report the outcome, changed files, checks actually run, and material limitations. Include manual acceptance only when applicable. Never claim unrun checks or unavailable review passed.

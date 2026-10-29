@@ -15,3 +15,6 @@ Edit only owned docs; preserve unrelated changes.
 Inspect content, links, and the complete documentation diff; run relevant static checks. Do not run application suites solely for docs.
 ## Stopping
 Report implementation gaps or unavailable evidence explicitly; do not imply unrun evaluations passed.
+
+## Conditional helpers
+- Read `../helpers/communication.md` only for: Ambiguity-sensitive instructions or agent handoffs.

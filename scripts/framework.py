@@ -82,7 +82,7 @@ def dependency_inventory(root=ROOT):
             raise FrameworkError('Required subskill inventory is missing')
         return None
     data = json.loads(path.read_text())
-    if data.get('schema') != 1 or not isinstance(data.get('subskills'), dict) or not isinstance(data.get('roles'), dict):
+    if data.get('schema') not in (1, 2) or not isinstance(data.get('subskills'), dict) or not isinstance(data.get('roles'), dict):
         raise FrameworkError('Invalid subskill inventory')
     for name, spec in data['subskills'].items():
         if not re.fullmatch(r'[a-z0-9][a-z0-9-]*', name) or not re.fullmatch(r'[0-9a-f]{40}', spec.get('revision', '')):
@@ -92,8 +92,15 @@ def dependency_inventory(root=ROOT):
         for dep in spec.get('requires', []):
             if dep not in data['subskills']:
                 raise FrameworkError(f'Missing transitive subskill: {dep}')
+    helpers = data.get('helpers', {})
+    if not isinstance(helpers, dict) or set(helpers) & set(data['subskills']):
+        raise FrameworkError('Invalid helper inventory')
+    for name, spec in helpers.items():
+        path = safe(root, spec['path'])
+        if not spec['path'].startswith('skills/') or path.suffix != '.md' or path.name == 'SKILL.md' or not path.is_file() or not spec.get('activation'):
+            raise FrameworkError(f'Invalid bundled helper: {name}')
     for role, names in data['roles'].items():
-        if any(name not in data['subskills'] for name in names):
+        if any(name not in data['subskills'] and name not in helpers for name in names):
             raise FrameworkError(f'Unknown subskill for role: {role}')
     return data
 
@@ -255,15 +262,15 @@ def verify_mcp(executable, env):
             except subprocess.TimeoutExpired: process.kill(); process.wait()
             process.stdin.close(); process.stdout.close()
 
-def probe(codex):
+def probe(codex, skill_cwd=None, env=None):
     """Read live runtime/model capabilities; never infer availability from a cache."""
     try:
-        version = subprocess.run([codex, '--version'], capture_output=True, text=True, timeout=10, check=True).stdout.strip()
+        version = subprocess.run([codex, '--version'], capture_output=True, text=True, timeout=10, check=True, env=env).stdout.strip()
         match = re.search(r'(\d+)\.(\d+)\.(\d+)', version)
         if not match or tuple(map(int, match.groups())) < (0, 163, 0):
             raise FrameworkError('Codex >= 0.163.0 required for inspected standalone-agent schema')
         with tempfile.TemporaryFile() as errors:
-            process = subprocess.Popen([codex, 'app-server', '--stdio'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=errors)
+            process = subprocess.Popen([codex, 'app-server', '--stdio'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=errors, env=env)
             selector = selectors.DefaultSelector()
             try:
                 selector.register(process.stdout, selectors.EVENT_READ)
@@ -292,6 +299,8 @@ def probe(codex):
                     raise FrameworkError(f'Runtime capability timeout: {method}')
                 rpc(1, 'initialize', {'clientInfo': {'name': 'delivery-framework', 'version': '1.0'}})
                 process.stdin.write(b'{"method":"initialized"}\n'); process.stdin.flush()
+                if skill_cwd is not None:
+                    return rpc(2, 'skills/list', {'cwds': [str(skill_cwd)], 'forceReload': True})
                 models = []
                 cursor = None
                 seen_cursors = set()
@@ -314,6 +323,40 @@ def probe(codex):
                 process.stdin.close(); process.stdout.close()
     except (OSError, subprocess.SubprocessError, ValueError, KeyError) as exc:
         raise FrameworkError(f'Runtime availability could not be established: {exc}') from exc
+
+def installation_availability(codex, target, home, global_mode=False):
+    """Check copied bytes and scanner discovery without starting a model turn."""
+    health = status(target)
+    files_clean = (health.get('state') == 'installed'
+                   and all(v == 'clean' for v in health.get('files', {}).values())
+                   and all(v == 'clean' for v in health.get('reused', {}).values())
+                   and health.get('external_mcp', 'clean') == 'clean')
+    expected = {}
+    for name in set(health.get('files', {})) | set(health.get('reused', {})):
+        if name.endswith('/SKILL.md'):
+            path = safe(target, name)
+            if path.is_file(): expected[str(path.resolve())] = name
+    discovery = {'state': 'unverified', 'next': 'Restart Codex, trust the project if needed, and check its skill catalog.'}
+    try:
+        # Keep app-server state out of the developer's live configuration during
+        # project installation. Do not inject extra skill roots: test real discovery.
+        with tempfile.TemporaryDirectory(prefix='cdf-discovery-') as temporary:
+            env = dict(os.environ, CODEX_HOME=str(target/'.codex') if global_mode else temporary)
+            if global_mode: env.update(HOME=str(home), USERPROFILE=str(home))
+            response = probe(codex, skill_cwd=target, env=env)
+        rows = [row for row in response['data'] if row.get('cwd') == str(target)]
+        if len(rows) != 1: raise FrameworkError('Runtime returned no matching skill scope')
+        discovered = {str(Path(skill['path']).resolve()) for skill in rows[0]['skills']
+                      if skill.get('enabled') is True and isinstance(skill.get('path'), str)}
+        missing = sorted(name for path, name in expected.items() if path not in discovered)
+        discovery.update(state='incomplete' if missing or rows[0].get('errors') else 'verified',
+                         discovered=sorted(name for path, name in expected.items() if path in discovered),
+                         missing=missing, errors=rows[0].get('errors', []))
+    except (FrameworkError, OSError, ValueError, KeyError, TypeError) as exc:
+        discovery['reason'] = str(exc)
+    return {'files': 'verified' if files_clean else 'incomplete',
+            'skills': discovery,
+            'mcp': 'staged protocol checked; active session unverified'}
 
 def render_policy(policy):
     return (''.join('[' + name + ']\nmodel = ' + json.dumps(entry['model']) + '\nreasoning_effort = ' + json.dumps(entry['reasoning_effort']) + '\n' for name, entry in sorted(policy.items()))).encode()
@@ -424,7 +467,10 @@ def payload(root=ROOT, selected_policy=None):
         instruction += '\nRead these required skills before work: '+', '.join(f'.agents/skills/code-delivery-framework/{s}/SKILL.md' for s in role['skills'])+'.\nDo not spawn subagents. Return evidence to the primary dispatcher.'
         if inventory:
             for subskill in inventory['roles'].get(name, []):
-                instruction += f'\nWhen applicable, read .agents/skills/{subskill}/SKILL.md: {inventory["subskills"][subskill]["activation"]}'
+                helper = inventory.get('helpers', {}).get(subskill)
+                path = '.agents/skills/code-delivery-framework/' + helper['path'][len('skills/'):] if helper else f'.agents/skills/{subskill}/SKILL.md'
+                activation = helper['activation'] if helper else inventory['subskills'][subskill]['activation']
+                instruction += f'\nOnly when applicable, read {path}: {activation}'
             instruction += '\nUser, developer, and repository instructions take precedence over conflicting subskill guidance.'
         if role['read_only']:
             instruction += '\nRead-only assignment: do not edit product files, assertions, or documentation.'
@@ -435,10 +481,9 @@ def payload(root=ROOT, selected_policy=None):
     files['.codex/delivery-framework/roles.json'] = (json.dumps(runtime_roles, indent=2, ensure_ascii=False)+'\n').encode()
     files['.codex/delivery-framework/model-policy.toml'] = render_policy(policy) if selected_policy is not None else (root/'model-policy.toml').read_bytes()
     if inventory:
+        if set(inventory['roles']) - set(roles):
+            raise FrameworkError('Unknown role in dependency inventory')
         files['.codex/delivery-framework/subskills.json'] = (root/'subskills.json').read_bytes()
-        delivery = '.agents/skills/code-delivery-framework/delivery/SKILL.md'
-        if delivery in files:
-            files[delivery] += b'\n## Installed subskills\nRead the installed dependency inventory at .codex/delivery-framework/subskills.json under the framework target. The framework target is the directory containing .agents; this skill is under .agents/skills/code-delivery-framework/delivery. Load applicable subskills by name from the available skill catalog first, including reused user-owned skills; otherwise use .agents/skills/<name>/SKILL.md under the framework target. User, developer, and repository instructions take precedence over conflicting subskill guidance.\n'
     body = (root/'templates/AGENTS.md').read_bytes().strip()
     if START in body or END in body:
         raise FrameworkError('Template must not contain managed delimiters')
@@ -986,6 +1031,7 @@ def main(argv=None):
     parser.add_argument('--offline', action='store_true')
     parser.add_argument('--codex', default='codex')
     parser.add_argument('--selection-profile', type=Path, help='User-provided TOML selection context')
+    parser.add_argument('--model-policy', type=Path, help='Explicit TOML role policy for installation (no research)')
     parser.add_argument('--proposal', type=Path, help='Reviewed JSON model proposal to apply')
     args = parser.parse_args(argv)
     try:
@@ -997,12 +1043,21 @@ def main(argv=None):
             raise FrameworkError('--global requires --target equal to --home')
         if not args.global_mode and target == home:
             raise FrameworkError('Installing at home requires explicit --global')
+        if args.model_policy and args.command != 'install':
+            raise FrameworkError('--model-policy applies only to install')
+        if args.selection_profile and args.command != 'select-models':
+            raise FrameworkError('--selection-profile applies only to select-models')
         if args.offline and args.command != 'validate':
             raise FrameworkError('--offline is allowed only for static validate')
         if args.dry_run and args.command not in ('install','upgrade','uninstall'):
             raise FrameworkError('--dry-run applies only to install/upgrade/uninstall')
         if args.command in ('install','upgrade','validate','select-models','apply-models','sync-models'):
             _, _, policy, roles = payload()
+            if args.model_policy:
+                policy = tomllib.loads(args.model_policy.read_text())
+                if set(policy) != {role['policy'] for role in roles.values()}:
+                    raise FrameworkError('Supplied policy must contain exactly the active role policy sections')
+                payload(selected_policy=policy)  # Validate fields before any target changes.
             if not args.offline:
                 version, models = probe(args.codex)
                 if args.command == 'validate':
@@ -1039,21 +1094,27 @@ def main(argv=None):
                 selected = tomllib.loads(installed.read_text()) if installed.is_file() else policy
                 if not args.offline: compatibility(selected, roles, models)
                 result = install_with_dependencies(target,args.dry_run,global_mode=args.global_mode,upgrade=True,selected_policy=selected)
-                if not args.dry_run: result['welcome'] = welcome(roles, selected)
+                if not args.dry_run:
+                    result['welcome'] = welcome(roles, selected)
+                    result['availability'] = installation_availability(args.codex, target, args.home, args.global_mode)
             else:
                 if args.dry_run:
-                    result = install(target,True,global_mode=args.global_mode)
+                    if args.model_policy: compatibility(policy, roles, models)
+                    result = install(target,True,global_mode=args.global_mode,selected_policy=policy)
                     result['model_selection'] = 'not run in dry run'
                 else:
                     if read_manifest(target) or safe(target, '.codex/delivery-framework/transaction').exists():
                         raise FrameworkError('Existing installation or recovery transaction: inspect status before installing')
-                    context = read_selection_profile(args.selection_profile)
-                    selection = select_policy(args.codex, models, roles, context)
-                    selected = selection['policy']
-                    report = selection_report(selection, context)
+                    selected = policy
+                    compatibility(selected, roles, models)
+                    report = {'status': 'provisional', 'selection': selected,
+                              'origin': 'supplied' if args.model_policy else 'bundled',
+                              'explanation': 'No model research or task evaluation was run. Use select-models to research alternatives.'}
                     result = install(target,False,global_mode=args.global_mode,selected_policy=selected,report=report)
-                    result['model_selection'] = {'explanation':selection['explanation'], 'sources':selection['sources'], 'alternatives':selection['alternatives'], 'status':'provisional', 'report':'.codex/delivery-framework/model-selection.json'}
+                    result['model_selection'] = report
                     result['welcome'] = welcome(roles, selected)
+                if not args.dry_run:
+                    result['availability'] = installation_availability(args.codex, target, args.home, args.global_mode)
         elif args.command == 'status':
             result = status(target)
         elif args.command == 'recover':

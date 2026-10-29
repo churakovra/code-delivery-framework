@@ -1,88 +1,90 @@
 # Code Delivery Framework (experimental)
 
-A portable set of concise repository delivery instructions and task skills, plus a Python standard-library installer. The framework is experimental. Installation runs model routing to propose role assignments. Model evaluations remain manual and opt-in.
+A portable instruction framework for shipping code with focused skills and a Python standard-library installer. Delivery coordinates the work. The main agent works directly by default, selects the next role, and delegates when independent review, parallel ownership, specialist work, or diagnosis benefits the task. Runtime permissions and higher-priority instructions still govern execution.
 
-## Contents
+## Workflow and context
 
-- `AGENTS.md`: instructions for developing this framework.
-- `templates/AGENTS.md`: consumer guidance inserted into a managed block.
-- `skills/`: task-focused, model-neutral skills.
-- `subskills.json`: pinned external skill and MCP dependencies and their role routing.
-- `scripts/framework.py`: installer CLI (see below).
-- `sources.json` and `THIRD_PARTY_NOTICES`: research provenance and attribution status.
+The managed `AGENTS.md` block points to delivery and states shared boundaries. Delivery owns sequencing, risk, delegation, review, and completion. A role skill defines how to perform its assigned work. A helper supplies a narrow technique only when its activation condition matches.
 
-## CLI
+Read delivery once while its contents remain available. Load only the active role and applicable helpers. Reread after relevant changes or context loss. Helpers are Markdown references under `skills/helpers/`, not separate automatically triggered skills. Installation no longer downloads broad external workflow skills such as `asd-ste100`, systematic debugging, or TDD. The shared instructions contain concise communication rules; an optional communication helper handles ambiguity-sensitive text. Explicit user requests for separately installed skills remain authoritative.
 
-Use Python 3.11 or newer. The CLI is `python3.11 scripts/framework.py {install,upgrade,recover,status,uninstall,validate,select-models,apply-models,sync-models}`. Commands accept `--target PATH` (defaults to the current directory), `--global`, `--home PATH`, and `--codex PATH` (defaults to `codex`). Install, upgrade, and uninstall support `--dry-run`. Normal `validate`, `install`, and `upgrade` probe the Codex runtime and required models; `validate --offline` checks static inputs only. The dry run does not download dependencies or verify all conflicts or MCP activation. The installer records managed files and recovery information in `.codex/delivery-framework/`. This directory retains its existing name for compatibility with earlier installations. Framework skills are installed under `.agents/skills/code-delivery-framework/`; external subskills remain under `.agents/skills/`.
+Keep one compact checkpoint: objective, baseline, acceptance, ownership, risk, evidence, and next action. Small tasks need no separate planning artifact. Use project-authoritative checks and meaningful regression coverage. Universal TDD cycles, routine design interviews, and mandatory graph discovery are not framework requirements. Codebase Memory remains available for structural discovery, tracing, and impact analysis, with source fallback when needed.
 
-Install and upgrade fetch the pinned subskills, their supporting files, and the platform-specific Codebase Memory MCP release. This requires network access and Git; if a required dependency cannot be verified or obtained, the command reports a failure instead of claiming a complete install. The Web Design Guidelines subskill additionally fetches current guidelines when used. A clean installer status reports configured files and dependencies; it does not prove a Codex session has activated the MCP server.
+Only the main agent launches subagents. It supplies a compact ownership brief, relevant source locations, acceptance criteria, constraints, and current evidence. Subagents request follow-up work from the main agent. They do not launch more agents.
 
-Some environments resolve `python3` to an older interpreter. For example, in the development environment used to validate this bundle, `python3` is Python 3.9 and `python3.11` is provided through pyenv. There, run commands as `PYENV_VERSION=3.11.14 python3 ...` when the named `python3.11` shim is unavailable. In other environments, use any Python 3.11+ executable.
+Independent review is required for medium or high risk, more than three changed code files, or more than 50 added/deleted code lines. Exclude generated files and documentation from size counts. Medium risk includes cross-component behavior and nontrivial failure handling. High risk includes authentication, permissions, money, persistent-data integrity, migrations, concurrency, shared contracts, and broad lifecycle changes. The reviewer inspects the actual diff, callers, failure paths, and raw check output. Substantive repairs require updated review. If required review is unavailable, prepare the authorized patch and checks, then report shipping as blocked. After two failed repairs of one acceptance failure, obtain independent diagnosis before another fix.
 
-A non-dry-run installation invokes Codex with the model-routing skill and live web search before changing the target. This consumes the signed-in account's usage. The resulting choices are provisional: runtime availability is checked, but task quality and subscription consumption are not measured. If routing fails or selects an unavailable pair, installation stops before target changes. A dry run does not invoke model routing. The CLI returns a JSON welcome with the role assignments, available functions, and activation steps. It does not prove that the new Codex session loaded the skills or MCP server.
+The framework retains explicit authorization requirements for staging, branches, commits, pull requests, merges, publishing, releases, and deployment.
 
-The framework selects an abstract role for each assignment. The role registry at `.codex/delivery-framework/roles.json` maps roles to required skills, role briefs, and policy keys. The installed `.codex/delivery-framework/model-policy.toml` maps those keys to models and reasoning efforts. Users or the model-routing skill can choose policy entries. Skills and roles are not one-to-one: select additional skills for the task as needed.
+## Installation and availability
 
-The source `roles.json` contains role definitions and shared default instructions. The installer combines each role description with those instructions. Installed role instructions remain self-contained.
-
-For delegated work, the delivery skill instructs the main agent to read the current registry and policy at launch. Where the runtime supports explicit model and effort overrides, it requests a generic subagent with those settings and supplies the role brief. Runtime support and agent compliance need a fresh-session check; an instruction does not guarantee execution. Fixed named roles remain a compatibility fallback. They cannot read policy changes at launch. If used, the active runtime settings must match the policy. A match on disk alone does not establish the active settings. After editing the policy, run `sync-models` to update these generated files, then restart Codex and verify the active role settings:
+Use Python 3.11 or newer:
 
 ```sh
-python3.11 scripts/framework.py sync-models --global --target "$HOME" --home "$HOME"
+python3.11 scripts/framework.py validate --target /path/to/project --offline
+python3.11 scripts/framework.py install --target /path/to/project --dry-run
+python3.11 scripts/framework.py install --target /path/to/project
 ```
 
-For a project installation, omit `--global` and use its project path as `--target`. The command checks model availability, refuses modified role files, and updates the manifest in a recoverable transaction. Upgrade stops on unsynchronized policy edits. Run `sync-models` before upgrade. Existing selection reports describe the earlier selection, not subsequent manual edits. `model-policy.md` is a fillable draft and does not control agent settings.
+Commands are `install`, `upgrade`, `recover`, `status`, `uninstall`, `validate`, `select-models`, `apply-models`, and `sync-models`. Shared options include `--target PATH`, `--global`, `--home PATH`, and `--codex PATH`. Install, upgrade, and uninstall support `--dry-run`. Only static `validate` supports `--offline`.
 
-When the main agent does the work itself, it follows the role and applicable skills using the chat's current model. The policy cannot change an already-running agent's model. An unavailable model or unsupported override must be reported; the framework does not silently substitute a model.
+Installation uses the bundled provisional model policy, or an explicit TOML policy supplied with `install --model-policy PATH`. It validates the configured model/effort pairs against the runtime and stops when a required assignment is unavailable. It does not silently substitute models. Model research and task evaluations do not run during installation. The JSON selection report records whether the policy was bundled or supplied.
 
-To tailor model selection, provide a TOML profile with `--selection-profile PATH`. Include your plan, workload, priorities, and any preferred role assignments. Unspecified details are unknown. The profile is saved in the selection report, so do not include secrets. Without a profile, the installer cannot infer your plan or preferences. The bundled policy is not supplied as a candidate for a new installation.
+Install and upgrade fetch only the pinned Codebase Memory MCP release and its versioned integration skill. The archive checksum, binary version, and staged MCP protocol/tool availability are checked before target changes. Network access is required. Framework roles and helpers ship in this repository. The schema 2 `subskills.json` inventory distinguishes the retained external integration from bundled helper paths and activation conditions.
 
-After installation, review `.codex/delivery-framework/model-selection.json` for the provisional choices, rationale, alternatives, and source links. To deliberately reconsider an existing installation, create a proposal, review it, then apply it:
+After install or upgrade, the installer checks file state and requests `skills/list` with `forceReload` from the runtime. It checks enabled skill paths against installed paths. Availability is reported separately:
+
+- `files`: managed and reused bytes are clean, or incomplete.
+- `skills`: verified, incomplete, or unverified when the runtime check is unavailable.
+- `mcp`: the staged protocol was checked; activation in the user's running session remains unverified.
+
+These checks start no model task and run no task evaluation. A successful file transaction does not prove skill discovery or active MCP loading. Restart Codex, trust a project if required, and check the skill catalog and MCP server in a fresh session. Installation can report an incomplete discovery result without undoing the completed file transaction.
+
+For global use, `--target` must equal the canonical configured home:
+
+```sh
+python3.11 scripts/framework.py install --global --target /Users/alex --home /Users/alex
+```
+
+A project installation manages `<target>/AGENTS.md`; a global installation manages `<home>/.codex/AGENTS.md`. Skills install under `<target>/.agents/skills/code-delivery-framework/`. No per-repository copy is needed for a global installation. State and recovery records remain in `.codex/delivery-framework/`. The installer never changes branches or creates commits or pull requests.
+
+## Model policy
+
+`.codex/delivery-framework/roles.json` maps roles to instructions, skills, and policy keys. `.codex/delivery-framework/model-policy.toml` maps keys to models and reasoning efforts. The main agent uses the current chat model for work it owns. Policy files cannot change an already-running agent.
+
+For delegated work, delivery reads the current registry and policy at launch. It requests a generic agent with explicit model/effort where supported. A fixed named role is a disclosed compatibility fallback only when its active settings match the policy. Files on disk alone do not prove active settings.
+
+Research is explicit and may consume account usage:
 
 ```sh
 python3.11 scripts/framework.py select-models --target /path/to/project --selection-profile /path/to/profile.toml > proposal.json
 python3.11 scripts/framework.py apply-models --target /path/to/project --proposal proposal.json
 ```
 
-Use the same `--global`, `--home`, and `--target` values as the installation for global targets. `select-models` consumes account usage but does not change the target. `apply-models` validates the proposal against the current runtime and applies it in a recoverable transaction. Both stop on conflicts; do not overwrite user edits. Ordinary upgrade does not reselect. Existing installations retain any obsolete `demanding_implementation` entry until explicit reselection; it is not an active role.
+`--selection-profile` applies only to `select-models`. Supply plan, workload, priorities, and preferences in TOML. The report retains the profile, so do not include secrets. `select-models` creates a proposal without changing the target. `apply-models` validates and applies it transactionally. Both stop on conflicts. Ordinary upgrades retain the installed policy and do not reselect.
 
-Typical project-local sequence:
+After manually editing the installed policy, run `sync-models` with the installation's target and scope, then restart Codex. It checks model availability, refuses modified role files, and updates the manifest transactionally. Upgrade stops on unsynchronized policy edits. Historical selection reports do not describe later manual policy changes. `model-policy.md` is a fillable draft, not runtime configuration.
 
-```sh
-python3.11 scripts/framework.py validate --target /path/to/project --offline
-python3.11 scripts/framework.py status --target /path/to/project
-python3.11 scripts/framework.py install --target /path/to/project --dry-run
-python3.11 scripts/framework.py install --target /path/to/project
-```
+## Upgrade, recovery, and migration
 
-For global use, pass `--global` and set `--target PATH` to the same canonical path supplied as `--home PATH`. When `--home` is omitted it defaults to the current process home. For example: `python3.11 scripts/framework.py install --global --target /Users/alex --home /Users/alex --dry-run`. Installing at the home path without `--global` is rejected. A project install manages `<target>/AGENTS.md`; a global install manages `<home>/.codex/AGENTS.md`. The installer does not create a branch, commit, pull request, release, or deployment.
+Use `upgrade` with the same `--target`, `--home`, and `--global` values as installation. `status` reports recorded file state. If a transaction was interrupted, run `recover` against that target before retrying. Recovery stops if a file changed after the transaction began.
 
-To update an existing installation, use `upgrade` with the same `--target`, `--home`, and `--global` options used for its installation. `status` reports the recorded state; if a transaction was interrupted, run `recover` against the same target before retrying. Recovery stops if a file changed after the transaction began. Preserve that edit and resolve the conflict before retrying recovery. `uninstall --dry-run` identifies preserved changes; uninstall leaves user-owned reused files and Codebase Memory indexes intact. Do not remove or overwrite modified user files to force an upgrade.
+Upgrade removes obsolete framework-owned external skill files only when unchanged. Modified managed files cause a conflict that must be resolved without discarding user work. User-owned reused skills remain user-owned. `uninstall --dry-run` identifies preserved changes. Uninstall preserves reused files and Codebase Memory indexes.
 
-For example, update a global installation with:
+The managed instruction block preserves bytes outside its markers. Older unowned delivery blocks or conflicting workflow signatures need manual reconciliation. The installer does not silently rewrite unrelated instructions.
 
-```sh
-python3.11 scripts/framework.py upgrade --global --target "$HOME" --home "$HOME"
-```
+## Verification and context budgets
 
-The project MCP configuration is written under the project target; the global configuration is written under the configured home. Codex must trust a project before loading its project configuration. Restart Codex after installation or upgrade and verify the server in a fresh session. Discovery of framework skills in the nested directory also requires a fresh-session check; the installer tests do not establish it. This integration does not install hooks; other installed hooks may require separate trust through Codex.
+Installer development uses automated regression checks against temporary targets. Installation itself checks availability without running those tests or evaluating agents. Real task evaluations and token benchmarks remain optional and explicit. Automated routing checks inspect instruction contracts; they do not prove model compliance.
 
-## Migration and manual acceptance
+Current development evidence (2026-10-29): 104 automated tests passed, including temporary-target lifecycle, policy, migration, discovery-reporting, and static guidance checks. A live temporary project exercise downloaded and verified the pinned dependency, installed the payload, confirmed clean files and discovery of all 13 installed skills through Codex, upgraded, and uninstalled. This exercise called the installation routines directly; CLI policy behavior is covered by automated tests. Independent review found no actionable defects. Active MCP loading in a user's session, platform archives other than macOS ARM64, model compliance, and token savings remain unverified. No model task evaluation ran.
 
-The shared instruction block guides the main agent and delegated roles to communicate concisely while preserving necessary facts and evidence. The installer fetches the pinned `asd-ste100` skill and instructs all roles to apply it. The skill does not claim full ASD-STE100 dictionary compliance.
+Maintainability budgets are 300 words for the managed instructions, 600 for delivery, 250 for each role entrypoint, 400 for each helper, and under 100 for routine communication rules. The specialized, explicitly invoked model-routing skill is exempt from the role-entrypoint budget.
 
-The installer adds a managed block to the project target's `AGENTS.md` or the global target's `.codex/AGENTS.md`, preserving bytes outside it. It does not automatically rewrite or reconcile older delivery instructions. If the target file already contains an older delivery-framework block or conflicting signature, inspect both sets of instructions and manually merge or remove the old block before installing; installation can stop on an unowned managed marker, and semantic conflicts require human reconciliation. Do not remove unrelated user-authored guidance.
+Before this revision, the managed template contained 455 words, delivery contained 882, and framework skill entrypoints contained 3,606 words (4,061 including the managed template). Current counts are 234 words for the managed template, 526 for delivery, 3,422 across framework entrypoints, and 605 across the seven optional helpers. A simple implementation path loads 1,008 words of template, delivery, and implementation guidance; a matching regression-testing helper adds 92. The equivalent entrypoint path previously contained 1,524 words, before the mandatory external writing skill. These are instruction sizes, not measured tokens or subscription savings. Catalog metadata, task context, tool output, retries, and runtime behavior also affect usage.
 
-After installation, confirm that the managed block appears once in `<target>/AGENTS.md` (project install) or `<home>/.codex/AGENTS.md` (global install), required files are reported clean by `status`, and a small authorized task loads the delivery skill from `<target>/.agents/skills/code-delivery-framework/delivery/SKILL.md`. For a global install, `<target>` is the configured home directory; no per-repository skill installation is needed. Check this with a repository that has no local delivery skill. Confirm the task follows the required review/check behavior and reports current evidence. User performs any requested UI acceptance; do not treat an installer check as UX acceptance.
-
-## Verification status
-
-A pre-review temporary project installation on macOS ARM64 installed all dependencies, reported 127 clean managed files, completed an MCP protocol initialization/tool check, and uninstalled. This historical exercise does not validate later edits. Other supported platform archives and a fresh-session Codex activation have not yet been exercised. Earlier installer tests and runtime checks predate dependency installation and are not evidence for the current implementation. A sandboxed runtime probe may be blocked during SQLite initialization by filesystem permissions; that is an environment limitation and does not establish that the runtime or models are unavailable. Use fresh validation and test results for the current state.
-
-## Model evaluation
-
-Model evaluations are optional development work and may consume tokens. The installer runs a model-routing recommendation but does not run comparative model evaluations. Validation does not run model routing or collect interaction traces. Evaluation prompts, results, and traces are kept locally under the ignored `evaluations/` directory and are not distributed with the framework.
+Manual acceptance: confirm the managed block occurs once, `status` reports clean files, the fresh session discovers framework skills, and its MCP server is active. An optional small authorized task can then check role/helper selection and review behavior. User performs applicable manual UX acceptance.
 
 ## Source and licensing
 
-Framework-authored skills are original concise adaptations of general workflow ideas; third-party subskills and MCP artifacts are fetched separately and are not bundled in this repository. Exact inspected revisions and known license information are recorded in `sources.json`. See `THIRD_PARTY_NOTICES` for attribution and known licensing limitations.
+Framework skills and helpers are original concise adaptations. `sources.json` retains inspected revisions, licenses, and research purposes. `THIRD_PARTY_NOTICES` records attribution and limitations. Replaced upstream workflow skills are research references, not installation dependencies. The separately fetched Codebase Memory integration retains its upstream license and notices.

@@ -1,22 +1,143 @@
 {
   "schema": 1,
-  "policy": "Framework-authored guidance is original; no third-party skill text, rule files, or software dependencies are copied into this repository. Third-party sources listed below are also candidates for separate installation; consult the dependency inventory and installed status for actual behavior.",
+  "policy": "Framework-authored skills and helpers are original adaptations. No third-party skill text, rule files, or executable code are copied into this repository. Historical workflow sources remain research provenance, not installation dependencies. Only the Codebase Memory integration is separately fetched; consult subskills.json and installed status.",
   "sources": [
-    {"id":"asd-ste100-skill","url":"https://github.com/danyuchn/asd-ste100-skill/blob/8da6b6340aa22faf46fd07db8efbdea010cd38d9/SKILL.md","revision":"8da6b6340aa22faf46fd07db8efbdea010cd38d9","license":"MIT repository; no text reused","used_for":"Plain language and preserving meaning in agent communication."},
-    {"id":"anthropic-agent-loop","url":"https://claude.com/resources/articles/building-agents-when-to-fold-subagents-into-your-main-agent-loop","revision":"2026-10-22 article; web page inspected 2026-10-28","license":"Article; no content reused","used_for":"Reasoning about when focused single-loop workflows or delegation add value."},
-    {"id":"agentskills-best-practices","url":"https://agentskills.io/skill-creation/best-practices","revision":"web page inspected 2026-10-28","license":"Guidance reference; no content reused","used_for":"Concise scope, progressive disclosure, useful specificity, and skill validation."},
-    {"id":"mattpocock-grilling","url":"https://github.com/mattpocock/skills/blob/59db609eb1e18aaf59b63284d0e52255aff0c63c/skills/productivity/grilling/SKILL.md","revision":"59db609eb1e18aaf59b63284d0e52255aff0c63c","license":"MIT repository; no text reused","used_for":"Decision interview routing and resolving dependent choices in rounds."},
-    {"id":"anthropics-frontend-design","url":"https://github.com/anthropics/skills/blob/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/frontend-design/SKILL.md","revision":"dbd4588f9e1033efb41dad4bef2f7947c8993d44","license":"Apache-2.0 skill license; no text reused","used_for":"Ground visual direction in the product and the actual brief."},
-    {"id":"obra-systematic-debugging","url":"https://github.com/obra/superpowers/blob/2ce8aa15d05bd57213e6f746f953aafb7ded7a8b/skills/systematic-debugging/SKILL.md","revision":"2ce8aa15d05bd57213e6f746f953aafb7ded7a8b","license":"MIT repository; no text reused","used_for":"Diagnosis grounded in reproduction and tracing before repair."},
-    {"id":"obra-verification-before-completion","url":"https://github.com/obra/superpowers/blob/2ce8aa15d05bd57213e6f746f953aafb7ded7a8b/skills/verification-before-completion/SKILL.md","revision":"2ce8aa15d05bd57213e6f746f953aafb7ded7a8b","license":"MIT repository; no text reused","used_for":"Fresh raw evidence before status claims."},
-    {"id":"obra-test-driven-development","url":"https://github.com/obra/superpowers/blob/2ce8aa15d05bd57213e6f746f953aafb7ded7a8b/skills/test-driven-development/SKILL.md","revision":"2ce8aa15d05bd57213e6f746f953aafb7ded7a8b","license":"MIT repository; no text reused","used_for":"Transitive reference from systematic debugging."},
-    {"id":"codebase-memory-mcp","url":"https://github.com/DeusData/codebase-memory-mcp/tree/a7158ac2f48ca646b4527341b76f930f2aeff87e","revision":"a7158ac2f48ca646b4527341b76f930f2aeff87e (v0.12.1)","license":"MIT repository; no text or executable redistributed","used_for":"Local code intelligence MCP integration."},
-    {"id":"vercel-web-design-guidelines","url":"https://github.com/vercel-labs/agent-skills/blob/1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62/skills/web-design-guidelines/SKILL.md","revision":"1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62","license":"No license identified in the skill or repository tree at this revision; no rule text reused","used_for":"UI quality review as an optional specialized aid."},
-    {"id":"vercel-react-best-practices","url":"https://github.com/vercel-labs/agent-skills/blob/1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62/skills/react-best-practices/SKILL.md","revision":"1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62","license":"Skill metadata declares MIT; no repository LICENSE found at this revision; no rule library bundled","used_for":"Optional stack-specific review only when React/Next.js is actually in scope."},
-    {"id":"opencode-repository-guidance","url":"https://github.com/anomalyco/opencode/blob/fa1260d6ca484fe0fd868aa992ad81ab85343cf3/AGENTS.md","revision":"fa1260d6ca484fe0fd868aa992ad81ab85343cf3","license":"MIT (repository LICENSE at same revision); no text reused","used_for":"Researching project-local rules for dependency direction, generated artifacts, production components, semantic tokens, behavior checks, and validating unknown values at owning boundaries."},
-    {"id":"unclebob-ub-mode","url":"https://github.com/unclebob/ub-mode/blob/57a8bdd28e45ed41900ace0bafa2ff76dd9ed70f/SKILL.md","companion_url":"https://github.com/unclebob/ub-mode/blob/57a8bdd28e45ed41900ace0bafa2ff76dd9ed70f/README.md","revision":"57a8bdd28e45ed41900ace0bafa2ff76dd9ed70f","license":"No license declared in repository metadata or inspected tree; no text or tools reused","used_for":"Researching small verifiable work units, behavioral checks, domain modeling, operational failure conditions, and diagnosis after repeated failures."},
-    {"id":"openai-model-catalog","url":"https://developers.openai.com/api/docs/models","revision":"web page inspected 2026-10-28","license":"Official documentation; no text reused","used_for":"Designing live lookup of model identifiers, capabilities, supported reasoning efforts, product distinctions, and API pricing as separate evidence."},
-    {"id":"openai-codex-plan-usage","url":"https://help.openai.com/en/articles/20001516-managing-usage-with-gpt-6-astra-in-work-and-codex","revision":"web page inspected 2026-10-28","license":"Official help documentation; no text reused","used_for":"Distinguishing subscription allowance and plan usage from API billing and avoiding fixed task-count assumptions."},
-    {"id":"artificial-analysis-comparison-methodology","url":"https://artificialanalysis.ai/methodology","revision":"web page inspected 2026-10-28","license":"Methodology reference; no content reused","used_for":"Using benchmark token and cost-per-task measures as workload-specific evidence rather than direct predictions of subscription allowance."}
+    {
+      "id": "asd-ste100-skill",
+      "url": "https://github.com/danyuchn/asd-ste100-skill/blob/8da6b6340aa22faf46fd07db8efbdea010cd38d9/SKILL.md",
+      "revision": "8da6b6340aa22faf46fd07db8efbdea010cd38d9",
+      "license": "MIT repository; no text reused",
+      "used_for": "Original compact communication rules and an optional ambiguity-sensitive helper; the upstream skill is no longer installed.",
+      "installation": "research only"
+    },
+    {
+      "id": "anthropic-agent-loop",
+      "url": "https://claude.com/resources/articles/building-agents-when-to-fold-subagents-into-your-main-agent-loop",
+      "revision": "2026-10-22 article; web page inspected 2026-10-28",
+      "license": "Article; no content reused",
+      "used_for": "Reasoning about when focused single-loop workflows or delegation add value.",
+      "installation": "research only"
+    },
+    {
+      "id": "agentskills-best-practices",
+      "url": "https://agentskills.io/skill-creation/best-practices",
+      "revision": "web page inspected 2026-10-28",
+      "license": "Guidance reference; no content reused",
+      "used_for": "Concise scope, progressive disclosure, useful specificity, and skill validation.",
+      "installation": "research only"
+    },
+    {
+      "id": "mattpocock-grilling",
+      "url": "https://github.com/mattpocock/skills/blob/59db609eb1e18aaf59b63284d0e52255aff0c63c/skills/productivity/grilling/SKILL.md",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "license": "MIT repository; no text reused",
+      "used_for": "Decision interview routing and resolving dependent choices in rounds.",
+      "installation": "research only"
+    },
+    {
+      "id": "anthropics-frontend-design",
+      "url": "https://github.com/anthropics/skills/blob/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/frontend-design/SKILL.md",
+      "revision": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+      "license": "Apache-2.0 skill license; no text reused",
+      "used_for": "Ground visual direction in the product and the actual brief.",
+      "installation": "research only"
+    },
+    {
+      "id": "obra-systematic-debugging",
+      "url": "https://github.com/obra/superpowers/blob/2ce8aa15d05bd57213e6f746f953aafb7ded7a8b/skills/systematic-debugging/SKILL.md",
+      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+      "license": "MIT repository; no text reused",
+      "used_for": "Diagnosis grounded in reproduction and tracing before repair.",
+      "installation": "research only"
+    },
+    {
+      "id": "obra-verification-before-completion",
+      "url": "https://github.com/obra/superpowers/blob/2ce8aa15d05bd57213e6f746f953aafb7ded7a8b/skills/verification-before-completion/SKILL.md",
+      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+      "license": "MIT repository; no text reused",
+      "used_for": "Fresh raw evidence before status claims.",
+      "installation": "research only"
+    },
+    {
+      "id": "obra-test-driven-development",
+      "url": "https://github.com/obra/superpowers/blob/2ce8aa15d05bd57213e6f746f953aafb7ded7a8b/skills/test-driven-development/SKILL.md",
+      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+      "license": "MIT repository; no text reused",
+      "used_for": "Original regression-testing helper: behavioral assertions and reproduction where practical, without a universal TDD requirement.",
+      "installation": "research only"
+    },
+    {
+      "id": "codebase-memory-mcp",
+      "url": "https://github.com/DeusData/codebase-memory-mcp/tree/a7158ac2f48ca646b4527341b76f930f2aeff87e",
+      "revision": "a7158ac2f48ca646b4527341b76f930f2aeff87e (v0.12.1)",
+      "license": "MIT repository; no text or executable redistributed",
+      "used_for": "Local code intelligence MCP integration.",
+      "installation": "external integration"
+    },
+    {
+      "id": "vercel-web-design-guidelines",
+      "url": "https://github.com/vercel-labs/agent-skills/blob/1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62/skills/web-design-guidelines/SKILL.md",
+      "revision": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "license": "No license identified in the skill or repository tree at this revision; no rule text reused",
+      "used_for": "UI quality review as an optional specialized aid.",
+      "installation": "research only"
+    },
+    {
+      "id": "vercel-react-best-practices",
+      "url": "https://github.com/vercel-labs/agent-skills/blob/1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62/skills/react-best-practices/SKILL.md",
+      "revision": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "license": "Skill metadata declares MIT; no repository LICENSE found at this revision; no rule library bundled",
+      "used_for": "Optional stack-specific review only when React/Next.js is actually in scope.",
+      "installation": "research only"
+    },
+    {
+      "id": "opencode-repository-guidance",
+      "url": "https://github.com/anomalyco/opencode/blob/fa1260d6ca484fe0fd868aa992ad81ab85343cf3/AGENTS.md",
+      "revision": "fa1260d6ca484fe0fd868aa992ad81ab85343cf3",
+      "license": "MIT (repository LICENSE at same revision); no text reused",
+      "used_for": "Researching project-local rules for dependency direction, generated artifacts, production components, semantic tokens, behavior checks, and validating unknown values at owning boundaries.",
+      "installation": "research only"
+    },
+    {
+      "id": "unclebob-ub-mode",
+      "url": "https://github.com/unclebob/ub-mode/blob/57a8bdd28e45ed41900ace0bafa2ff76dd9ed70f/SKILL.md",
+      "companion_url": "https://github.com/unclebob/ub-mode/blob/57a8bdd28e45ed41900ace0bafa2ff76dd9ed70f/README.md",
+      "revision": "57a8bdd28e45ed41900ace0bafa2ff76dd9ed70f",
+      "license": "No license declared in repository metadata or inspected tree; no text or tools reused",
+      "used_for": "Researching small verifiable work units, behavioral checks, domain modeling, operational failure conditions, and diagnosis after repeated failures.",
+      "installation": "research only"
+    },
+    {
+      "id": "openai-model-catalog",
+      "url": "https://developers.openai.com/api/docs/models",
+      "revision": "web page inspected 2026-10-28",
+      "license": "Official documentation; no text reused",
+      "used_for": "Designing live lookup of model identifiers, capabilities, supported reasoning efforts, product distinctions, and API pricing as separate evidence.",
+      "installation": "research only"
+    },
+    {
+      "id": "openai-codex-plan-usage",
+      "url": "https://help.openai.com/en/articles/20001516-managing-usage-with-gpt-6-astra-in-work-and-codex",
+      "revision": "web page inspected 2026-10-28",
+      "license": "Official help documentation; no text reused",
+      "used_for": "Distinguishing subscription allowance and plan usage from API billing and avoiding fixed task-count assumptions.",
+      "installation": "research only"
+    },
+    {
+      "id": "artificial-analysis-comparison-methodology",
+      "url": "https://artificialanalysis.ai/methodology",
+      "revision": "web page inspected 2026-10-28",
+      "license": "Methodology reference; no content reused",
+      "used_for": "Using benchmark token and cost-per-task measures as workload-specific evidence rather than direct predictions of subscription allowance.",
+      "installation": "research only"
+    },
+    {
+      "id": "openai-app-server-skills",
+      "url": "https://learn.chatgpt.com/docs/app-server",
+      "revision": "web page inspected 2026-10-29",
+      "license": "Official documentation; no text reused",
+      "installation": "research only",
+      "used_for": "Checking installed skill availability through skills/list with forceReload, enabled skill paths, and separate activation reporting."
+    }
   ]
 }
