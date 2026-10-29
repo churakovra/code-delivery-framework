@@ -15,7 +15,7 @@ class GuidanceContracts(unittest.TestCase):
         for entry in (ROOT / 'skills').rglob('SKILL.md'):
             if entry.parent.name == 'model-routing':
                 continue  # Explicit model research has a separate, on-demand entrypoint.
-            limits[entry] = 600 if entry.parent.name == 'delivery' else 250
+            limits[entry] = 650 if entry.parent.name == 'delivery' else 250
         for path, limit in limits.items():
             with self.subTest(path=path.relative_to(ROOT)):
                 self.assertLessEqual(len(path.read_text().split()), limit)
@@ -105,6 +105,13 @@ class GuidanceContracts(unittest.TestCase):
             'repeated failure': 'After two failed repairs, obtain independent diagnosis',
             'updated patch review': 'Substantive repairs require updated review',
             'no nested launch': 'Only the main agent launches agents',
+            'continue after partial work': 'A failed approach or partial milestone is not a reason to stop',
+            'integrate delegated results': 'Integrate subagent findings',
+            'questions and pending work': 'keep dependent work pending',
+            'completion or concrete blocker': 'a concrete blocker prevents meaningful authorized progress',
+            'compare both active settings': 'compare its runtime-advertised model and reasoning effort with both policy values',
+            'record launch evidence': 'distinguish a request from a confirmed active setting',
+            'unavailable matching launch': 'treat that delegation as unavailable',
         }
         for scenario, contract in cases.items():
             with self.subTest(scenario=scenario):
