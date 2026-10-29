@@ -40,6 +40,14 @@ After install or upgrade, the installer checks file state and requests `skills/l
 
 These checks start no model task and run no task evaluation. A successful file transaction does not prove skill discovery or active MCP loading. Restart Codex, trust a project if required, and check the skill catalog and MCP server in a fresh session. Installation can report an incomplete discovery result without undoing the completed file transaction.
 
+Fresh-session limitation observed in a temporary macOS home: the configured Codebase Memory server timed out during its MCP handshake under its default runtime settings. Supplying a newly created, short, private `CBM_RUNTIME_DIR` explicitly to the server allowed tool discovery in that test. The installer does not yet manage that runtime directory; automatic MCP activation is therefore not confirmed, and the workaround should be treated as diagnostic rather than a permanent configuration.
+
+`status` includes a compact `summary` with file health, affected paths, and a next action; the detailed file and managed-block fields remain available for diagnosis. An archive revision marker is provenance supplied by the archive, not an authenticated checksum. Verify release artifacts through a trusted release channel before installing them.
+
+For a release archive with an expanded revision marker, obtain its SHA-256 and full source revision independently from a trusted channel, then run `python3 scripts/verify_release.py /path/to/release.zip --sha256 TRUSTED_SHA256 --version VERSION --revision FULL_REVISION`. The verifier checks the whole archive's checksum and the version and revision inside it. A checksum supplied by the same untrusted archive does not authenticate that archive.
+
+The verifier checks a private snapshot; keep the original archive unchanged between verification and extraction, or verify the bytes again before using them.
+
 For global use, `--target` must equal the canonical configured home:
 
 ```sh
@@ -69,7 +77,22 @@ After manually editing the installed policy, run `sync-models` with the installa
 
 Use `upgrade` with the same `--target`, `--home`, and `--global` values as installation. `status` reports recorded file state. If a transaction was interrupted, run `recover` against that target before retrying. Recovery stops if a file changed after the transaction began.
 
+The version is recorded as `framework_version` in the installation manifest and returned by `status`; `null` means the older installation did not record a version. The source's `pyproject.toml` supplies the version; a `.dev` suffix identifies development code rather than a published release. For a Git checkout, source identity records HEAD and whether the checkout had changes; a dirty checkout is not identified by the revision alone. Git-generated archives can include an expanded `SOURCE_REVISION` marker. The marker identifies the claimed source revision but is not a signature or a verification of the archive's integrity; archives without an expanded marker report an unknown revision. Upgrades retain the current model policy and reject a downgrade when both versions are known. Reinstalling the same version with `upgrade` is permitted. Existing schema 1 and 2 manifests remain readable; unsupported schemas stop for manual resolution.
+
+Before an upgrade, inspect `status` and run `upgrade --dry-run` with the same target and scope. The preview reports locally detected managed-file and bundled skill-name conflicts, a partial list of bundled changes, and whether its assessment is blocked or incomplete. It does not download dependencies, probe Codex, or check dependency skill names or all dependency, runtime, and migration conflicts. Resolve conflicts without discarding local edits, then run the upgrade; it checks again before writing. Confirm the version and file state afterward. `managed_blocks` distinguishes modifications to framework-owned instruction and configuration blocks from changes elsewhere in those files. Skill discovery and active MCP loading are separate checks, and may require a new Codex session. The runtime `roles.json` is generated from the source registry and installed policy, so its structure differs from the source file.
+
+Add `--deep-preview` to an install or upgrade dry run to download and verify the pinned dependencies and run the full file-planning checks without writing the target. It reports planned additions, updates, removals, unchanged files, and reused files. The preview does not probe Codex or verify runtime model availability and activation. Files can change after the preview, so the real operation repeats its checks.
+
 Upgrade removes obsolete framework-owned external skill files only when unchanged. Modified managed files cause a conflict that must be resolved without discarding user work. User-owned reused skills remain user-owned. `uninstall --dry-run` identifies preserved changes. Uninstall preserves reused files and Codebase Memory indexes.
+
+For an agent performing an upgrade:
+
+1. Obtain the requested release source and identify the installation target and scope. Do not assume the latest checkout is the requested release.
+2. Run `status`. If recovery is required, run `recover` first; preserve any files that recovery reports as changed. If the installed version is unknown, report it as unknown.
+3. Read the target release's migration notes. Run `upgrade --dry-run` with the original target and scope, and inspect every conflict and incomplete check. A successful preview is not a guarantee that the transaction will succeed.
+4. Preserve modified managed files and resolve ownership conflicts before proceeding. Do not overwrite local changes or silently uninstall user-owned content. The existing model policy is retained; incompatible models require explicit resolution.
+5. Run `upgrade`. Schema 1 and 2 manifests are migrated by the installer; an unsupported or damaged manifest stops the operation. A known downgrade is blocked, while reinstalling the same version and skipping releases are permitted only when the installer accepts the existing state and the release migration notes allow it.
+6. Run `status` again and report the recorded version, source identity, file and block state, and any incomplete availability checks. Restart Codex and verify discovery and MCP activation separately when applicable. If interrupted, recover before retrying.
 
 The managed instruction block preserves bytes outside its markers. Older unowned delivery blocks or conflicting workflow signatures need manual reconciliation. The installer does not silently rewrite unrelated instructions.
 
@@ -78,6 +101,8 @@ The managed instruction block preserves bytes outside its markers. Older unowned
 Installer development uses automated regression checks against temporary targets. Installation itself checks availability without running those tests or evaluating agents. Real task evaluations and token benchmarks remain optional and explicit. Automated routing checks inspect instruction contracts; they do not prove model compliance.
 
 Current development evidence (2026-10-29): 104 automated tests passed, including temporary-target lifecycle, policy, migration, discovery-reporting, and static guidance checks. A live temporary project exercise downloaded and verified the pinned dependency, installed the payload, confirmed clean files and discovery of all 13 installed skills through Codex, upgraded, and uninstalled. This exercise called the installation routines directly; CLI policy behavior is covered by automated tests. Independent review found no actionable defects. Active MCP loading in a user's session, platform archives other than macOS ARM64, model compliance, and token savings remain unverified. No model task evaluation ran.
+
+Installer structure assessment: version and source identity are in `scripts/framework_identity.py`, command parsing and dispatch are in `scripts/framework_cli.py`, pinned dependencies and their staged checks are in `scripts/framework_dependencies.py`, and transactional recovery and policy operations remain in `scripts/framework.py`. Removing recovery, conflict detection, dependency verification, or model compatibility checks would change documented safety or runtime behavior. This revision retains those capabilities; it does not claim an 80–90% reduction or a complete decomposition. Further extraction can be done without changing the lifecycle contract.
 
 Maintainability budgets are 300 words for the managed instructions, 600 for delivery, 250 for each role entrypoint, 400 for each helper, and under 100 for routine communication rules. The specialized, explicitly invoked model-routing skill is exempt from the role-entrypoint budget.
 

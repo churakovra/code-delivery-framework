@@ -10,6 +10,15 @@ f = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(f)
 
 class RootSkillTests(unittest.TestCase):
+    def test_archive_revision_and_unexpanded_placeholder(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            marker = root/'SOURCE_REVISION'
+            marker.write_text('$Format:%H$\n')
+            self.assertIsNone(f.source_identity(root)['revision'])
+            marker.write_text('a'*40+'\n')
+            self.assertEqual(f.source_identity(root), {'revision':'a'*40, 'dirty':None, 'origin':'archive'})
+
     def test_root_skill_copies_supporting_files_and_license(self):
         import subprocess
         revision = 'a' * 40
@@ -101,6 +110,7 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(f.uninstall(self.target)['preserved'],['.agents/skills/code-delivery-framework/test/SKILL.md'])
         self.assertEqual(skill.read_text(),'user edit')
         self.assertEqual(f.status(self.target)['state'],'preserved')
+        self.assertIn('Resolve preserved files', f.status(self.target)['summary']['next'])
     def test_agents_surrounding_edits_preserved(self):
         self.install()
         agents=self.target/'AGENTS.md'
@@ -231,6 +241,131 @@ class DependencyInstallerTests(InstallerTests):
     def enable(self):
         (self.root/'subskills.json').write_text(json.dumps(self.inventory))
         return patch.object(f,'fetch_dependencies',return_value=(dict(self.package),dict(self.versions)))
+
+    def test_upgrade_preview_reports_modified_managed_skill_without_writes(self):
+        with self.enable(): self.install()
+        skill = self.target/'.agents/skills/code-delivery-framework/test/SKILL.md'
+        skill.write_text('local change')
+        manifest = (self.target/f.STATE).read_bytes()
+        with self.enable(): result = f.install_with_dependencies(self.target, root=self.root, upgrade=True, dry_run=True)
+        self.assertEqual(result['state'], 'blocked')
+        self.assertTrue(any('test/SKILL.md' in conflict for conflict in result['conflicts']))
+        self.assertEqual(skill.read_text(), 'local change')
+        self.assertEqual((self.target/f.STATE).read_bytes(), manifest)
+
+    def test_version_recorded_and_downgrade_blocked(self):
+        (self.root/'pyproject.toml').write_text('[project]\nversion = "2.0.0"\n')
+        with self.enable(): self.install()
+        self.assertEqual(f.status(self.target)['framework_version'], '2.0.0')
+        (self.root/'pyproject.toml').write_text('[project]\nversion = "1.0.0"\n')
+        with self.enable(), self.assertRaisesRegex(f.FrameworkError, 'Downgrade'):
+            f.install_with_dependencies(self.target, root=self.root, upgrade=True, dry_run=True)
+        self.assertEqual(f.status(self.target)['framework_version'], '2.0.0')
+
+    def test_preview_detects_bundled_duplicate_skill(self):
+        duplicate = self.target/'.codex/skills/other/SKILL.md'
+        duplicate.parent.mkdir(parents=True)
+        duplicate.write_text('---\nname: test\ndescription: duplicate\n---\n')
+        with self.enable(): result = f.install_with_dependencies(self.target, root=self.root, dry_run=True)
+        self.assertEqual(result['state'], 'blocked')
+        self.assertTrue(any('duplicate installed skill name' in item for item in result['conflicts']))
+
+    def test_global_preview_accepts_identical_rendered_agent(self):
+        with self.enable(): files, _, _, _ = f.payload(self.root)
+        name = '.codex/agents/delivery-qa.toml'
+        fields = __import__('tomllib').loads(files[name].decode())
+        fields['developer_instructions'] = fields['developer_instructions'].replace('.agents/skills/', str(self.target/'.agents/skills')+'/')
+        agent = self.target/name
+        agent.parent.mkdir(parents=True)
+        agent.write_text('\n'.join(f'{key} = {json.dumps(value, ensure_ascii=False)}' for key, value in fields.items())+'\n')
+        with self.enable(): result = f.install_with_dependencies(self.target, root=self.root, dry_run=True, global_mode=True)
+        self.assertFalse(any(name in item for item in result['conflicts']))
+
+    def test_status_distinguishes_config_block_from_user_edits(self):
+        with self.enable(): self.install()
+        config = self.target/'.codex/config.toml'
+        config.write_bytes(config.read_bytes()+b'\n# user setting\n')
+        result = f.status(self.target)
+        self.assertEqual(result['files']['.codex/config.toml'], 'modified')
+        self.assertEqual(result['summary']['files'], 'attention-required')
+        self.assertEqual(result['managed_blocks']['.codex/config.toml'], 'clean')
+        config.write_bytes(config.read_bytes().replace(f.CONFIG_START, b'# changed marker'))
+        self.assertEqual(f.status(self.target)['managed_blocks']['.codex/config.toml'], 'modified-or-missing')
+
+    def test_preview_reports_invalid_config_without_fetching(self):
+        config = self.target/'.codex/config.toml'
+        config.parent.mkdir(parents=True)
+        config.write_text('invalid = [')
+        with self.enable() as fetch:
+            result = f.install_with_dependencies(self.target, root=self.root, dry_run=True)
+        self.assertEqual(result['state'], 'blocked')
+        self.assertTrue(any('invalid configuration' in item for item in result['conflicts']))
+        fetch.assert_not_called()
+
+    def test_deep_preview_plans_dependency_files_without_writes(self):
+        with self.enable() as fetch:
+            result = f.install_with_dependencies(self.target, root=self.root, dry_run=True, deep_preview=True)
+        fetch.assert_called_once()
+        self.assertEqual(result['state'], 'ready')
+        self.assertIn('.agents/skills/demo/SKILL.md', result['changes']['add'])
+        self.assertEqual(list(self.target.iterdir()), [])
+
+    def test_deep_preview_detects_dependency_conflict(self):
+        path = self.target/'.agents/skills/demo/SKILL.md'
+        path.parent.mkdir(parents=True)
+        path.write_text('---\nname: demo\ndescription: user\n---\n')
+        with self.enable(), self.assertRaisesRegex(f.FrameworkError, 'user-owned skill differs'):
+            f.install_with_dependencies(self.target, root=self.root, dry_run=True, deep_preview=True)
+        self.assertFalse((self.target/f.STATE).exists())
+
+    def test_cli_deep_preview_detects_model_selection_collision(self):
+        import contextlib
+        import io
+        path = self.target/'.codex/delivery-framework/model-selection.json'
+        path.parent.mkdir(parents=True)
+        path.write_text('user data')
+        original_payload = f.payload
+        original_install = f.install_with_dependencies
+        def payload(root=None, selected_policy=None):
+            return original_payload(self.root, selected_policy)
+        def install(target, dry_run=False, **kwargs):
+            return original_install(target, dry_run, root=self.root, **kwargs)
+        with self.enable(), patch.object(f, 'payload', side_effect=payload), patch.object(f, 'install_with_dependencies', side_effect=install), contextlib.redirect_stdout(io.StringIO()):
+            result = f.main(['install', '--target', str(self.target), '--home', str(self.target.parent/'home'), '--dry-run', '--deep-preview'])
+        self.assertEqual(result, 1)
+        self.assertEqual(path.read_text(), 'user data')
+        self.assertFalse((self.target/f.STATE).exists())
+
+    def test_preview_reports_overlapping_mcp_entry(self):
+        with self.enable(): self.install()
+        config = self.target/'.codex/config.toml'
+        config.write_bytes(config.read_bytes()+b'\n[mcp_servers.codebase-memory-mcp]\ncommand = "other"\n')
+        with self.enable(): result = f.install_with_dependencies(self.target, root=self.root, upgrade=True, dry_run=True)
+        self.assertEqual(result['state'], 'blocked')
+        self.assertTrue(any('overlaps managed entry' in item for item in result['conflicts']))
+
+    def test_cli_install_upgrade_status_uninstall_lifecycle(self):
+        import contextlib
+        import io
+        real_payload = f.payload
+        real_install = f.install
+        real_upgrade = f.install_with_dependencies
+        def payload(root=None, selected_policy=None):
+            return real_payload(self.root, selected_policy)
+        def install(target, dry_run=False, **kwargs):
+            return real_install(target, dry_run, root=self.root, **kwargs)
+        def upgrade(target, dry_run=False, root=None, global_mode=False, **kwargs):
+            return real_upgrade(target, dry_run, root=self.root, global_mode=global_mode, **kwargs)
+        models = [{'model':'test-model','supportedReasoningEfforts':[{'reasoningEffort':'low'}]}]
+        common = ['--target', str(self.target), '--home', str(self.target.parent/'home')]
+        with self.enable(), patch.object(f, 'payload', side_effect=payload), patch.object(f, 'install', side_effect=install), patch.object(f, 'install_with_dependencies', side_effect=upgrade), patch.object(f, 'probe', return_value=('test', models)), patch.object(f, 'installation_availability', return_value={}):
+            for command in ('install', 'status', 'upgrade', 'status', 'uninstall', 'status'):
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    self.assertEqual(f.main([command]+common), 0, output.getvalue())
+                data = json.loads(output.getvalue())
+                if command == 'status':
+                    self.assertEqual(data['state'], 'absent' if not (self.target/f.STATE).exists() else 'installed')
     @unittest.skipIf(__import__('os').name == 'nt', 'Unix executable permissions')
     def test_install_refuses_nonexecutable_identical_user_binary(self):
         binary = self.target/'.codex/delivery-framework/bin'/self.binary_name
