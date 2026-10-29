@@ -1,14 +1,6 @@
 {
-  "schema": 1,
+  "schema": 2,
   "subskills": {
-    "asd-ste100": {
-      "kind": "skill",
-      "repository": "https://github.com/danyuchn/asd-ste100-skill",
-      "revision": "8da6b6340aa22faf46fd07db8efbdea010cd38d9",
-      "path": ".",
-      "license": "MIT",
-      "activation": "Every user-facing response and agent handoff, preserving required meaning and evidence."
-    },
     "codebase-memory": {
       "kind": "mcp-integration",
       "repository": "https://github.com/DeusData/codebase-memory-mcp",
@@ -16,107 +8,77 @@
       "release": "v0.12.1",
       "license": "MIT",
       "activation": "Structural codebase discovery, tracing, or impact analysis."
+    }
+  },
+  "helpers": {
+    "communication": {
+      "path": "skills/helpers/communication.md",
+      "activation": "Ambiguity-sensitive instructions or agent handoffs."
     },
-    "grilling": {
-      "kind": "skill",
-      "repository": "https://github.com/mattpocock/skills",
-      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
-      "path": "skills/productivity/grilling",
-      "license": "MIT",
-      "activation": "Only when the user requests an intensive decision interview."
+    "diagnosis": {
+      "path": "skills/helpers/diagnosis.md",
+      "activation": "A reproducible bug, failed check, or unexpected behavior."
     },
-    "systematic-debugging": {
-      "kind": "skill",
-      "repository": "https://github.com/obra/superpowers",
-      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
-      "path": "skills/systematic-debugging",
-      "license": "MIT",
-      "activation": "Investigation of a bug, failed check, or unexpected behavior.",
-      "requires": [
-        "test-driven-development",
-        "verification-before-completion"
-      ]
+    "regression-testing": {
+      "path": "skills/helpers/regression-testing.md",
+      "activation": "A behavior change or repair with a meaningful observable regression."
     },
-    "test-driven-development": {
-      "kind": "skill",
-      "repository": "https://github.com/obra/superpowers",
-      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
-      "path": "skills/test-driven-development",
-      "license": "MIT",
-      "activation": "When systematic debugging requires a behavioral regression test; higher-priority user and repository instructions prevail."
+    "verification": {
+      "path": "skills/helpers/verification.md",
+      "activation": "A distinct verification assignment or uncertain completion evidence."
     },
-    "verification-before-completion": {
-      "kind": "skill",
-      "repository": "https://github.com/obra/superpowers",
-      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
-      "path": "skills/verification-before-completion",
-      "license": "MIT",
-      "activation": "Assessing evidence before reporting a result."
+    "design": {
+      "path": "skills/helpers/design.md",
+      "activation": "New interfaces or substantial visual or interaction decisions."
     },
-    "frontend-design": {
-      "kind": "skill",
-      "repository": "https://github.com/anthropics/skills",
-      "revision": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
-      "path": "skills/frontend-design",
-      "license": "Apache-2.0",
-      "activation": "New or substantial frontend visual design."
+    "accessibility": {
+      "path": "skills/helpers/accessibility.md",
+      "activation": "Changed interactive UI or an explicitly requested accessibility review."
     },
-    "web-design-guidelines": {
-      "kind": "skill",
-      "repository": "https://github.com/vercel-labs/agent-skills",
-      "revision": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
-      "path": "skills/web-design-guidelines",
-      "license": "unverified at pinned revision",
-      "activation": "A requested UI, UX, or accessibility review; fetches current upstream rules."
-    },
-    "vercel-react-best-practices": {
-      "kind": "skill",
-      "repository": "https://github.com/vercel-labs/agent-skills",
-      "revision": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
-      "path": "skills/react-best-practices",
-      "license": "MIT",
-      "activation": "Relevant React or Next.js implementation or review."
+    "react": {
+      "path": "skills/helpers/react.md",
+      "activation": "React or Next.js code with relevant rendering, fetching, or performance concerns."
     }
   },
   "roles": {
     "planner": [
       "codebase-memory",
-      "grilling",
-      "asd-ste100"
+      "communication"
     ],
     "implementation": [
       "codebase-memory",
-      "vercel-react-best-practices",
-      "systematic-debugging",
-      "verification-before-completion",
-      "asd-ste100"
+      "diagnosis",
+      "regression-testing",
+      "react",
+      "accessibility",
+      "communication"
     ],
     "designer": [
-      "frontend-design",
-      "web-design-guidelines",
-      "vercel-react-best-practices",
-      "asd-ste100"
+      "design",
+      "accessibility",
+      "react",
+      "communication"
     ],
     "qa": [
-      "verification-before-completion",
+      "verification",
       "codebase-memory",
-      "asd-ste100"
+      "communication"
     ],
     "reviewer": [
+      "verification",
       "codebase-memory",
-      "verification-before-completion",
-      "web-design-guidelines",
-      "vercel-react-best-practices",
-      "asd-ste100"
+      "accessibility",
+      "react",
+      "communication"
     ],
     "documentation": [
       "codebase-memory",
-      "asd-ste100"
+      "communication"
     ],
     "diagnosis": [
-      "systematic-debugging",
+      "diagnosis",
       "codebase-memory",
-      "asd-ste100"
+      "communication"
     ]
   }
 }

@@ -15,3 +15,6 @@ Verification is read-only; do not change code or weaken assertions to obtain a p
 Fresh output is required for claims. A report from another agent is not itself evidence.
 ## Stopping
 Stop when criteria are evidenced or precisely identify the blocking gap.
+
+## Conditional helpers
+- Read `../helpers/verification.md` only for: A distinct verification assignment or uncertain completion evidence.

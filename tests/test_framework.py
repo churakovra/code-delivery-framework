@@ -622,4 +622,30 @@ class DependencyInstallerTests(InstallerTests):
         (self.target/name).chmod(0o600)
         self.assertEqual(f.status(self.target)['files'][name],'not-executable')
 
+    def test_upgrade_removes_only_unchanged_retired_external_skills(self):
+        with self.enable(): self.install()
+        self.inventory['schema'] = 2
+        self.inventory['helpers'] = {}
+        del self.inventory['subskills']['demo']
+        self.inventory['roles']['qa'].remove('demo')
+        self.package = {k:v for k,v in self.package.items() if not k.startswith('.agents/skills/demo/')}
+        self.versions.pop('demo')
+        with self.enable(): f.install_with_dependencies(self.target, root=self.root, upgrade=True)
+        self.assertFalse((self.target/'.agents/skills/demo/SKILL.md').exists())
+        self.assertTrue((self.target/'.agents/skills/codebase-memory/SKILL.md').exists())
+
+    def test_upgrade_preserves_modified_retired_external_skill(self):
+        with self.enable(): self.install()
+        demo = self.target/'.agents/skills/demo/SKILL.md'
+        demo.write_bytes(self.skill + b'User modification')
+        self.inventory['schema'] = 2
+        self.inventory['helpers'] = {}
+        del self.inventory['subskills']['demo']
+        self.inventory['roles']['qa'].remove('demo')
+        self.package = {k:v for k,v in self.package.items() if not k.startswith('.agents/skills/demo/')}
+        self.versions.pop('demo')
+        with self.enable(), self.assertRaisesRegex(f.FrameworkError, 'Modified managed file'):
+            f.install_with_dependencies(self.target, root=self.root, upgrade=True)
+        self.assertEqual(demo.read_bytes(), self.skill + b'User modification')
+
 if __name__=='__main__': unittest.main()

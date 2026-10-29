@@ -1,4 +1,4 @@
-This repository contains original, concise task guidance. It does not bundle or reproduce third-party skill text, executable code, or rule libraries. Upstream repositories, exact inspected revisions, and known license information are documented in sources.json. Separately fetched dependencies are governed by their own terms; installation must retain the applicable upstream license and attribution files with each downloaded package. Consult the dependency inventory and installed status for actual installation state.
+This repository contains original, concise task guidance. It does not bundle or reproduce third-party skill text, executable code, or rule libraries. Upstream repositories, exact inspected revisions, and known license information are documented in sources.json. Only the Codebase Memory integration is fetched during installation. Its upstream license and notices are retained. Historical external workflow skills remain research references and are no longer installation dependencies. Separately fetched dependencies are governed by their own terms; installation must retain the applicable upstream license and attribution files with each downloaded package. Consult the dependency inventory and installed status for actual installation state.
 
 Additional research references for concise original guidance:
 - anomalyco/opencode AGENTS.md at fa1260d6ca484fe0fd868aa992ad81ab85343cf3 is MIT-licensed at that revision. No text is reproduced.
@@ -10,3 +10,7 @@ Model-routing research references the OpenAI model catalog and Work/Codex usage 
 At the inspected Vercel agent-skills revision 1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62, the React skill's metadata declares MIT; no repository license file was found. The Web Design Guidelines skill did not declare a license and no repository license file was found. Do not represent the latter as MIT without further evidence. No Vercel skill or rule text is reproduced here.
 
 The ASD-STE100 skill at 8da6b6340aa22faf46fd07db8efbdea010cd38d9 is MIT-licensed. It informed original communication guidance; no text or tools are reproduced.
+
+Bundled helpers for communication, diagnosis, regression testing, verification, design, accessibility, and React are original concise adaptations. They do not redistribute upstream skill instructions, rule libraries, dictionaries, or tools. The communication helper does not claim certified ASD-STE100 compliance.
+
+The official OpenAI App Server documentation informed skill availability checks. No documentation text is reproduced. See sources.json for the inspected page and date.

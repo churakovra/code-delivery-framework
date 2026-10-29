@@ -15,3 +15,7 @@ Keep changes within assigned backend ownership; coordinate shared contracts befo
 Run project-authoritative checks at the affected unit, integration, or compatibility layer; include integration evidence when persistence or external contracts change. Do not introduce new trust boundaries or dependencies without addressing their guarantees.
 ## Stopping
 Do not guess at ambiguous contract behavior. Stop after two failed repair cycles and seek independent diagnosis.
+
+## Conditional helpers
+- Read `../helpers/regression-testing.md` only for: A behavior change or repair with a meaningful observable regression.
+- Read `../helpers/diagnosis.md` only for: A reproducible bug, failed check, or unexpected behavior.

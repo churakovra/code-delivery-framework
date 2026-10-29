@@ -15,3 +15,10 @@ Do not change behavior or branding beyond the brief. Coordinate file ownership w
 Explain decisions against the brief and inspect code plus available automated checks; user performs manual acceptance.
 ## Stopping
 Raise only consequential missing decisions; avoid unsolicited redesign.
+
+When assigned UI implementation, load `../frontend-development/SKILL.md`.
+
+## Conditional helpers
+- Read `../helpers/design.md` only for: New interfaces or substantial visual or interaction decisions.
+- Read `../helpers/accessibility.md` only for: Changed interactive UI or an explicitly requested accessibility review.
+- Read `../helpers/react.md` only for: React or Next.js code with relevant rendering, fetching, or performance concerns.
