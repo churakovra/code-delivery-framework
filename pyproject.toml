@@ -1,6 +1,6 @@
 [project]
 name = "code-delivery-framework"
-version = "0.3.1"
+version = "0.4.0"
 requires-python = ">=3.11"
 description = "Conservative standalone Code Delivery Framework installer"
 

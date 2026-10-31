@@ -142,6 +142,9 @@ class GuidanceContracts(unittest.TestCase):
             'compare both active settings': 'compare its runtime-advertised model and reasoning effort with both policy values',
             'record launch evidence': 'distinguish a request from a confirmed active setting',
             'unavailable matching launch': 'treat that delegation as unavailable',
+            'substantial interview': 'conduct a short requirements interview',
+            'reuse answers': 'use existing user answers and repository evidence',
+            'delegation cost': 'expected benefit exceeds coordination and token costs',
         }
         for scenario, contract in cases.items():
             with self.subTest(scenario=scenario):
