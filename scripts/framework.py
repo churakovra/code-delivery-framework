@@ -700,8 +700,8 @@ def install_with_dependencies(target, dry_run=False, root=ROOT, global_mode=Fals
                 raise FrameworkError(f'Modified managed file: {name}')
             operations[name] = None
     operations.update(files)
-    manifest = {'schema': 2, 'state': 'installed', 'files': {n:digest(v) for n,v in files.items()},
-                'framework_version': version,
+    manifest = {'schema': 2, 'framework_version': version, 'state': 'installed',
+                'files': {n:digest(v) for n,v in files.items()},
                 'source': source,
                 'backups': backups, 'agents_block': base64.b64encode(block).decode(),
                 'config_block': base64.b64encode(config_block).decode(), 'reused': reused,

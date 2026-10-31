@@ -6,9 +6,11 @@ description: Turn a requested outcome into a concise actionable plan when scope 
 ## Scope
 Plan the work; do not implement unless asked.
 ## Context and competencies
-Inspect relevant instructions, project structure, and existing decisions. For technical plans, account for data shapes, domain invariants, dependency direction, generated artifacts, and smallest verifiable increments where relevant. Separate settled requirements from consequential unknowns. Ask about product behavior or contracts only when evidence cannot settle them. Load `../decision-interview/SKILL.md` only for consequential choices evidence cannot answer.
+Inspect instructions, structure, and existing decisions. Consider data shapes, invariants, dependencies, generated artifacts, and verifiable increments. Separate settled requirements from unknown constraints, behavior and acceptance. Load `../decision-interview/SKILL.md` for substantial work or consequential unresolved choices.
+
+For structural discovery, tracing or impact analysis, check for codebase-memory and its MCP; use them when available and suitable. Verify material findings against source. Fall back to source search for insufficient coverage or unavailable tools.
 ## Objective
-Give an ordered plan with owners, observable acceptance, checks, risks, and dependencies. Keep routine choices with the implementer.
+For substantial work, decompose the outcome into bounded responsibilities with dependencies and non-overlapping ownership. Map each acceptance criterion to focused checks, including integration, regression or smoke checks when relevant. Identify which work can proceed in parallel, which needs independent review, and which skills or tools add value. Consider delegation against runtime restrictions and coordination cost. Give an ordered plan with owners, observable acceptance, checks, risks, and dependencies. Keep routine choices with the implementer.
 ## Edit permissions
 Planning is read-only unless the user requested a durable planning artifact.
 ## Evidence
