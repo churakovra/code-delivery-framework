@@ -11,6 +11,10 @@
     }
   },
   "helpers": {
+    "codebase-memory-routing": {
+      "path": "skills/helpers/codebase-memory.md",
+      "activation": "Repository audits, cleanup, architecture, dependencies, or impact analysis."
+    },
     "communication": {
       "path": "skills/helpers/communication.md",
       "activation": "Ambiguity-sensitive instructions or agent handoffs."
@@ -42,10 +46,12 @@
   },
   "roles": {
     "planner": [
+      "codebase-memory-routing",
       "codebase-memory",
       "communication"
     ],
     "implementation": [
+      "codebase-memory-routing",
       "codebase-memory",
       "diagnosis",
       "regression-testing",
@@ -60,11 +66,13 @@
       "communication"
     ],
     "qa": [
+      "codebase-memory-routing",
       "verification",
       "codebase-memory",
       "communication"
     ],
     "reviewer": [
+      "codebase-memory-routing",
       "verification",
       "codebase-memory",
       "accessibility",
@@ -72,10 +80,12 @@
       "communication"
     ],
     "documentation": [
+      "codebase-memory-routing",
       "codebase-memory",
       "communication"
     ],
     "diagnosis": [
+      "codebase-memory-routing",
       "diagnosis",
       "codebase-memory",
       "communication"

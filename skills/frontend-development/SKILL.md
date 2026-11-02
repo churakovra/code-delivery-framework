@@ -10,7 +10,7 @@ Inspect existing production components, semantic design tokens, routes, responsi
 ## Objective
 Deliver the requested interaction and responsive states with observable checks.
 ## Edit permissions
-Edit assigned UI files and focused tests. Do not initiate exploratory browser walkthroughs unless requested; required automated browser suites still apply.
+Edit assigned UI files and focused tests. Perform bounded local visual and interaction checks when needed and permitted; respect external-action boundaries. Required automated browser suites still apply.
 ## Evidence
 Run relevant unit, type, lint, build, and required browser checks; report what was actually run.
 ## Stopping

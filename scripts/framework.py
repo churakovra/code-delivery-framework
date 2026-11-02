@@ -9,7 +9,6 @@ import os
 import platform
 from pathlib import Path
 import re
-import selectors
 import shutil
 import subprocess
 import sys
@@ -162,9 +161,27 @@ def probe(codex, skill_cwd=None, env=None):
             raise FrameworkError('Codex >= 0.163.0 required for inspected standalone-agent schema')
         with tempfile.TemporaryFile() as errors:
             process = subprocess.Popen([codex, 'app-server', '--stdio'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=errors, env=env)
-            selector = selectors.DefaultSelector()
+            chunks = queue.Queue(maxsize=16)
+            stopped = threading.Event()
+            def send_chunk(chunk):
+                while not stopped.is_set():
+                    try:
+                        chunks.put(chunk, timeout=0.1)
+                        return
+                    except queue.Full:
+                        pass
+            def read_output():
+                try:
+                    while not stopped.is_set():
+                        chunk = os.read(process.stdout.fileno(), 65536)
+                        send_chunk(chunk)
+                        if not chunk:
+                            return
+                except OSError:
+                    send_chunk(b'')
+            reader = threading.Thread(target=read_output, daemon=True)
+            reader.start()
             try:
-                selector.register(process.stdout, selectors.EVENT_READ)
                 pending = b''
                 def rpc(number, method, params):
                     nonlocal pending
@@ -173,9 +190,10 @@ def probe(codex, skill_cwd=None, env=None):
                     deadline = time.monotonic()+20
                     while time.monotonic() < deadline:
                         while b'\n' not in pending:
-                            if not selector.select(max(0, deadline-time.monotonic())):
+                            try:
+                                chunk = chunks.get(timeout=max(0, deadline-time.monotonic()))
+                            except queue.Empty:
                                 raise FrameworkError(f'Runtime capability timeout: {method}')
-                            chunk = os.read(process.stdout.fileno(), 65536)
                             if not chunk:
                                 raise FrameworkError('Codex app-server closed before capability response')
                             pending += chunk
@@ -205,13 +223,14 @@ def probe(codex, skill_cwd=None, env=None):
                         raise FrameworkError('Invalid model-list pagination')
                     seen_cursors.add(cursor)
             finally:
-                selector.close()
+                stopped.set()
                 process.terminate()
                 try:
                     process.wait(timeout=3)
                 except subprocess.TimeoutExpired:
                     process.kill(); process.wait()
                 process.stdin.close(); process.stdout.close()
+                reader.join(timeout=1)
     except (OSError, subprocess.SubprocessError, ValueError, KeyError) as exc:
         raise FrameworkError(f'Runtime availability could not be established: {exc}') from exc
 

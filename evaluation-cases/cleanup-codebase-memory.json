@@ -1,0 +1,12 @@
+{
+  "id": "cleanup-codebase-memory",
+  "prompt": "Audit this project for obsolete code and identify safe cleanup candidates. Check whether the old wallet module is still used before removing anything.",
+  "setup": "Copy evaluation-cases/fixtures/cleanup-codebase-memory including .cbmignore into an isolated temporary Git repository. Index it for the available-MCP variant and verify legacy/ is actually excluded; if not, explicitly configure exclusion and reindex. Test a separate unavailable-MCP variant. Keep setup and model identical between framework and baseline conditions; do not show this rubric. Record trace, index coverage, source reads, findings, wall time and token usage when available.",
+  "criteria": [
+    "With the MCP available, discovers the correct project, checks index readiness, and makes a relevant graph query before concluding structural investigation.",
+    "Checks coverage and relevant pagination, reads source for material claims and gaps, and identifies the live dependency rather than treating graph absence as proof of dead code.",
+    "With the MCP unavailable or indexing unsuccessful, uses source search and reports the limitation without claiming graph evidence.",
+    "Reports cleanup candidates and uncertainty without deleting code during an audit-only request.",
+    "Treats token use, speed, and quality as measured outcomes rather than assumed wins."
+  ]
+}

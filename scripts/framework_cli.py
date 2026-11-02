@@ -1,5 +1,6 @@
 """Command-line interface for the delivery framework."""
 import argparse
+import base64
 import json
 import sys
 import tomllib
@@ -64,7 +65,18 @@ def main(argv=None, api=None):
                 if not api['read_manifest'](target) or not installed.is_file():
                     raise api['FrameworkError']('No installed model policy')
                 health = api['status'](target)
-                if health.get('state') != 'installed' or any((value != 'clean' for value in health.get('files', {}).values())) or any((value != 'clean' for value in health.get('reused', {}).values())) or (health.get('external_mcp', 'clean') != 'clean'):
+                blocks = health.get('managed_blocks', {})
+                files = health.get('files', {})
+                files_clean = all(value == 'clean' or (value == 'modified' and blocks.get(name) == 'clean') for name, value in files.items())
+                if files.get('.codex/config.toml') == 'modified' and blocks.get('.codex/config.toml') == 'clean':
+                    try:
+                        actual_config = tomllib.loads(api['safe'](target, '.codex/config.toml').read_text())
+                        expected_config = tomllib.loads(base64.b64decode(installed_manifest['config_block'], validate=True).decode())
+                        if actual_config.get('mcp_servers', {}).get('codebase-memory-mcp') != expected_config.get('mcp_servers', {}).get('codebase-memory-mcp'):
+                            raise ValueError('Managed MCP configuration differs')
+                    except (OSError, ValueError) as exc:
+                        raise api['FrameworkError']('Installation configuration is invalid; resolve status before selecting models') from exc
+                if health.get('state') != 'installed' or not files_clean or any((value != 'clean' for value in health.get('reused', {}).values())) or (health.get('external_mcp', 'clean') != 'clean'):
                     raise api['FrameworkError']('Installation is not clean; resolve status before selecting models')
                 manifest_hash = api['digest'](api['safe'](target, api['STATE']).read_bytes())
                 current = tomllib.loads(installed.read_text())

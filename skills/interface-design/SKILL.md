@@ -12,7 +12,7 @@ Produce a coherent interface that serves the user’s task and fits the product.
 ## Edit permissions
 Do not change behavior or branding beyond the brief. Coordinate file ownership with frontend implementation.
 ## Evidence
-Explain decisions against the brief and inspect code plus available automated checks; user performs manual acceptance.
+Explain decisions against the brief; inspect code, available automated checks, and the local interface when needed and permitted. Report remaining manual acceptance gaps.
 ## Stopping
 Raise only consequential missing decisions; avoid unsolicited redesign.
 

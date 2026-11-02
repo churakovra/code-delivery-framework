@@ -71,7 +71,7 @@
       "url": "https://github.com/DeusData/codebase-memory-mcp/tree/a7158ac2f48ca646b4527341b76f930f2aeff87e",
       "revision": "a7158ac2f48ca646b4527341b76f930f2aeff87e (v0.12.1)",
       "license": "MIT repository; no text or executable redistributed",
-      "used_for": "Local code intelligence MCP integration.",
+      "used_for": "Local code intelligence MCP integration; inspected README at this revision for indexing freshness, graph queries, pagination, coverage and source fallback guidance.",
       "installation": "external integration"
     },
     {

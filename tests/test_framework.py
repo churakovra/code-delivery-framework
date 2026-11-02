@@ -242,6 +242,29 @@ class DependencyInstallerTests(InstallerTests):
         (self.root/'subskills.json').write_text(json.dumps(self.inventory))
         return patch.object(f,'fetch_dependencies',return_value=(dict(self.package),dict(self.versions)))
 
+    def test_model_selection_accepts_user_edits_but_rejects_managed_edits(self):
+        with self.enable(): self.install()
+        agents = self.target/'AGENTS.md'
+        config = self.target/'.codex/config.toml'
+        agents.write_bytes(agents.read_bytes() + b'\n# user instruction\n')
+        config.write_bytes(config.read_bytes() + b'\n# user configuration\n')
+        original_payload = f.payload
+        models = [{'model':'test-model','supportedReasoningEfforts':[{'reasoningEffort':'low'}]}]
+        selection = {'status':'researched', 'policy':{'qa':{'model':'test-model','reasoning_effort':'low'}},
+                     'explanation':'test', 'sources':['https://example.org'], 'alternatives':['test']}
+        with patch.object(f, 'payload', side_effect=lambda root=self.root, selected_policy=None: original_payload(self.root, selected_policy)), \
+             patch.object(f, 'probe', return_value=('codex-cli 0.163.0', models)), \
+             patch.object(f, 'select_policy', return_value=selection):
+            self.assertEqual(f.main(['select-models', '--target', str(self.target)]), 0)
+            config.write_bytes(config.read_bytes() + b'\ninvalid = [\n')
+            self.assertEqual(f.main(['select-models', '--target', str(self.target)]), 1)
+            config.write_bytes(config.read_bytes().replace(b'\ninvalid = [\n', b'\n'))
+            config.write_bytes(config.read_bytes() + b'\nenabled = false\n')
+            self.assertEqual(f.main(['select-models', '--target', str(self.target)]), 1)
+            config.write_bytes(config.read_bytes().replace(b'\nenabled = false\n', b'\n'))
+            agents.write_bytes(agents.read_bytes().replace(f.START, b'<!-- changed -->'))
+            self.assertEqual(f.main(['select-models', '--target', str(self.target)]), 1)
+
     def test_upgrade_preview_reports_modified_managed_skill_without_writes(self):
         with self.enable(): self.install()
         skill = self.target/'.agents/skills/code-delivery-framework/test/SKILL.md'
@@ -261,6 +284,20 @@ class DependencyInstallerTests(InstallerTests):
         with self.enable(), self.assertRaisesRegex(f.FrameworkError, 'Downgrade'):
             f.install_with_dependencies(self.target, root=self.root, upgrade=True, dry_run=True)
         self.assertEqual(f.status(self.target)['framework_version'], '2.0.0')
+
+    def test_development_version_upgrades_051_without_weakening_downgrade_guard(self):
+        source_version = f.framework_version()
+        self.assertGreater(f.version_key(source_version), f.version_key('0.5.1'))
+        (self.root/'pyproject.toml').write_text('[project]\nversion = "0.5.1"\n')
+        with self.enable(): self.install()
+        (self.root/'pyproject.toml').write_text(f'[project]\nversion = "{source_version}"\n')
+        with self.enable():
+            result = f.install_with_dependencies(self.target, root=self.root, upgrade=True)
+        self.assertEqual(result['state'], 'installed')
+        self.assertEqual(f.status(self.target)['framework_version'], source_version)
+        (self.root/'pyproject.toml').write_text('[project]\nversion = "0.5.1"\n')
+        with self.enable(), self.assertRaisesRegex(f.FrameworkError, 'Downgrade'):
+            f.install_with_dependencies(self.target, root=self.root, upgrade=True, dry_run=True)
 
     def test_preview_detects_bundled_duplicate_skill(self):
         duplicate = self.target/'.codex/skills/other/SKILL.md'

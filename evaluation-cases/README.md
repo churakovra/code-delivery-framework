@@ -9,3 +9,5 @@ Record revision, model and harness, setup, prompt, run order, wall-clock duratio
 The explanation cases cover a code flow, guided practice across scripted turns, and a short-answer control. For the guided-practice case, record the learner attempt and follow-up implementation request identically across conditions. These are prompts and rubrics; no model results are implied.
 
 The feature Git workflow case requires an isolated Git repository and the recorded variants described in the fixture. It is a scenario specification, not a recorded model run.
+
+The cleanup Codebase Memory case includes a runnable fixture and specifies available and unavailable MCP variants and a coverage gap. Copy its ignored files too and confirm exclusion before scoring. It is not a recorded model run.

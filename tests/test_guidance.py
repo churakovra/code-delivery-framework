@@ -10,6 +10,29 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class GuidanceContracts(unittest.TestCase):
+    def test_delegated_structural_roles_receive_memory_route(self):
+        from scripts.framework import payload
+        files = payload(ROOT)[0]
+        for role in ('planner', 'implementation', 'qa', 'reviewer', 'documentation', 'diagnosis'):
+            with self.subTest(role=role):
+                agent = tomllib.loads(files[f'.codex/agents/delivery-{role}.toml'].decode())
+                self.assertIn('helpers/codebase-memory.md', agent['developer_instructions'])
+
+    def test_delivery_routes_cleanup_to_codebase_memory(self):
+        """Check the entrypoint contract; this does not execute an agent."""
+        text = (ROOT / 'skills/delivery/SKILL.md').read_text()
+        helper = (ROOT / 'skills/helpers/codebase-memory.md').read_text()
+        for phrase in ('audits, cleanup', '../helpers/codebase-memory.md',
+                       'before structural exploration', 'without planning or delegation'):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, text)
+        for phrase in ('check the runtime for Codebase Memory MCP',
+                       'relevant graph query', 'coverage and pagination',
+                       'Verify material findings', 'report the material limitation',
+                       'Simple known-file edits'):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, helper)
+
     def test_explanation_skills_and_teaching_policy_are_packaged(self):
         from scripts.framework import payload
 
@@ -154,8 +177,8 @@ class GuidanceContracts(unittest.TestCase):
             'compare both active settings': 'compare its runtime-advertised model and reasoning effort with both policy values',
             'record launch evidence': 'distinguish a request from a confirmed active setting',
             'unavailable matching launch': 'treat that delegation as unavailable',
-            'substantial interview': 'conduct a short requirements interview',
-            'reuse answers': 'use existing user answers and repository evidence',
+            'substantial interview': 'establish outcome, constraints and acceptance',
+            'reuse answers': 'existing answers and evidence can satisfy the interview without new questions',
             'delegation cost': 'expected benefit exceeds coordination and token costs',
         }
         for scenario, contract in cases.items():
