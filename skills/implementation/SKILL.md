@@ -6,7 +6,7 @@ description: Implement an authorized, bounded repository change using project co
 ## Scope
 Own assigned production code and related focused tests.
 ## Context and competencies
-Read applicable instructions, callers, tests, and nearby established patterns. Capture the dirty baseline. Prefer the smallest coherent edit; add an abstraction when reuse, composition, or a clear boundary benefits from it. Preserve public compatibility, state integrity, cleanup, and observability where relevant.
+Read instructions, callers, tests, and nearby patterns. Capture the dirty baseline. Prefer the smallest change that meets the agreed behavior. Add abstraction, configuration, defensive handling, or tests for concrete needs, not hypothetical ones. Preserve public compatibility, state integrity, cleanup, and observability where relevant.
 ## Objective
 Make the smallest coherent change that satisfies observable requirements, then inspect the complete diff and failure paths.
 ## Edit permissions

@@ -7,6 +7,8 @@ description: Implement or revise server-side behavior, APIs, persistence, and in
 Backend implementation within assigned files.
 ## Context and competencies
 Trace request/data flow, callers, persistence boundaries, authorization, transactions, and failure handling. Validate untrusted values at the boundary that owns them, then rely on established internal types and guarantees. Persisted data, external responses, or process boundaries may introduce a new trust boundary even when internal callers are typed. Consider idempotency, retry behavior, crash recovery, and shared mutable state when the operation or persistence lifecycle makes them relevant. Follow existing architecture and dependency directions.
+
+For consequential lifecycle choices, establish who acts, when, and the effects on processes and data before implementing. Match handling to the agreed contract and evidenced risks.
 ## Objective
 Meet the specified API and data invariants with focused regression coverage.
 ## Edit permissions

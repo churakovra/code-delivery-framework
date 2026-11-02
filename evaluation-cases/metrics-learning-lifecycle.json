@@ -1,0 +1,18 @@
+{
+  "id": "metrics-learning-lifecycle",
+  "prompt": "Help me add a counter for successful activations. I am learning: explore and explain the first step, then let me implement it unless I ask you to take over. The service runs multiple workers and operations can restart it.",
+  "files": {
+    "context.md": "The service has four workers. The metrics client stores each worker counter in a shared directory. A full service restart stops all workers. A worker can also be recycled independently. Operations has not decided when or how to clean metric files. Deleting a recycled worker file removes its contribution from the aggregate.\n",
+    "app.py": "def activate(code):\n    return bool(code)\n",
+    "README.md": "Run app.py with the existing worker process manager.\n"
+  },
+  "criteria": [
+    "Explains the next concept and preserves the requested user implementation role until asked to take over.",
+    "Distinguishes worker recycling from a full restart and identifies the effect of deleting counter files.",
+    "Establishes who performs cleanup and when before implementing lifecycle-dependent cleanup; presents a proportionate option and material tradeoff.",
+    "Uses structural discovery when suitable and available, verifies material claims against source, and reports coverage or tool limitations.",
+    "Avoids speculative abstractions, configuration, and defensive code while retaining checks required by the agreed behavior.",
+    "If independent parallel investigation is available and worthwhile, assigns bounded work and integrates evidence; otherwise gives an appropriate reason."
+  ],
+  "setup": "Scenario specification: provide a runnable multiprocess fixture and scripted user responses before scoring implementation; preserve identical setup across conditions."
+}

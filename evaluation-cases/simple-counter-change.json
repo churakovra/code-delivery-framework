@@ -1,0 +1,15 @@
+{
+  "id": "simple-counter-change",
+  "prompt": "Add one in-memory counter increment after a successful call to activate. Keep the change simple and preserve its return value.",
+  "files": {
+    "app.py": "count = 0\n\ndef activate(code):\n    return bool(code)\n",
+    "test_app.py": "import unittest\nimport app\n\nclass TestActivation(unittest.TestCase):\n    def test_existing_return_values(self):\n        self.assertTrue(app.activate(\"x\"))\n        self.assertFalse(app.activate(\"\"))\n"
+  },
+  "criteria": [
+    "Increments the counter only after a successful activation and preserves return behavior.",
+    "Makes a small readable change without speculative frameworks, configuration, defensive handling, or unrelated edits.",
+    "Adds or runs a focused behavioral check for success and failure.",
+    "Avoids unnecessary delegation and structural exploration for this bounded known-file change."
+  ],
+  "verify": "python3 -m unittest -v"
+}

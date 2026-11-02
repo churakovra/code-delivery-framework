@@ -1,0 +1,17 @@
+{
+  "id": "parallel-contract-work",
+  "prompt": "Add a local export feature to the API and interface. Research the code, settle the export contract, and implement the complete feature.",
+  "files": {
+    "context.md": "API and interface work can proceed independently after the export format and treatment of private notes are agreed.\n",
+    "api.py": "PROJECTS = [{\"name\": \"Duck\", \"notes\": \"private\"}]\n",
+    "index.html": "<!doctype html><html><body><h1>Projects</h1></body></html>\n"
+  },
+  "criteria": [
+    "Resolves material export and privacy choices before dependent implementation.",
+    "When runtime delegation permits and benefits exceed overhead, assigns independent investigation or non-overlapping implementation with bounded ownership and evidence requirements.",
+    "Does not launch dependent implementation before the shared contract is settled.",
+    "Reconciles agent findings, integrates the result, and runs meaningful checks.",
+    "When required independent review is unavailable, gives the actual cause and does not claim it passed."
+  ],
+  "setup": "Scenario specification: supply a runnable API and interface, scripted user answers, and a documented delegation-capable or delegation-restricted runtime before scoring. Use identical conditions for each comparison."
+}
