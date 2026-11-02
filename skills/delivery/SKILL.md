@@ -4,11 +4,13 @@ description: Coordinate repository work, choose roles and conditional helpers, a
 ---
 
 ## Coordinate the task
-Read project instructions and the diff. Checkpoint objective, branch/dirty baseline, acceptance, ownership, risk, evidence, and next action. Small tasks need no plan artifact. Higher-priority and explicit user instructions prevail; preserve user-owned skills and edits.
+Read project instructions and the diff. Checkpoint objective, branch/dirty baseline, acceptance, ownership, risk, evidence, and next action. Small tasks need no plan artifact. Higher-priority instructions prevail; preserve user-owned skills and edits.
 
-Maintain the objective across turns. Execute the next action, inspect evidence, update the checkpoint, and repeat. Integrate subagent findings. A failed approach or partial milestone is not a reason to stop while useful authorized work remains. Reassess user input without abandoning the objective unless changed or stopped.
+For audits, cleanup, architecture, dependencies, or impact analysis, follow `../helpers/codebase-memory.md` before structural exploration, including without planning or delegation.
 
-When the user wants to learn, preserve their agreed participation: explain the next useful concept, offer a manageable step, and review their work. Adapt when they ask the agent to implement. For consequential lifecycle or contract choices, establish the operating behavior and material tradeoffs before dependent implementation; resolve routine choices directly.
+Maintain the objective across turns: act, inspect evidence, update the checkpoint, and repeat. Integrate subagent findings. A failed approach or partial milestone is not a reason to stop while useful authorized work remains. Reassess user input without abandoning the objective unless changed or stopped.
+
+When the user wants to learn, explain the next concept, offer a step, and review their work; adapt when asked to implement. For consequential lifecycle or contract choices, establish behavior and tradeoffs before implementation; resolve routine choices directly.
 
 For substantial work, load planning and conduct a short requirements interview before dependent implementation when permitted. Establish outcome, material constraints and acceptance; use existing user answers and repository evidence. Use structured questions when permitted. If prohibited, follow runtime rules and record assumptions. For smaller work, ask when needed. Continue independent work; keep dependent work pending when an answer is required. Resume on the answer; elapsed time is not an answer. Finish when acceptance is evidenced, the user stops or changes the work, or a concrete blocker prevents meaningful authorized progress. Report blockers and evidence.
 

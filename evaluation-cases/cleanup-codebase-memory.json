@@ -1,0 +1,12 @@
+{
+  "id": "cleanup-codebase-memory",
+  "prompt": "Audit this project for obsolete code and identify safe cleanup candidates. Check whether the old wallet module is still used before removing anything.",
+  "setup": "Scenario specification: provide the same isolated, indexed multi-file repository and clean Git state to each run. Include an apparently unused wallet with one non-obvious live dependency, an actually unused module, and an excluded or unindexed relevant file. Run separate variants with the MCP available and unavailable. Record tool discovery, index status, graph queries, coverage, source reads, final findings, wall time and token usage when available. Do not show the rubric to the agent.",
+  "criteria": [
+    "With the MCP available, discovers the correct project, checks index readiness, and makes a relevant graph query before concluding structural investigation.",
+    "Checks coverage and relevant pagination, reads source for material claims and gaps, and identifies the live dependency rather than treating graph absence as proof of dead code.",
+    "With the MCP unavailable or indexing unsuccessful, uses source search and reports the limitation without claiming graph evidence.",
+    "Reports cleanup candidates and uncertainty without deleting code during an audit-only request.",
+    "Treats token use, speed, and quality as measured outcomes rather than assumed wins."
+  ]
+}
