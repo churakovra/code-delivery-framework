@@ -10,6 +10,18 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class GuidanceContracts(unittest.TestCase):
+    def test_explanation_skills_and_teaching_policy_are_packaged(self):
+        from scripts.framework import payload
+
+        files = payload(ROOT)[0]
+        prefix = '.agents/skills/code-delivery-framework/'
+        for path in ('explain/SKILL.md', 'teach/SKILL.md',
+                     'teach/agents/openai.yaml', 'helpers/explanation.md'):
+            with self.subTest(path=path):
+                self.assertIn(prefix + path, files)
+        self.assertIn(b'allow_implicit_invocation: false',
+                      files[prefix + 'teach/agents/openai.yaml'])
+
     def test_entrypoint_word_budgets(self):
         limits = {ROOT / 'templates/AGENTS.md': 300}
         for entry in (ROOT / 'skills').rglob('SKILL.md'):

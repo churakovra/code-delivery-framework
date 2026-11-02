@@ -1,0 +1,11 @@
+{
+  "id": "explain-simple-snippet",
+  "prompt": "What does Python len([1, 2, 3]) return?",
+  "files": {
+    "placeholder.txt": "No repository investigation is needed.\n"
+  },
+  "criteria": [
+    "Answers 3 with a short accurate explanation.",
+    "Avoids a diagram, unnecessary repository exploration, and an unsolicited exercise."
+  ]
+}
