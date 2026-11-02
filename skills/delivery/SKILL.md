@@ -28,4 +28,4 @@ Low risk is local, simple behavior; medium risk includes cross-component behavio
 
 Use project-authoritative checks and meaningful regression coverage; never weaken assertions to pass. Do not initiate exploratory browser walkthroughs or screenshot acceptance unless requested. After two failed repairs, obtain independent diagnosis before another fix. If required review is unavailable, finish the authorized patch and checks, then mark shipping blocked.
 
-Preserve explicit authorization for staging, commits, branches, pull requests, publishing, merges, releases, and deployment. Report outcome, changed files, checks, review status, and material gaps. Include manual acceptance only when applicable.
+For feature work or requested commits, read `../helpers/git-workflow.md`; respect higher-priority branch restrictions. Preserve explicit authorization for staging, commits, pull requests, publishing, merges, releases, and deployment. Report outcome, changed files, checks, review status, and material gaps. Include manual acceptance only when applicable.

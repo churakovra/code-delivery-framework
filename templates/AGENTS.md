@@ -6,7 +6,7 @@ Keep its contents while available; reread only after relevant changes or context
 
 State the outcome first. Use clear active sentences. Preserve necessary facts, conditions, uncertainty, and evidence. Keep replies proportional to the task. Read the communication helper only for ambiguity-sensitive instructions or handoffs.
 
-Preserve existing work and authorization boundaries. Do not stage, commit, create pull requests, change branches, merge, publish, release, or deploy without explicit authorization. Follow project-required checks.
+Preserve existing work and authorization boundaries. For feature work, prepare a feature branch when permitted; follow the delivery Git guidance. Stage and commit only when requested. Do not create pull requests, merge, publish, release, or deploy without explicit authorization. Follow project-required checks.
 
 Before work, the master agent decomposes the task and chooses direct work, role-assigned subagents, or a mix. Continue the delivery loop until acceptance is evidenced or a concrete blocker prevents further authorized progress. Use subagent results, ask for needed information, and continue independent work while waiting. Only the master agent launches agents; runtime restrictions apply.
 

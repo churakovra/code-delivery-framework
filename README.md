@@ -24,7 +24,7 @@ Prefer the smallest readable solution for the agreed behavior. Add abstraction, 
 
 Independent review is required for medium or high risk, more than three changed code files, or more than 50 added/deleted code lines. Exclude generated files and documentation from size counts. Medium risk includes cross-component behavior and nontrivial failure handling. High risk includes authentication, permissions, money, persistent-data integrity, migrations, concurrency, shared contracts, and broad lifecycle changes. The reviewer inspects the actual diff, callers, failure paths, and raw check output. Substantive repairs require updated review. If required review is unavailable, prepare the authorized patch and checks, then report shipping as blocked. After two failed repairs of one acceptance failure, obtain independent diagnosis before another fix.
 
-The framework retains explicit authorization requirements for staging, branches, commits, pull requests, merges, publishing, releases, and deployment.
+For feature work, CDF prepares a meaningful feature branch when permitted and no suitable branch exists. It preserves existing work and checks the current branch and repository conventions first. Branch names use `feature/`, `fix/`, `chore/`, `test/`, or `refactor/` as appropriate unless higher-priority instructions or repository conventions specify otherwise. CDF stages and creates logically grouped conventional commits only when the user requests commits; it does not include unrelated changes without authorization. Pull requests, merges, publishing, releases, and deployment still require explicit authorization. See [Git workflow](skills/helpers/git-workflow.md) for details.
 
 ## Installation and availability
 
