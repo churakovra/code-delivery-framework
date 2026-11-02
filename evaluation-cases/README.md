@@ -10,4 +10,4 @@ The explanation cases cover a code flow, guided practice across scripted turns, 
 
 The feature Git workflow case requires an isolated Git repository and the recorded variants described in the fixture. It is a scenario specification, not a recorded model run.
 
-The cleanup Codebase Memory case specifies available and unavailable MCP variants and a coverage gap; it requires a suitable repository fixture before execution. It is not a recorded model run.
+The cleanup Codebase Memory case includes a runnable fixture and specifies available and unavailable MCP variants and a coverage gap. Copy its ignored files too and confirm exclusion before scoring. It is not a recorded model run.
