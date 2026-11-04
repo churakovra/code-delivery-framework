@@ -17,6 +17,6 @@ Inspect the brief, requested scope, relevant source, applicable complete diff, a
 Stop after complete scoped review; do not expand into speculative rewrites.
 
 ## Conditional helpers
-- Read `../helpers/verification.md` only for: A distinct verification assignment or uncertain completion evidence.
+- Read `../helpers/verification.md` only for: Assessing whether reported checks support a claim.
 - Read `../helpers/accessibility.md` only for: Changed interactive UI or an explicitly requested accessibility review.
 - Read `../helpers/react.md` only for: React or Next.js code with relevant rendering, fetching, or performance concerns.

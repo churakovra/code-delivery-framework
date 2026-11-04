@@ -10,6 +10,49 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class GuidanceContracts(unittest.TestCase):
+    def test_implementers_receive_readiness_gate(self):
+        """Protect routing and handoff text; this does not execute an agent."""
+        from scripts.framework import payload
+        files = payload(ROOT)[0]
+        for role in ('implementation', 'designer', 'documentation'):
+            agent = tomllib.loads(files[f'.codex/agents/delivery-{role}.toml'].decode())
+            self.assertIn('decision-interview/SKILL.md', agent['developer_instructions'])
+        self.assertIn('../decision-interview/SKILL.md', (ROOT / 'skills/helpers/delegation.md').read_text())
+
+    def test_implementation_role_composes_specialist_skills(self):
+        from scripts.framework import payload
+        registry = json.loads((ROOT / 'roles.json').read_text())['roles']['implementation']
+        agent = tomllib.loads(payload(ROOT)[0]['.codex/agents/delivery-implementation.toml'].decode())
+        for skill, activation in registry['conditional_skills'].items():
+            with self.subTest(skill=skill):
+                self.assertTrue(activation.strip())
+                self.assertIn(f'{skill}/SKILL.md', agent['developer_instructions'])
+                self.assertIn(activation, agent['developer_instructions'])
+
+    def test_generated_roles_preserve_composition_and_policy(self):
+        """Check the generated runtime surface, not whether a model follows it."""
+        from scripts.framework import payload
+        files = payload(ROOT)[0]
+        roles = json.loads((ROOT / 'roles.json').read_text())['roles']
+        policy = tomllib.loads((ROOT / 'model-policy.toml').read_text())
+        inventory = json.loads((ROOT / 'subskills.json').read_text())
+        for name, role in roles.items():
+            with self.subTest(role=name):
+                agent = tomllib.loads(files[f'.codex/agents/delivery-{name}.toml'].decode())
+                instructions = agent['developer_instructions']
+                self.assertEqual(agent['model'], policy[role['policy']]['model'])
+                self.assertEqual(agent['model_reasoning_effort'], policy[role['policy']]['reasoning_effort'])
+                for skill in role['skills']:
+                    self.assertIn(f'{skill}/SKILL.md', instructions)
+                for skill, activation in role.get('conditional_skills', {}).items():
+                    self.assertIn(f'{skill}/SKILL.md', instructions)
+                    self.assertIn(activation, instructions)
+                for resource in role.get('conditional_resources', []):
+                    spec = inventory['helpers'].get(resource) or inventory['subskills'][resource]
+                    self.assertIn(spec['activation'], instructions)
+                if role['read_only']:
+                    self.assertIn('Read-only assignment:', instructions)
+
     def test_delegated_structural_roles_receive_memory_route(self):
         from scripts.framework import payload
         files = payload(ROOT)[0]
@@ -22,7 +65,7 @@ class GuidanceContracts(unittest.TestCase):
         """Check the entrypoint contract; this does not execute an agent."""
         text = (ROOT / 'skills/delivery/SKILL.md').read_text()
         helper = (ROOT / 'skills/helpers/codebase-memory.md').read_text()
-        for phrase in ('audits, cleanup', '../helpers/codebase-memory.md',
+        for phrase in ('repository exploration or understanding', 'audits, cleanup', '../helpers/codebase-memory.md',
                        'before structural exploration', 'without planning or delegation'):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, text)
@@ -84,11 +127,11 @@ class GuidanceContracts(unittest.TestCase):
         registry = json.loads((ROOT / 'roles.json').read_text())['roles']
         policy = tomllib.loads((ROOT / 'model-policy.toml').read_text())
         available = set(inventory['helpers']) | set(inventory['subskills'])
-        self.assertEqual(set(inventory['roles']), set(registry))
+        self.assertEqual(inventory['roles'], {})
         for name, role in registry.items():
             with self.subTest(role=name):
                 self.assertIn(role['policy'], policy)
-                self.assertTrue(set(inventory['roles'][name]) <= available)
+                self.assertTrue(set(role['conditional_resources']) <= available)
                 for skill in role['skills']:
                     self.assertTrue((ROOT / 'skills' / skill / 'SKILL.md').is_file())
 
@@ -141,8 +184,7 @@ class GuidanceContracts(unittest.TestCase):
     def test_task_scenarios_have_conditional_resource_routes(self):
         """Check authored routes; this does not prove a model follows them."""
         cases = {
-            'small edit': ('implementation', ('regression-testing',)),
-            'bug investigation': ('debugging', ('diagnosis', 'regression-testing')),
+            'bug investigation': ('debugging', ('diagnosis',)),
             'substantial frontend design': ('interface-design', ('design', 'accessibility')),
             'React interaction': ('frontend-development', ('react', 'accessibility')),
             'independent review': ('code-review', ('verification',)),
@@ -159,6 +201,7 @@ class GuidanceContracts(unittest.TestCase):
         delivery = (ROOT / 'skills/delivery/SKILL.md').read_text()
         cases = {
             'small edit stays local': 'Work directly by default',
+            'direct role composition': 'to direct work too',
             'medium and high risk': 'independent review for medium/high risk',
             'four code files': 'more than three changed code files',
             '51 changed lines': 'more than 50 added/deleted code lines',

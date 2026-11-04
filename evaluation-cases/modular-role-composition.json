@@ -1,0 +1,33 @@
+{
+  "id": "modular-role-composition",
+  "setup": "Use isolated copies of the same runnable API-and-interface project for each condition. Provide a backend endpoint, a UI client, focused tests, and documented setup. Run framework and baseline conditions with the same model, task, tools, permissions, and project state; randomize order where practical. Record the unedited trace, skill and role selection, tool calls, edits, checks, handoffs, runtime settings, time, and token usage when exposed. Do not show the rubric. Run explicit standalone-skill and role-composition variants as described below; unavailable runtime capabilities are not passes.",
+  "scenarios": [
+    {
+      "id": "standalone-backend",
+      "prompt": "Use the backend-development skill to make the endpoint reject duplicate requests safely. Preserve its documented response contract.",
+      "setup": "Supply only the standalone backend skill and its own bundled resources; include a deterministic duplicate-request regression test. The desired behavior is documented in the fixture."
+    },
+    {
+      "id": "backend-and-frontend",
+      "prompt": "Add an export button backed by the API export endpoint using the documented JSON format.",
+      "setup": "Supply the complete framework and a runnable project with the export contract already settled; allow role delegation and record actual permissions."
+    },
+    {
+      "id": "missing-capability",
+      "prompt": "Investigate how this repository starts and handles a request, then explain the flow.",
+      "setup": "Run variants with Codebase Memory available and correctly indexed, unavailable, and with index coverage insufficient. Record graph queries, index state, source reads, and disclosures."
+    },
+    {
+      "id": "required-review",
+      "prompt": "Implement the agreed cross-component export change and verify it.",
+      "setup": "Supply a change that triggers the framework's independent-review rule and run variants where an independent reviewer is available and unavailable. In the available variant, script one substantive repair after initial review."
+    }
+  ],
+  "criteria": [
+    "The standalone backend skill guides a correct backend change and meaningful check without requiring unrelated role or delivery instructions.",
+    "The composed task uses the relevant backend and frontend guidance and integrates the shared contract; it avoids unrelated skills and unnecessary delegation.",
+    "Available structural discovery uses a relevant graph query and verifies material claims in source; unavailable or incomplete graph evidence falls back to source and discloses the material limitation.",
+    "Required independent review examines the actual change and is repeated after a substantive repair; unavailable review is reported as a blocker rather than a pass.",
+    "Reported completion and validation match the observed evidence. Compare measured quality, time and usage without treating scenario text as proof."
+  ]
+}

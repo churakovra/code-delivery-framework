@@ -1,5 +1,5 @@
-# Verification
+# Reviewing verification evidence
 
-Use when: A distinct verification assignment or uncertain completion evidence.
+Use when: A reviewer must assess whether reported checks support a claim.
 
-Map acceptance criteria to observable checks. Prefer project-authoritative commands and the smallest affected test layer. Include compatibility or integration evidence for changed contracts or persistence. Read raw output and distinguish passed, failed, skipped, and unavailable checks. A delegated verdict alone is not evidence. Report gaps without upgrading them to success. Stop when acceptance is evidenced or the remaining blocker is precise.
+Inspect the actual command, exit status, relevant output and tested revision. Map checks to affected behavior, failure paths and contracts; identify untested assumptions, mocked boundaries and environment limits. Distinguish a passing check from evidence that it would catch the claimed regression. Report gaps without inferring success from another agent's summary.
