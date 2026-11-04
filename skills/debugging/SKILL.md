@@ -14,8 +14,7 @@ Respect read-only assignments. Otherwise change only implicated assigned files; 
 ## Evidence
 Record reproduction steps, observed failure, diagnostic evidence, and any patch and fresh verification output.
 ## Stopping
-After two failed repairs on the same acceptance failure, stop and obtain independent diagnosis. The diagnosis should state the shared premise behind the failed approaches and propose the smallest experiment that could falsify it before another repair.
+When a hypothesis fails, record the result and revise the causal explanation. Identify the premise shared by failed approaches and the smallest experiment that could falsify it.
 
 ## Conditional helpers
-- Read `../helpers/diagnosis.md` only for: A reproducible bug, failed check, or unexpected behavior.
-- Read `../helpers/regression-testing.md` only for: A behavior change or repair with a meaningful observable regression.
+- Read `../helpers/diagnosis.md` only for: A failure with multiple plausible causes or earlier failed hypotheses.

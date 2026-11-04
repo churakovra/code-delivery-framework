@@ -5,6 +5,7 @@
 - Owned files/responsibility and baseline:
 - Role, required skills, conditional helpers, and specialist candidates with fallbacks:
 - Settled decisions, constraints, and relevant source locations:
+- Open decisions, dependencies, and work pending their resolution:
 - Current evidence, required checks, and blockers:
 - Expected handoff:
 

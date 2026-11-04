@@ -55,6 +55,23 @@ class InstallerTests(unittest.TestCase):
         (self.root/'roles.json').write_text(json.dumps({'defaults':{'instructions':['Preserve other work.']},'roles':{'qa':{'policy':'qa','skills':['test'],'read_only':True,'description':'Inspect evidence.'}}}))
     def install(self, dry=False):
         return f.install(self.target,dry,self.root)
+    def test_inspect_role_reports_installed_configuration_without_writes(self):
+        import contextlib, io
+        self.install()
+        before = (self.target/f.STATE).read_bytes()
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            result = f.main(['inspect-role', '--target', str(self.target), '--role', 'qa'])
+        self.assertEqual(result, 0)
+        detail = json.loads(output.getvalue())
+        self.assertEqual(detail['model_policy']['model'], 'test-model')
+        self.assertEqual(detail['required_skills'][0]['name'], 'test')
+        self.assertTrue(detail['required_skills'][0]['present'])
+        self.assertIn('unverified', detail['runtime'])
+        self.assertEqual((self.target/f.STATE).read_bytes(), before)
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(f.main(['inspect-role', '--target', str(self.target), '--role', 'missing']), 1)
+            self.assertEqual(f.main(['inspect-role', '--target', str(self.target)]), 1)
     def test_install_exposes_role_guidance_for_runtime_policy_routing(self):
         self.install()
         role_path = self.target/'.codex/delivery-framework/roles.json'
@@ -242,6 +259,21 @@ class DependencyInstallerTests(InstallerTests):
         (self.root/'subskills.json').write_text(json.dumps(self.inventory))
         return patch.object(f,'fetch_dependencies',return_value=(dict(self.package),dict(self.versions)))
 
+    def test_inspect_role_includes_conditional_resources_and_skills(self):
+        import contextlib, io
+        registry = json.loads((self.root/'roles.json').read_text())
+        registry['roles']['qa']['conditional_skills'] = {'model-routing': 'When comparing models.'}
+        (self.root/'roles.json').write_text(json.dumps(registry))
+        with self.enable(): self.install()
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            code = f.main(['inspect-role', '--target', str(self.target), '--role', 'qa'])
+        self.assertEqual(code, 0)
+        detail = json.loads(output.getvalue())
+        self.assertEqual(detail['conditional_skills'][0]['activation'], 'When comparing models.')
+        self.assertEqual({r['name'] for r in detail['conditional_resources']}, {'codebase-memory', 'demo'})
+        self.assertTrue(all(r['present'] for r in detail['conditional_resources']))
+
     def test_model_selection_accepts_user_edits_but_rejects_managed_edits(self):
         with self.enable(): self.install()
         agents = self.target/'AGENTS.md'
@@ -285,19 +317,32 @@ class DependencyInstallerTests(InstallerTests):
             f.install_with_dependencies(self.target, root=self.root, upgrade=True, dry_run=True)
         self.assertEqual(f.status(self.target)['framework_version'], '2.0.0')
 
-    def test_development_version_upgrades_051_without_weakening_downgrade_guard(self):
-        source_version = f.framework_version()
-        self.assertGreater(f.version_key(source_version), f.version_key('0.5.1'))
+    def test_old_architecture_upgrade_requires_fresh_install(self):
         (self.root/'pyproject.toml').write_text('[project]\nversion = "0.5.1"\n')
         with self.enable(): self.install()
-        (self.root/'pyproject.toml').write_text(f'[project]\nversion = "{source_version}"\n')
-        with self.enable():
-            result = f.install_with_dependencies(self.target, root=self.root, upgrade=True)
-        self.assertEqual(result['state'], 'installed')
-        self.assertEqual(f.status(self.target)['framework_version'], source_version)
-        (self.root/'pyproject.toml').write_text('[project]\nversion = "0.5.1"\n')
-        with self.enable(), self.assertRaisesRegex(f.FrameworkError, 'Downgrade'):
-            f.install_with_dependencies(self.target, root=self.root, upgrade=True, dry_run=True)
+        before = (self.target/f.STATE).read_bytes()
+        (self.root/'pyproject.toml').write_text('[project]\nversion = "0.6.0"\n')
+        for dry_run in (True, False):
+            with self.enable(), self.assertRaisesRegex(f.FrameworkError, 'install fresh'):
+                f.install_with_dependencies(self.target, root=self.root, upgrade=True, dry_run=dry_run)
+            self.assertEqual((self.target/f.STATE).read_bytes(), before)
+
+    def test_unknown_architecture_requires_fresh_install(self):
+        with self.enable(): self.install()
+        before = (self.target/f.STATE).read_bytes()
+        (self.root/'pyproject.toml').write_text('[project]\nversion = "0.6.0"\n')
+        with self.enable(), self.assertRaisesRegex(f.FrameworkError, 'install fresh'):
+            f.install_with_dependencies(self.target, root=self.root, upgrade=True)
+        self.assertEqual((self.target/f.STATE).read_bytes(), before)
+
+    def test_modular_architecture_upgrade_retains_policy(self):
+        (self.root/'pyproject.toml').write_text('[project]\nversion = "0.6.0"\n')
+        with self.enable(): self.install()
+        policy_path = self.target/'.codex/delivery-framework/model-policy.toml'
+        before = policy_path.read_bytes()
+        (self.root/'pyproject.toml').write_text('[project]\nversion = "0.6.1"\n')
+        with self.enable(): f.install_with_dependencies(self.target, root=self.root, upgrade=True)
+        self.assertEqual(policy_path.read_bytes(), before)
 
     def test_preview_detects_bundled_duplicate_skill(self):
         duplicate = self.target/'.codex/skills/other/SKILL.md'

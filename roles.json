@@ -18,23 +18,61 @@
         "planning"
       ],
       "read_only": true,
-      "description": "Resolve scope and contracts into an actionable plan."
+      "description": "Resolve scope and contracts into an actionable plan.",
+      "conditional_resources": [
+        "codebase-memory-routing",
+        "codebase-memory",
+        "communication"
+      ],
+      "composition": "Use planning to frame the outcome; invoke decision-interview when choices remain unresolved.",
+      "conditional_skills": {
+        "decision-interview": "Substantial work or unresolved consequential decisions require a requirements interview."
+      }
     },
     "implementation": {
       "policy": "implementer",
       "skills": [
-        "implementation"
+        "implementation",
+        "decision-interview"
       ],
       "read_only": false,
-      "description": "Implement approved bounded behavior and meaningful automated coverage."
+      "description": "Implement approved bounded behavior and meaningful automated coverage.",
+      "conditional_resources": [
+        "codebase-memory-routing",
+        "codebase-memory",
+        "diagnosis",
+        "regression-testing",
+        "react",
+        "accessibility",
+        "communication"
+      ],
+      "conditional_skills": {
+        "backend-development": "Server-side behavior, APIs, persistence, or integrations are in scope.",
+        "frontend-development": "User-facing interface behavior or presentation is in scope.",
+        "debugging": "A reproducible defect or failed check needs diagnosis.",
+        "verification": "Verification of the changed behavior is needed."
+      },
+      "composition": "Establish readiness using decision-interview; select applicable domain skills for the assigned work, then verify the resulting behavior."
     },
     "designer": {
       "policy": "exceptional_design",
       "skills": [
-        "interface-design"
+        "interface-design",
+        "decision-interview"
       ],
       "read_only": false,
-      "description": "Resolve consequential interface design and implement approved design artifacts."
+      "description": "Resolve consequential interface design and implement approved design artifacts.",
+      "conditional_resources": [
+        "design",
+        "accessibility",
+        "react",
+        "communication"
+      ],
+      "composition": "Establish readiness using decision-interview, then apply interface-design to the approved brief; select frontend-development for implementation.",
+      "conditional_skills": {
+        "frontend-development": "An approved design includes UI implementation.",
+        "verification": "The design or implementation needs observable verification."
+      }
     },
     "qa": {
       "policy": "qa",
@@ -42,7 +80,14 @@
         "verification"
       ],
       "read_only": true,
-      "description": "Independently map acceptance to current automated evidence and limitations."
+      "description": "Independently map acceptance to current automated evidence and limitations.",
+      "conditional_resources": [
+        "codebase-memory-routing",
+        "verification",
+        "codebase-memory",
+        "communication"
+      ],
+      "composition": "Use verification to map acceptance to evidence and report gaps."
     },
     "reviewer": {
       "policy": "reviewer",
@@ -50,15 +95,31 @@
         "code-review"
       ],
       "read_only": true,
-      "description": "Independently inspect the complete actual diff, callers, failure paths and checks."
+      "description": "Independently inspect the complete actual diff, callers, failure paths and checks.",
+      "conditional_resources": [
+        "codebase-memory-routing",
+        "verification",
+        "codebase-memory",
+        "accessibility",
+        "react",
+        "communication"
+      ],
+      "composition": "Use code-review to inspect the actual change and its evidence."
     },
     "documentation": {
       "policy": "documentation",
       "skills": [
-        "documentation"
+        "documentation",
+        "decision-interview"
       ],
       "read_only": false,
-      "description": "Own current documentation aligned with delivered behavior."
+      "description": "Own current documentation aligned with delivered behavior.",
+      "conditional_resources": [
+        "codebase-memory-routing",
+        "codebase-memory",
+        "communication"
+      ],
+      "composition": "Establish readiness using decision-interview, then apply documentation to verified behavior."
     },
     "diagnosis": {
       "policy": "exceptional_diagnosis",
@@ -66,7 +127,14 @@
         "debugging"
       ],
       "read_only": true,
-      "description": "Independently diagnose repeated failures before more implementation."
+      "description": "Independently diagnose repeated failures before more implementation.",
+      "conditional_resources": [
+        "codebase-memory-routing",
+        "diagnosis",
+        "codebase-memory",
+        "communication"
+      ],
+      "composition": "Use debugging to identify the failed premise and an experiment before recommending another repair."
     }
   }
 }

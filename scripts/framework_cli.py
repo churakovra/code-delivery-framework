@@ -2,13 +2,62 @@
 import argparse
 import base64
 import json
+import re
 import sys
 import tomllib
 from pathlib import Path
 
+def inspect_role(target, name, api):
+    """Describe installed configuration, not the active runtime state."""
+    if not name or not re.fullmatch(r'[a-z0-9][a-z0-9_-]*', name):
+        raise api['FrameworkError']('inspect-role requires a valid --role')
+    base = '.codex/delivery-framework/'
+    registry_path = api['safe'](target, base + 'roles.json')
+    policy_path = api['safe'](target, base + 'model-policy.toml')
+    registry = json.loads(registry_path.read_text())
+    policy = tomllib.loads(policy_path.read_text())
+    if name not in registry:
+        raise api['FrameworkError'](f'Unknown installed role: {name}')
+    role = registry[name]
+    inventory_path = api['safe'](target, base + 'subskills.json')
+    inventory = json.loads(inventory_path.read_text()) if inventory_path.is_file() else {}
+    def skill(name, activation=None):
+        path = f'.agents/skills/code-delivery-framework/{name}/SKILL.md'
+        return {'name': name, 'path': str(api['safe'](target, path)), 'activation': activation,
+                'present': api['safe'](target, path).is_file()}
+    resources = []
+    for resource in role.get('conditional_resources', inventory.get('roles', {}).get(name, [])):
+        helper = inventory.get('helpers', {}).get(resource)
+        integration = inventory.get('subskills', {}).get(resource)
+        if helper:
+            relative = helper['path']
+            if not relative.startswith('skills/'):
+                raise api['FrameworkError'](f'Invalid helper path: {resource}')
+            relative = '.agents/skills/code-delivery-framework/' + relative[len('skills/'):]
+            spec = helper
+        elif integration:
+            relative = f'.agents/skills/{resource}/SKILL.md'
+            spec = integration
+        else:
+            raise api['FrameworkError'](f'Unknown role resource: {resource}')
+        path = api['safe'](target, relative)
+        resources.append({'name': resource, 'path': str(path), 'present': path.is_file(),
+                          'activation': spec['activation']})
+    key = role['policy']
+    return {'role': name, 'description': role['description'], 'read_only': role['read_only'],
+            'composition': role.get('composition'),
+            'required_skills': [skill(item) for item in role['skills']],
+            'conditional_skills': [skill(item, activation) for item, activation in role.get('conditional_skills', {}).items()],
+            'conditional_resources': resources,
+            'model_policy': {'key': key, **policy[key]},
+            'sources': {'roles': str(registry_path), 'model_policy': str(policy_path),
+                        'resources': str(inventory_path) if inventory_path.is_file() else None,
+                        'generated_agent': str(api['safe'](target, f'.codex/agents/delivery-{name}.toml'))},
+            'runtime': 'unverified; configuration does not establish active model, skill, or tool availability'}
+
 def main(argv=None, api=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['install', 'upgrade', 'recover', 'status', 'uninstall', 'validate', 'select-models', 'apply-models', 'sync-models'])
+    parser.add_argument('command', choices=['install', 'upgrade', 'recover', 'status', 'uninstall', 'validate', 'select-models', 'apply-models', 'sync-models', 'inspect-role'])
     parser.add_argument('--target', type=Path, default=Path.cwd())
     parser.add_argument('--home', type=Path, default=Path.home())
     parser.add_argument('--global', dest='global_mode', action='store_true')
@@ -19,6 +68,7 @@ def main(argv=None, api=None):
     parser.add_argument('--selection-profile', type=Path, help='User-provided TOML selection context')
     parser.add_argument('--model-policy', type=Path, help='Explicit TOML role policy for installation (no research)')
     parser.add_argument('--proposal', type=Path, help='Reviewed JSON model proposal to apply')
+    parser.add_argument('--role', help='Installed role name for inspect-role')
     args = parser.parse_args(argv)
     try:
         target = args.target.absolute()
@@ -31,6 +81,8 @@ def main(argv=None, api=None):
             raise api['FrameworkError']('Installing at home requires explicit --global')
         if args.model_policy and args.command != 'install':
             raise api['FrameworkError']('--model-policy applies only to install')
+        if args.role and args.command != 'inspect-role':
+            raise api['FrameworkError']('--role applies only to inspect-role')
         if args.selection_profile and args.command != 'select-models':
             raise api['FrameworkError']('--selection-profile applies only to select-models')
         if args.offline and args.command != 'validate':
@@ -118,6 +170,8 @@ def main(argv=None, api=None):
                     result['welcome'] = api['welcome'](roles, selected)
                 if not args.dry_run:
                     result['availability'] = api['installation_availability'](args.codex, target, args.home, args.global_mode)
+        elif args.command == 'inspect-role':
+            result = inspect_role(target, args.role, api)
         elif args.command == 'status':
             result = api['status'](target)
         elif args.command == 'recover':

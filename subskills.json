@@ -13,7 +13,7 @@
   "helpers": {
     "codebase-memory-routing": {
       "path": "skills/helpers/codebase-memory.md",
-      "activation": "Repository audits, cleanup, architecture, dependencies, or impact analysis."
+      "activation": "Repository exploration or understanding, audits, cleanup, architecture, dependencies, or impact analysis."
     },
     "communication": {
       "path": "skills/helpers/communication.md",
@@ -21,7 +21,7 @@
     },
     "diagnosis": {
       "path": "skills/helpers/diagnosis.md",
-      "activation": "A reproducible bug, failed check, or unexpected behavior."
+      "activation": "A reproducible failure has multiple plausible causes or earlier hypotheses failed."
     },
     "regression-testing": {
       "path": "skills/helpers/regression-testing.md",
@@ -29,7 +29,7 @@
     },
     "verification": {
       "path": "skills/helpers/verification.md",
-      "activation": "A distinct verification assignment or uncertain completion evidence."
+      "activation": "A reviewer must assess whether reported checks support a claim."
     },
     "design": {
       "path": "skills/helpers/design.md",
@@ -44,53 +44,7 @@
       "activation": "React or Next.js code with relevant rendering, fetching, or performance concerns."
     }
   },
-  "roles": {
-    "planner": [
-      "codebase-memory-routing",
-      "codebase-memory",
-      "communication"
-    ],
-    "implementation": [
-      "codebase-memory-routing",
-      "codebase-memory",
-      "diagnosis",
-      "regression-testing",
-      "react",
-      "accessibility",
-      "communication"
-    ],
-    "designer": [
-      "design",
-      "accessibility",
-      "react",
-      "communication"
-    ],
-    "qa": [
-      "codebase-memory-routing",
-      "verification",
-      "codebase-memory",
-      "communication"
-    ],
-    "reviewer": [
-      "codebase-memory-routing",
-      "verification",
-      "codebase-memory",
-      "accessibility",
-      "react",
-      "communication"
-    ],
-    "documentation": [
-      "codebase-memory-routing",
-      "codebase-memory",
-      "communication"
-    ],
-    "diagnosis": [
-      "codebase-memory-routing",
-      "diagnosis",
-      "codebase-memory",
-      "communication"
-    ]
-  },
+  "roles": {},
   "specialist_skills": {
     "grilling": {
       "activation": "Consequential product or scope decisions remain unresolved after research and a deeper interview would help.",

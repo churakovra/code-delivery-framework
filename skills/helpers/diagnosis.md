@@ -1,5 +1,5 @@
-# Diagnosis
+# Difficult diagnosis
 
-Use when: A reproducible bug, failed check, or unexpected behavior.
+Use when: A reproducible failure has multiple plausible causes or earlier hypotheses failed.
 
-Capture the exact symptom and expected behavior. Reproduce with the smallest useful input when practical. Trace the failing data or control path, compare a working path, and test one causal explanation at a time. Distinguish product defects from environment failures. Record the observation that supports the cause and an experiment that could disprove it. Stop when the cause and smallest repair are supported. After two failed repairs, return evidence and the shared failed premise for independent diagnosis; do not repeat another speculative fix.
+Draw the observed failing path and a working comparison, marking each unverified boundary. List plausible explanations and choose the smallest discriminating experiment. Change one variable at a time, predict each outcome in advance, and compare it with observation. Record the result, the revised explanation, and remaining uncertainty. If earlier repairs failed, identify their shared premise and an experiment that could disprove it.

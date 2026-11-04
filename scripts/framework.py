@@ -377,11 +377,18 @@ def payload(root=ROOT, selected_policy=None):
         for skill in role['skills']:
             if f'.agents/skills/code-delivery-framework/{skill}/SKILL.md' not in files:
                 raise FrameworkError(f'Missing required skill: {skill}')
-        instruction = role['description'] + '\n' + shared_instructions + '\n'
+        instruction = role['description'] + '\n' + shared_instructions + '\n' + role.get('composition', '') + '\n'
         runtime_roles[name] = dict(role, instructions=instruction.strip())
         instruction += '\nRead these required skills before work: '+', '.join(f'.agents/skills/code-delivery-framework/{s}/SKILL.md' for s in role['skills'])+'.\nDo not spawn subagents. Return evidence to the primary dispatcher.'
+        for skill, activation in role.get('conditional_skills', {}).items():
+            path = f'.agents/skills/code-delivery-framework/{skill}/SKILL.md'
+            if path not in files or not isinstance(activation, str) or not activation.strip():
+                raise FrameworkError(f'Invalid conditional skill for role {name}: {skill}')
+            instruction += f'\nOnly when applicable, read {path}: {activation}'
         if inventory:
-            for subskill in inventory['roles'].get(name, []):
+            for subskill in role.get('conditional_resources', inventory['roles'].get(name, [])):
+                if subskill not in inventory.get('helpers', {}) and subskill not in inventory['subskills']:
+                    raise FrameworkError(f'Unknown conditional resource for role {name}: {subskill}')
                 helper = inventory.get('helpers', {}).get(subskill)
                 path = '.agents/skills/code-delivery-framework/' + helper['path'][len('skills/'):] if helper else f'.agents/skills/{subskill}/SKILL.md'
                 activation = helper['activation'] if helper else inventory['subskills'][subskill]['activation']
@@ -521,6 +528,10 @@ def install_with_dependencies(target, dry_run=False, root=ROOT, global_mode=Fals
     version = framework_version(root)
     source = source_identity(root)
     check_upgrade_version(previous, version)
+    if upgrade and version is not None and version_key(version) >= version_key('0.6.0'):
+        installed_version = previous.get('framework_version')
+        if installed_version is None or version_key(installed_version) < version_key('0.6.0'):
+            raise FrameworkError('Upgrade from the previous architecture is unsupported; preserve your model policy and local changes, uninstall the old installation, then install fresh')
     if previous and previous.get('scope') and previous['scope'] != ('global' if global_mode else 'project'):
         raise FrameworkError('Installation scope does not match target')
     if global_mode:

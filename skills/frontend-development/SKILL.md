@@ -1,10 +1,10 @@
 ---
 name: frontend-development
-description: Implement user-facing web or application interfaces within established product conventions. Use when changing frontend behavior or presentation.
+description: Implement user-facing interface behavior and presentation. Not for backend-only changes.
 ---
 
 ## Scope
-Frontend implementation; pair with `interface-design` only when a design decision is needed.
+Implement the agreed user-facing behavior within product conventions.
 ## Context and competencies
 Inspect existing production components, semantic design tokens, routes, responsive behavior, and accessibility patterns. Tests and stories should exercise the real production component rather than a duplicate implementation. Prefer local conventions and minimal dependencies. Cover meaningful interaction states, such as loading, empty, error, or disabled states when applicable. Apply framework-specific guidance only when that stack is actually present.
 ## Objective
@@ -14,9 +14,8 @@ Edit assigned UI files and focused tests. Perform bounded local visual and inter
 ## Evidence
 Run relevant unit, type, lint, build, and required browser checks; report what was actually run.
 ## Stopping
-Escalate unresolved product behavior; stop after two failed repair cycles for independent diagnosis.
+Identify unresolved product behavior before changing it.
 
 ## Conditional helpers
-- Read `../helpers/regression-testing.md` only for: A behavior change or repair with a meaningful observable regression.
 - Read `../helpers/react.md` only for: React or Next.js code with relevant rendering, fetching, or performance concerns.
 - Read `../helpers/accessibility.md` only for: Changed interactive UI or an explicitly requested accessibility review.

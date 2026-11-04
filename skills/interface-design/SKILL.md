@@ -16,7 +16,6 @@ Explain decisions against the brief; inspect code, available automated checks, a
 ## Stopping
 Raise only consequential missing decisions; avoid unsolicited redesign.
 
-When assigned UI implementation, load `../frontend-development/SKILL.md`.
 
 ## Conditional helpers
 - Read `../helpers/design.md` only for: New interfaces or substantial visual or interaction decisions.
