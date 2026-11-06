@@ -162,12 +162,6 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(ignore.read_bytes(), before)
         self.assertFalse((self.target / core.LOCK).exists())
 
-    def test_legacy_cleanup_intent_recovers(self):
-        marker = self.target / core.LEGACY_CLEANUP
-        marker.write_text(json.dumps({'schema': 1, 'target': str(self.target), 'scope': 'project', 'directories': []}))
-        self.assertEqual(self.action('recover')['state'], 'recovered')
-        self.assertFalse(marker.exists())
-
     def test_dry_run_and_round_trip_preserve_unterminated_agents(self):
         agents = self.target / 'AGENTS.md'
         agents.write_bytes(b'Existing user text')
@@ -320,7 +314,7 @@ class InstallerTests(unittest.TestCase):
         agents.write_bytes(original)
         self.assertEqual(self.action('uninstall')['state'], 'absent')
 
-    def test_name_collision_and_legacy_block_prevent_any_payload_write(self):
+    def test_name_collision_and_unowned_block_prevent_any_payload_write(self):
         skill = self.target / '.agents/skills/other/SKILL.md'
         skill.parent.mkdir(parents=True)
         skill.write_text('---\nname: cdf-backend\ndescription: mine\n---\n')
@@ -328,9 +322,35 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, 'PATH_COLLISION')
         self.assertFalse((self.target / core.MANIFEST).exists())
         skill.unlink()
-        (self.target / 'AGENTS.md').write_bytes(b'<!-- codex-delivery-framework:start -->\nold\n')
+        (self.target / 'AGENTS.md').write_bytes(core.START + b'\nunowned\n' + core.END)
         with self.assertRaises(core.CDFError) as caught: self.action('install')
-        self.assertEqual(caught.exception.code, 'LEGACY_MIGRATION_REQUIRED')
+        self.assertEqual(caught.exception.code, 'MANAGED_BLOCK_MODIFIED')
+        self.assertFalse((self.target / core.MANIFEST).exists())
+
+    def test_other_managed_block_is_reported_and_preserved(self):
+        agents = self.target / 'AGENTS.md'
+        original = b'User text\n<!-- other-policy:start -->\nPolicy\n<!-- other-policy:end -->\n'
+        agents.write_bytes(original)
+        warning = 'Other managed instruction blocks were detected; inspect for conflicting delivery policies.'
+        plan = self.action('install', dry=True)
+        self.assertIn(warning, plan['warnings'])
+        self.assertEqual(agents.read_bytes(), original)
+        result = self.action('install')
+        self.assertIn(warning, result['warnings'])
+        self.assertTrue(agents.read_bytes().startswith(original))
+        self.action('uninstall')
+        self.assertEqual(agents.read_bytes(), original)
+
+    def test_ordinary_comments_are_preserved(self):
+        agents = self.target / 'AGENTS.md'
+        original = b'User text\n<!-- ordinary comment -->\n'
+        agents.write_bytes(original)
+        plan = self.action('install', dry=True)
+        self.assertFalse(any('Other managed instruction blocks' in w for w in plan['warnings']))
+        result = self.action('install')
+        self.assertFalse(any('Other managed instruction blocks' in w for w in result['warnings']))
+        self.action('uninstall')
+        self.assertEqual(agents.read_bytes(), original)
 
     def test_symlink_traversal_and_tampered_manifest_refused(self):
         outside = self.base / 'outside'
@@ -467,33 +487,6 @@ class InstallerTests(unittest.TestCase):
             with self.assertRaises(OSError): self.action('uninstall')
         self.assertEqual(core.status(self.target, 'project')['state'], 'recovery-required')
         self.assertEqual(self.action('recover')['state'], 'recovered')
-
-    def test_legacy_external_mcp_metadata_is_reported_without_opening_binary(self):
-        external = self.base / 'outside-binary'
-        external.write_bytes(b'sensitive external binary')
-        reused = self.target / '.agents/skills/reused/SKILL.md'
-        reused.parent.mkdir(parents=True)
-        reused.write_bytes(b'user-owned reused skill')
-        mpath = self.target / '.codex/delivery-framework/manifest.json'
-        mpath.parent.mkdir(parents=True)
-        mpath.write_text(json.dumps({'framework_version': '0.6.0', 'state': 'installed', 'files': {},
-            'reused': {str(reused.relative_to(self.target)): core.digest(reused.read_bytes())},
-            'external_mcp': {'path': str(external), 'sha256': 'b' * 64,
-                             'config': {'command': str(external), 'args': []}}}))
-        real_read = Path.read_bytes
-        def forbid_external(path):
-            if path == external: raise AssertionError('external binary must not be read')
-            return real_read(path)
-        with patch.object(Path, 'read_bytes', forbid_external):
-            report = core.legacy_report(self.target, 'project')
-        info = report['legacy_manifest']
-        self.assertEqual(info['external_mcp']['ownership'], 'external-unowned')
-        self.assertEqual(info['external_mcp']['verification'], 'not-checked')
-        self.assertEqual(info['reused'][str(reused.relative_to(self.target))], 'clean')
-        malformed = json.loads(mpath.read_text())
-        malformed['external_mcp']['path'] = '../escape'
-        mpath.write_text(json.dumps(malformed))
-        self.assertEqual(core.legacy_report(self.target, 'project')['legacy_manifest']['external_mcp']['state'], 'invalid')
 
     def test_case_collision_fails_preflight(self):
         (self.target / '.Agents').mkdir()

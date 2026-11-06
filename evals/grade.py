@@ -81,7 +81,7 @@ def grade(folder: Path, supplied):
         raise ValueError('Resource measurement disagrees with trace')
     if environment.get('case_sha256') != _case_hash(case):
         raise ValueError('The case or grading rubric changed since the run')
-    if run['condition'] not in ('BASE', 'CDF_06', 'CDF_20'):
+    if run['condition'] not in ('BASE', 'CDF_20'):
         raise ValueError('Unknown condition')
     validate_record('eval-run', run)
     if supplied.get('schema') != 2 or supplied.get('rubric_version') != RUBRIC_VERSION or supplied.get('case_id') != run['case_id'] or supplied.get('condition') != run['condition']:

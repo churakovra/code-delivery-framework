@@ -3,7 +3,6 @@
   "status": "fixtures_implemented_not_executed",
   "conditions": [
     "BASE",
-    "CDF_06",
     "CDF_20"
   ],
   "cases": [

@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import difflib
 import hashlib
-import io
 import json
 import os
 from pathlib import Path
@@ -17,7 +16,6 @@ import shutil
 import stat
 import subprocess
 import sys
-import tarfile
 import tempfile
 import uuid
 from datetime import datetime, timezone
@@ -29,8 +27,7 @@ from .compatibility import inspect_case
 
 ROOT = Path(__file__).resolve().parents[1]
 EVALS = ROOT / 'evals'
-BASELINE = '3ff534627e8b10de3dba2c6443855e870567ef84'
-CONDITIONS = ('BASE', 'CDF_06', 'CDF_20')
+CONDITIONS = ('BASE', 'CDF_20')
 RUBRIC_VERSION = 2
 
 
@@ -53,45 +50,6 @@ def _env(home: Path):
             'PYTHONDONTWRITEBYTECODE': '1'}
 
 
-
-
-def _safe_archive(destination: Path):
-    # The source is immutable git content, never the changing working tree.
-    result = subprocess.run(['git', 'archive', BASELINE], cwd=ROOT, capture_output=True, check=True)
-    with tarfile.open(fileobj=io.BytesIO(result.stdout), mode='r:') as archive:
-        for entry in archive:
-            path = Path(entry.name)
-            if path.is_absolute() or '..' in path.parts or not (entry.isdir() or entry.isfile()):
-                raise ValueError('Unsafe baseline archive member')
-            dest = destination / path
-            if entry.isdir():
-                dest.mkdir(parents=True, exist_ok=True)
-            else:
-                dest.parent.mkdir(parents=True, exist_ok=True)
-                with archive.extractfile(entry) as source, dest.open('wb') as target:
-                    shutil.copyfileobj(source, target)
-
-
-def _install_legacy(workspace: Path, scratch: Path, env):
-    snapshot = scratch / 'legacy-source'
-    snapshot.mkdir()
-    _safe_archive(snapshot)
-    source = """import sys
-from pathlib import Path
-sys.path.insert(0, sys.argv[1])
-from scripts.framework import payload
-files, block, _, _ = payload(Path(sys.argv[1]))
-root=Path(sys.argv[2])
-for relative, content in files.items():
-    path=root / relative
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(content)
-(root/'AGENTS.md').write_bytes(block)
-"""
-    proc = subprocess.run([sys.executable, '-I', '-c', source, str(snapshot), str(workspace)],
-                          cwd=scratch, env=env, capture_output=True, timeout=30)
-    if proc.returncode:
-        raise RuntimeError('Could not prepare pinned CDF 0.6 payload: ' + proc.stderr.decode(errors='replace'))
 
 
 def _install_v2(workspace: Path, env):
@@ -333,9 +291,6 @@ def preflight(case_id, conditions, adapter, kind, protocol='prompt-v1', declared
         for name in ('AGENTS.cdf-block.md', 'cdf_reviewer.toml', 'cdf_diagnostician.toml'):
             if not (ROOT / 'templates' / name).is_file(): raise ValueError(f'Missing template: {name}')
         if not (ROOT / 'subskills.catalog.json').is_file(): raise ValueError('Missing subskill catalog')
-    if 'CDF_06' in conditions:
-        proc = subprocess.run(['git', 'cat-file', '-e', BASELINE + '^{commit}'], cwd=ROOT, capture_output=True)
-        if proc.returncode: raise ValueError('Pinned CDF 0.6 source commit unavailable')
     return {'compatibility': inspect_case(case, kind), 'case_id': case_id, 'conditions': conditions, 'fixture_revision': case['fixture_revision'],
             'adapter': str(adapter), 'adapter_kind': kind, 'adapter_protocol': protocol,
             'scripted_answer_count': len(answers), 'runtime_controls': controls,
@@ -407,8 +362,7 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
         git_head = git_initial[0][1].decode().strip()
         fixture_initial = _snapshot(workspace, skip_git=True)
         fixture_hash = _hash_snapshot(fixture_initial)
-        if condition == 'CDF_06': _install_legacy(workspace, scratch, env)
-        elif condition == 'CDF_20': _install_v2(workspace, env)
+        if condition == 'CDF_20': _install_v2(workspace, env)
         before = _snapshot(workspace, skip_git=True)
         guidance = {path: value for path, value in before.items() if path not in fixture_initial}
         guidance_hash = _hash_snapshot(guidance)
@@ -421,7 +375,6 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
         _json(folder / 'environment.json', {'condition': condition, 'fixture_revision': case['fixture_revision'],
               'fixture_sha256': fixture_hash, 'case_sha256': _case_hash(case),
               'fixture_git_head': git_head,
-              'cdf_06_source': BASELINE if condition == 'CDF_06' else None,
               'guidance_sha256': guidance_hash, 'home_isolated': True, 'credentials_inherited': False,
               'runtime_version': runtime_version, 'model_requested': model, 'model_observed': None,
               'effort_requested': effort, 'effort_observed': None,
@@ -432,8 +385,7 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
                                       'native_resume_unverified' if kind == 'codex' and case.get('scripted_answers') else 'unsupported'),
               'agent_availability': 'unverified', 'skill_discovery': 'unverified',
               'codebase_memory': 'not_installed_or_probed',
-              'parity_limitations': ['CDF 0.6 declares Codebase Memory but this runner does not install or activate it.',
-                                     'Runtime model, tools and agent discovery are not verified.'],
+              'parity_limitations': ['Runtime model, tools and agent discovery are not verified.'],
               'os_sandbox': 'external adapter responsibility', 'usage_measurement': 'see_run_record'})
         command = [str(adapter)]
         if kind == 'codex':
@@ -551,7 +503,7 @@ def run(case_id, conditions, adapter, kind, output, seed=0, timeout=300, model=N
     output.mkdir(parents=True, exist_ok=False)
     order = list(conditions); random.Random(seed).shuffle(order)
     _json(output / 'manifest.json', {'case_id': case_id, 'seed': seed, 'conditions': order,
-                                    'baseline': BASELINE, 'status': 'planned'})
+                                    'status': 'planned'})
     records = []
     for condition in order:
         try:

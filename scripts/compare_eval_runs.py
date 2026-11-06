@@ -13,7 +13,7 @@ from evals.grade import _evidence, load_graded
 from evals.runner import _case_hash, _hash_snapshot, _snapshot, _usage, load_case, rubric_names
 from evals.evidence import verify_manifest
 
-CONDITIONS = ('BASE', 'CDF_06', 'CDF_20')
+CONDITIONS = ('BASE', 'CDF_20')
 CRITICAL = ('G01', 'G02', 'G09', 'G13')
 
 
@@ -117,15 +117,14 @@ def analyze(entries, evidence, regime='standardized'):
     for row in entries:
         digest=row['environment'].get('guidance_sha256')
         if digest: guidance[row['record']['condition']].add(digest)
-    # CDF20/06 package hashes must remain consistent across repeated runs, but
-    # must not match each other: they intentionally install different guidance.
-    changing={k for k,v in guidance.items() if len(v)>1 and k in ('CDF_06','CDF_20')}
+    # Framework guidance hashes must remain consistent across repeated runs.
+    changing={k for k,v in guidance.items() if len(v)>1 and k in ('CDF_20',)}
     summaries=[]; wins=losses=ties=0
     for key,group in sorted(groups.items()):
         parity,why=group_parity(group,evidence,regime)
         if changing and parity=='MATCHED_ATTESTED': parity,why='MISMATCH','guidance hash changed within a condition'
         if parity=='MATCHED_ATTESTED':
-            base=group['CDF_06'][0]['record']['result']; new=group['CDF_20'][0]['record']['result']
+            base=group['BASE'][0]['record']['result']; new=group['CDF_20'][0]['record']['result']
             if base in ('PASS','FAIL') and new in ('PASS','FAIL'):
                 wins += new=='PASS' and base=='FAIL'; losses += new=='FAIL' and base=='PASS'; ties += new==base
         summaries.append({'case_id':key[0],'seed':key[1],'parity':parity,'reason':why,'group':group})
@@ -138,7 +137,7 @@ def analyze(entries, evidence, regime='standardized'):
     elif (any(case not in bycase for case in needed) or any(s['parity']!='MATCHED_ATTESTED' for s in selected)
           or any(((s['group']['CDF_20'][0]['record']['result']!='PASS' or
                    s['group']['CDF_20'][0]['record'].get('activation_result') not in ('PASS', 'NOT_APPLICABLE')) or
-                  any(s['group'][c][0]['record']['result'] not in ('PASS','FAIL') for c in ('BASE','CDF_06')))
+                  any(s['group'][c][0]['record']['result'] not in ('PASS','FAIL') for c in ('BASE',)))
                  for s in selected if s['parity']=='MATCHED_ATTESTED')):
         gate='BLOCKED'
     else: gate='PASS'
@@ -150,7 +149,7 @@ def analyze(entries, evidence, regime='standardized'):
 def paired_statistics(summaries):
     results = {name: defaultdict(lambda: {'wins':0,'losses':0,'ties':0,'candidate_tokens':0,
                                          'baseline_tokens':0,'candidate_passes':0,'baseline_passes':0,
-                                         'measured_pairs':0}) for name in ('BASE','CDF_06')}
+                                         'measured_pairs':0}) for name in ('BASE',)}
     for summary in summaries:
         if summary['parity'] != 'MATCHED_ATTESTED': continue
         case=load_case(summary['case_id']); key=(case['class'],case['risk'])

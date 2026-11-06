@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "policy": "Framework-authored guidance is original adaptation. CDF2 imports the user-supplied implementation proposal; community entries are optional research metadata, not vendored or automatically installed skills. The retained legacy installer is isolated pending release gates; its Codebase Memory dependency is not part of the v2 core.",
+  "policy": "Framework-authored guidance is original adaptation. Community entries are optional research metadata, not vendored or automatically installed skills. Core installation makes no network requests or third-party installations.",
   "sources": [
     {
       "id": "asd-ste100-skill",

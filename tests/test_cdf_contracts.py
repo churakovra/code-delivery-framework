@@ -14,15 +14,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ContractTests(unittest.TestCase):
-    def test_source_and_legacy_payloads_are_separate(self):
+    def test_source_contains_only_registered_skills(self):
         from scripts.validate_cdf import validate_source
-        from scripts.framework import payload
         self.assertEqual(validate_source()['core_skills'], 12)
-        legacy = payload(ROOT)[0]
-        self.assertFalse(any('/cdf-' in path for path in legacy))
+        from cdf_registry import CORE, EXTRAS
+        expected = set(CORE).union(*EXTRAS.values())
+        self.assertEqual({p.name for p in (ROOT / 'skills').iterdir()}, expected)
 
     def test_examples_and_required_review(self):
-        source = ROOT / 'docs/plans/cdf-2.0/templates'
+        source = ROOT / 'templates/examples'
         for example, schema in [('task-checkpoint', 'task-state'), ('handoff', 'handoff'), ('install-plan', 'install-plan')]:
             record = json.loads((source / f'{example}.example.json').read_text())
             validate_record(schema, record)
@@ -37,7 +37,7 @@ class ContractTests(unittest.TestCase):
             validate_record('task-state', task)
 
     def test_delivery_cannot_hide_missing_review(self):
-        task = json.loads((ROOT / 'docs/plans/cdf-2.0/templates/task-checkpoint.example.json').read_text())
+        task = json.loads((ROOT / 'templates/examples/task-checkpoint.example.json').read_text())
         task['state'] = 'DELIVERED'
         task['verification'] = {'status': 'PASSED'}
         with self.assertRaises(ContractError):
@@ -46,7 +46,7 @@ class ContractTests(unittest.TestCase):
         validate_record('task-state', task)
 
     def test_read_only_handoff_rejects_write_ownership(self):
-        handoff = json.loads((ROOT / 'docs/plans/cdf-2.0/templates/handoff.example.json').read_text())
+        handoff = json.loads((ROOT / 'templates/examples/handoff.example.json').read_text())
         handoff['scope']['write_paths'] = ['app.py']
         with self.assertRaises(ContractError):
             validate_record('handoff', handoff)

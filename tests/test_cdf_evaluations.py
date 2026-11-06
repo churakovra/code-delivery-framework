@@ -153,7 +153,7 @@ class CDFEvaluationTests(unittest.TestCase):
         self.assertFalse(sentinel.exists())
         self.assertFalse((self.root/'out').exists())
 
-    def test_three_conditions_isolate_home_and_preserve_truthful_results(self):
+    def test_two_conditions_isolate_home_and_preserve_truthful_results(self):
         adapter = self.adapter('''import os, sys
 from pathlib import Path
 assert 'CDF_EVAL_TEST_SECRET' not in os.environ
@@ -575,7 +575,7 @@ print('simulated dialogue; sequence still requires review')
     def test_comparator_uses_reviewed_matched_runs_and_detects_changed_fixture(self):
         adapter=self.adapter('print("fake trace")\n')
         result=self.invoke(adapter,'--output',str(self.root/'r'),'--allow-model-runs',case='G03',
-                           conditions=('BASE','CDF_06','CDF_20'))
+                           conditions=('BASE','CDF_20'))
         self.assertEqual(result.returncode,0,result.stderr)
         conditions=[]
         for name in runner.CONDITIONS:
@@ -626,10 +626,11 @@ print('simulated dialogue; sequence still requires review')
         self.assertEqual(analyze(rows,evidence)[4],'BLOCKED')
         rows[0]['record']['result']='FAIL'
         self.assertEqual(analyze(rows,evidence)[4],'PASS')
+        self.assertEqual(analyze(rows,evidence)[1:4], (1, 0, 3))
         rows[0]['record']['result']='PASS'
-        rows[2]['record']['result']='FAIL'
+        rows[1]['record']['result']='FAIL'
         self.assertEqual(analyze(rows,evidence)[4],'FAIL')
-        rows[2]['record']['result']='PASS'
+        rows[1]['record']['result']='PASS'
         evidence[str(rows[0]['folder'].resolve())]['model']='different'
         self.assertEqual(analyze(rows,evidence)[4],'BLOCKED')
 
@@ -656,7 +657,6 @@ print('simulated dialogue; sequence still requires review')
         resource={'basis':'not_available'}
         group={c:[{'record':{'result':'PASS','resource_measurement':resource,
                               'activation_result':outcomes[c]['activation_result']}}] for c in outcomes}
-        group['CDF_06']=group['BASE']
         stats=paired_statistics([{'parity':'MATCHED_ATTESTED','case_id':'G01','group':group}])
         self.assertEqual(stats['BASE'][('tiny_edit','LOW')]['wins'],0)
         self.assertEqual(stats['BASE'][('tiny_edit','LOW')]['ties'],1)
@@ -688,7 +688,7 @@ print('simulated dialogue; sequence still requires review')
         (fixture/'right.py').write_text('def value(): return 2\n')
         self.assertEqual(execute().returncode,0)
 
-    def test_legacy_rubric_record_is_rejected(self):
+    def test_obsolete_rubric_record_is_rejected(self):
         from cdf_runtime.contracts import validate_record
         old={'schema':1,'case_id':'G01','condition':'BASE','seed':0,'runtime_version':'fake',
              'model_requested':None,'model_observed':None,'result':'NOT_OBSERVED',

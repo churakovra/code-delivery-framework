@@ -30,14 +30,14 @@ def parser():
     validate.add_argument('--offline', action='store_true')
     validate.add_argument('--runtime', action='store_true')
     validate.add_argument('--json', action='store_true')
-    for action in ('install', 'upgrade', 'status', 'uninstall', 'recover', 'doctor', 'migrate-legacy'):
+    for action in ('install', 'upgrade', 'status', 'uninstall', 'recover', 'doctor'):
         q = sub.add_parser(action)
         q.add_argument('--target', required=True)
         q.add_argument('--scope', choices=('project', 'global'), default='project')
         q.add_argument('--home', help='Selected home for an isolated global installation')
         q.add_argument('--json', action='store_true')
-        if action in ('install', 'upgrade', 'uninstall', 'recover', 'migrate-legacy'):
-            q.add_argument('--dry-run', action='store_true', required=action == 'migrate-legacy')
+        if action in ('install', 'upgrade', 'uninstall', 'recover'):
+            q.add_argument('--dry-run', action='store_true')
         if action == 'uninstall':
             q.add_argument('--release-modified-skills', action='store_true', help='Preserve modified skill files and release their ownership')
         if action in ('install', 'upgrade'):
@@ -97,7 +97,6 @@ def run(args):
                 pass
         result['agent_schema_supported'] = 'unverified'
         return result
-    if args.action == 'migrate-legacy': return core.legacy_report(root, args.scope)
     enabled = [n for n in ('learning', 'operator') if getattr(args, 'with_' + n, False)]
     disabled = [n for n in ('learning', 'operator') if getattr(args, 'without_' + n, False)]
     return core.perform(root, args.scope, args.action, dry=args.dry_run, enable=enabled, disable=disabled, release_modified_skills=getattr(args, 'release_modified_skills', False))
@@ -112,7 +111,7 @@ def main(argv=None):
         return 0
     except core.CDFError as exc:
         conflicts = {'PATH_COLLISION', 'MANAGED_FILE_MODIFIED', 'MANAGED_BLOCK_MODIFIED',
-                     'MANIFEST_UNSUPPORTED', 'LEGACY_MIGRATION_REQUIRED', 'RECOVERY_REQUIRED',
+                     'MANIFEST_UNSUPPORTED', 'RECOVERY_REQUIRED',
                      'CONCURRENT_MUTATION'}
         if (args is not None and getattr(args, 'dry_run', False)
                 and args.action in ('install', 'upgrade', 'uninstall', 'recover')

@@ -25,7 +25,6 @@ MANIFEST = '.codex/cdf/manifest.json'
 TX = '.codex/cdf/transaction'
 LOCK = '.codex/cdf.lock'
 CLEANUP = '.codex/cdf-cleanup.json'
-LEGACY_CLEANUP = '.cdf-cleanup.json'
 IGNORE = '.codex/.gitignore'
 IGNORE_START = b'# BEGIN CDF private state\n'
 IGNORE_END = b'# END CDF private state\n'
@@ -143,11 +142,6 @@ def cleanup_directories(root, values):
 
 def cleanup_intent(root, scope):
     raw = read_file(root, CLEANUP)
-    legacy = read_file(root, LEGACY_CLEANUP)
-    if raw is not None and legacy is not None:
-        raise CDFError('RECOVERY_REQUIRED', 'Multiple cleanup intents require manual inspection.', [CLEANUP, LEGACY_CLEANUP], 3)
-    if raw is None:
-        raw = legacy
     if raw is None:
         return None
     try:
@@ -199,9 +193,8 @@ def finish_cleanup(root, scope, directories):
     if sorted(set(directories)) != intent:
         raise CDFError('RECOVERY_REQUIRED', 'Cleanup intent does not match the transaction.', [CLEANUP], 3)
     cleanup_directories(root, intent)
-    marker = CLEANUP if safe(root, CLEANUP).exists() else LEGACY_CLEANUP
-    safe(root, marker).unlink()
-    sync_dir(safe(root, marker).parent)
+    safe(root, CLEANUP).unlink()
+    sync_dir(safe(root, CLEANUP).parent)
 
 
 def read_file(root, path):
@@ -398,14 +391,6 @@ def manifest_read(root, scope):
         raise CDFError('MANIFEST_UNSUPPORTED', f'Invalid or unsupported manifest: {exc}', [MANIFEST]) from exc
 
 
-def check_legacy(root, agents):
-    old_manifest = safe(root, '.codex/delivery-framework/manifest.json')
-    # Legacy installations have a managed instruction marker even when their state layout differs.
-    data = read_file(root, agents) or b''
-    legacy = b'<!-- codex-delivery-framework:start -->' in data or old_manifest.exists()
-    return legacy
-
-
 def find_duplicates(root, selected, owned, scope):
     # Codex can discover both project/ancestor and user-level skills. Read-only
     # collision checks include these locations; they never create directories.
@@ -449,18 +434,16 @@ def find_duplicates(root, selected, owned, scope):
 
 def changes_plan(root, scope, action, extras=(), src=ROOT, release_modified_skills=False):
     agents = '.codex/AGENTS.md' if scope == 'global' else 'AGENTS.md'
-    if safe(root, LEGACY_CLEANUP).exists():
-        raise CDFError('RECOVERY_REQUIRED', 'Interrupted legacy directory cleanup requires recovery.', [LEGACY_CLEANUP], 3)
     if safe(root, CLEANUP).exists():
         raise CDFError('RECOVERY_REQUIRED', 'Interrupted directory cleanup requires recovery.', [CLEANUP], 3)
     tx = safe(root, TX)
     if tx.exists():
         raise CDFError('RECOVERY_REQUIRED', 'Interrupted transaction requires recovery.', [TX], 3)
     m = manifest_read(root, scope)
-    if action == 'install' and (m or check_legacy(root, agents)):
-        raise CDFError('LEGACY_MIGRATION_REQUIRED' if not m else 'PATH_COLLISION', 'Existing installation must be inspected before installing.')
+    if action == 'install' and m:
+        raise CDFError('PATH_COLLISION', 'Existing installation must be inspected before installing.')
     if action == 'upgrade' and not m:
-        raise CDFError('LEGACY_MIGRATION_REQUIRED' if check_legacy(root, agents) else 'MANIFEST_UNSUPPORTED', 'No compatible v2 installation exists.')
+        raise CDFError('MANIFEST_UNSUPPORTED', 'No compatible installation exists.')
     if action == 'upgrade' and m['state'] != 'installed':
         raise CDFError('MANIFEST_UNSUPPORTED', 'Resolve the partial installation before upgrading.')
     if action == 'uninstall' and not m:
@@ -484,6 +467,10 @@ def changes_plan(root, scope, action, extras=(), src=ROOT, release_modified_skil
         original = observed_agents
         if original and (START in original or END in original):
             raise CDFError('MANAGED_BLOCK_MODIFIED', 'Unowned managed block already exists.', [agents])
+        if original and re.search(
+                rb'<!--\s*(?:BEGIN\b[^>]*\bMANAGED\b[^>]*|[A-Za-z0-9_.-]+:start)\s*-->',
+                original, re.IGNORECASE):
+            warnings.append('Other managed instruction blocks were detected; inspect for conflicting delivery policies.')
         backup = '.codex/cdf/backups/AGENTS.absent' if original is None else '.codex/cdf/backups/AGENTS.original'
         desired[backup] = original or b''
         before = original or b''
@@ -940,8 +927,8 @@ def perform(root, scope, action, *, dry=False, enable=(), disable=(), src=ROOT, 
 
 
 def status(root, scope):
-    if safe(root, TX).exists() or safe(root, CLEANUP).exists() or safe(root, LEGACY_CLEANUP).exists():
-        issues = [p for p in (TX, CLEANUP, LEGACY_CLEANUP) if safe(root, p).exists()]
+    if safe(root, TX).exists() or safe(root, CLEANUP).exists():
+        issues = [p for p in (TX, CLEANUP) if safe(root, p).exists()]
         try:
             recover_locked(root, scope, dry=True)
         except CDFError as exc:
@@ -966,63 +953,3 @@ def status(root, scope):
             'files': 'modified' if issues else ('clean' if m else 'absent'), 'managed_block': block_state,
             'skills_discovery': 'unverified', 'native_agents': 'unverified', 'mcp': 'not_managed',
             'issues': sorted(set(issues)), 'next_action': 'Resolve reported issues.' if issues else 'Start a fresh trusted Codex session and verify skill and agent discovery.'}
-
-
-def legacy_report(root, scope):
-    agents = '.codex/AGENTS.md' if scope == 'global' else 'AGENTS.md'
-    old_manifest = '.codex/delivery-framework/manifest.json'
-    candidates = [agents, old_manifest, '.codex/delivery-framework/model-policy.toml', '.codex/delivery-framework/roles.json', '.codex/config.toml']
-    found = [p for p in candidates if safe(root, p).is_file()]
-    result = {'schema': 1, 'state': 'report', 'scope': scope, 'target': str(root), 'detected_paths': found,
-              'legacy_marker_detected': check_legacy(root, agents), 'legacy_manifest': None,
-              'next_action': 'Inspect old status/recovery, preserve your files and model preferences, use the old uninstaller, then inspect v2 install --dry-run.',
-              'steps': ['Inspect v0.6 status and recover any interrupted transaction.', 'Back up managed instructions, configuration, model policy and local edits.', 'Run v0.6 uninstall --dry-run and resolve conflicts before using its uninstaller.', 'Run v2 install --dry-run and inspect collisions.', 'Install v2 and verify in a fresh trusted session.']}
-    raw = read_file(root, old_manifest)
-    if raw is not None:
-        try:
-            old = json.loads(raw)
-            if not isinstance(old, dict): raise ValueError('manifest is not an object')
-            status = {'version': old.get('framework_version'), 'state': old.get('state'),
-                      'owned': {}, 'reused': {}, 'generated_agents': [],
-                      'external_dependency_paths': [], 'external_mcp': None, 'warnings': []}
-            for field, out in [('files', 'owned'), ('reused', 'reused')]:
-                mapping = old.get(field, {})
-                if not isinstance(mapping, dict): raise ValueError('invalid path map')
-                for path, recorded_hash in mapping.items():
-                    try:
-                        if not isinstance(recorded_hash, str) or not HEX.fullmatch(recorded_hash):
-                            raise ValueError('invalid hash')
-                        actual = read_file(root, path)
-                        status[out][path] = 'missing' if actual is None else 'clean' if digest(actual) == recorded_hash else 'modified'
-                        if path.startswith('.codex/agents/'): status['generated_agents'].append(path)
-                        if 'codebase-memory' in path: status['external_dependency_paths'].append(path)
-                    except (CDFError, ValueError, TypeError):
-                        status['warnings'].append('Unsafe or malformed legacy path: ' + str(path))
-            external = old.get('external_mcp')
-            if external is not None:
-                try:
-                    if not isinstance(external, dict) or set(external) != {'path', 'sha256', 'config'}:
-                        raise ValueError('invalid external MCP metadata fields')
-                    path, sha, config = external['path'], external['sha256'], external['config']
-                    if (not isinstance(path, str) or not Path(path).is_absolute() or '..' in Path(path).parts
-                            or not isinstance(sha, str) or not HEX.fullmatch(sha)
-                            or not isinstance(config, dict) or config.get('command') != path
-                            or set(config) - {'command', 'args', 'enabled', 'startup_timeout_sec', 'tool_timeout_sec'}
-                            or not isinstance(config.get('args', []), list)
-                            or any(not isinstance(arg, str) for arg in config.get('args', []))
-                            or type(config.get('enabled', True)) is not bool
-                            or any(type(config[key]) not in (int, float) or config[key] < 0
-                                   for key in ('startup_timeout_sec', 'tool_timeout_sec') if key in config)):
-                        raise ValueError('invalid external MCP path, digest or config')
-                    # The legacy external binary remains user-owned. Its path is
-                    # reported as metadata only; never stat, follow, open or run it.
-                    status['external_mcp'] = {'path': path, 'sha256': sha,
-                                              'ownership': 'external-unowned',
-                                              'verification': 'not-checked'}
-                except (TypeError, ValueError) as exc:
-                    status['external_mcp'] = {'state': 'invalid', 'verification': 'not-checked'}
-                    status['warnings'].append(str(exc))
-            result['legacy_manifest'] = status
-        except (json.JSONDecodeError, UnicodeDecodeError, ValueError) as exc:
-            result['legacy_manifest'] = {'state': 'unreadable', 'warning': str(exc)}
-    return result

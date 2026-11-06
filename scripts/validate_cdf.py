@@ -16,7 +16,7 @@ from cdf_registry import CORE, EXTRAS, NATIVE_AGENTS, inventory_markdown
 
 
 def validate_source(root=ROOT):
-    skills = {p.parent.name: p for p in (root / 'skills').glob('cdf-*/SKILL.md')}
+    skills = {p.parent.name: p for p in (root / 'skills').glob('*/SKILL.md')}
     expected = set(CORE).union(*EXTRAS.values())
     if len(CORE) + sum(map(len, EXTRAS.values())) != len(expected):
         raise ValueError('Bundle inventory contains duplicate skills')
@@ -61,7 +61,7 @@ def validate_source(root=ROOT):
     operator = (root / 'skills/cdf-model-calibration/agents/openai.yaml').read_text()
     if not re.search(r'^  allow_implicit_invocation: false$', operator, re.M):
         raise ValueError('Operator skill must be explicit-only')
-    examples = root / 'docs/plans/cdf-2.0/templates'
+    examples = root / 'templates/examples'
     for example, schema in [('handoff', 'handoff'), ('install-plan', 'install-plan'), ('task-checkpoint', 'task-state')]:
         validate_record(schema, json.loads((examples / f'{example}.example.json').read_text()))
     return {'state': 'passed', 'core_skills': len(CORE), 'optional_skills': sum(map(len, EXTRAS.values())),

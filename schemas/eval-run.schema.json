@@ -30,7 +30,6 @@
     "condition": {
       "enum": [
         "BASE",
-        "CDF_06",
         "CDF_20"
       ]
     },

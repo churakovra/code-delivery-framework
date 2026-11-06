@@ -1,7 +1,0 @@
-# Codebase Memory routing
-
-For structural discovery, check the runtime for Codebase Memory MCP, including repository exploration, audits, cleanup, architecture, dependencies and impact analysis, even without planning or delegation. Simple known-file edits and literal searches need no graph query. Respect user and runtime restrictions.
-
-When available, read the installed integration skill. Select the project by root and check index readiness and freshness; index or refresh when needed and permitted. Use a relevant graph query before concluding structural investigation. Bound queries to the question and reuse current symbols, paths and results. Follow the skill's coverage and pagination guidance for cited paths and relevant scopes, especially negative claims. Verify material findings and coverage gaps in source: graph absence alone does not prove unused code. If tools, indexing or coverage are inadequate, use source search and report the material limitation; never claim graph evidence not obtained. Tool-output size claims are not measured token savings.
-
-Before delegating structural work, pass the project/root, index generation, scope, queries and pagination state, symbols, source findings, coverage gaps and unresolved questions. Children reuse evidence, check freshness when needed and query missing relationships. A child without MCP access uses the handoff and targeted source reads; it must not claim MCP queries.

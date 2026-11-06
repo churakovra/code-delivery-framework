@@ -32,7 +32,6 @@ jobs:
         run: |
           python3 scripts/validate_cdf.py
           python3 scripts/cdf.py validate --offline --json
-          python3 docs/plans/cdf-2.0/tests/validate_blueprint.py
       - name: Run model-free tests in temporary targets
         run: python3 -m unittest discover -s tests
       - name: Check patch whitespace
