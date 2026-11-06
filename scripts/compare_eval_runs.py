@@ -10,7 +10,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from cdf_runtime.contracts import validate_record
 from evals.grade import _evidence, load_graded
-from evals.runner import _case_hash, _hash_snapshot, _snapshot, load_case, rubric_names
+from evals.runner import _case_hash, _hash_snapshot, _snapshot, _usage, load_case, rubric_names
+from evals.evidence import verify_manifest
 
 CONDITIONS = ('BASE', 'CDF_06', 'CDF_20')
 CRITICAL = ('G01', 'G02', 'G09', 'G13')
@@ -19,6 +20,7 @@ CRITICAL = ('G01', 'G02', 'G09', 'G13')
 def read_run(folder, record):
     if record.get('condition') not in CONDITIONS: raise ValueError('Unknown result condition')
     condition = folder / record['condition']
+    verify_manifest(condition)
     original = json.loads((condition / 'run.json').read_text())
     validate_record('eval-run', original)
     validate_record('eval-run', record)
@@ -28,6 +30,10 @@ def read_run(folder, record):
         raise ValueError('Run trace is missing or has an unsafe path')
     environment_path = condition/'environment.json'
     environment = json.loads(environment_path.read_text()) if environment_path.is_file() else {}
+    if original['result'] != 'RUNNER_ERROR' and original['resource_measurement']['elapsed_seconds'] != json.loads((condition / 'timing.json').read_text())['elapsed_seconds']:
+        raise ValueError('Resource elapsed time disagrees with timing evidence')
+    if original['resource_measurement'] != _usage((condition / 'stdout.ndjson').read_bytes(), environment.get('adapter_kind'), original['resource_measurement']['elapsed_seconds']):
+        raise ValueError('Resource measurement disagrees with trace')
     if original['result'] != 'RUNNER_ERROR':
         case = load_case(original['case_id'])
         if environment.get('case_sha256') != _case_hash(case): raise ValueError('Case identity differs from recorded run')
@@ -43,7 +49,10 @@ def read_run(folder, record):
         fixture = condition/'fixture-before'
         if _hash_snapshot(_snapshot(fixture, skip_git=True)) != environment.get('fixture_sha256'):
             raise ValueError('Initial fixture differs from recorded hash')
-    reviewed = load_graded(condition) if (condition/'graded-run.json').exists() else original
+    grade_files = [condition/name for name in ('grading.json', 'graded-run.json', 'grade-manifest.json')]
+    if any(path.exists() for path in grade_files) and not all(path.is_file() for path in grade_files):
+        raise ValueError('Incomplete grading evidence')
+    reviewed = load_graded(condition) if all(path.is_file() for path in grade_files) else original
     validate_record('eval-run', reviewed)
     return {'record': reviewed, 'environment': environment, 'folder': condition}
 
@@ -75,7 +84,7 @@ def attestations(path, entries):
     return result
 
 
-def group_parity(group, evidence):
+def group_parity(group, evidence, regime='standardized'):
     if set(group) != set(CONDITIONS) or any(len(rows)!=1 for rows in group.values()):
         return 'UNVERIFIED', 'missing or duplicate conditions'
     rows = [group[c][0] for c in CONDITIONS]
@@ -90,7 +99,7 @@ def group_parity(group, evidence):
         if not row['environment'].get('guidance_sha256'): return 'UNVERIFIED', 'guidance hash unavailable'
     attested = [evidence.get(str(r['folder'].resolve())) for r in rows]
     if any(a is None for a in attested): return 'UNVERIFIED', 'runtime parity evidence absent'
-    for field in ('runtime','model','effort','tools','permission_mode'):
+    for field in (('runtime','model','effort','tools','permission_mode') if regime == 'standardized' else ('runtime','model','effort','permission_mode')):
         if len({a[field] for a in attested}) != 1: return 'MISMATCH', f'{field} differs'
     for row, a in zip(rows, attested):
         env = row['environment']
@@ -100,7 +109,7 @@ def group_parity(group, evidence):
     return 'MATCHED_ATTESTED', 'reviewer-attested; interpretation remains human judgment'
 
 
-def analyze(entries, evidence):
+def analyze(entries, evidence, regime='standardized'):
     groups=defaultdict(lambda: defaultdict(list))
     for entry in entries:
         r=entry['record']; groups[(r['case_id'],r['seed'])][r['condition']].append(entry)
@@ -113,7 +122,7 @@ def analyze(entries, evidence):
     changing={k for k,v in guidance.items() if len(v)>1 and k in ('CDF_06','CDF_20')}
     summaries=[]; wins=losses=ties=0
     for key,group in sorted(groups.items()):
-        parity,why=group_parity(group,evidence)
+        parity,why=group_parity(group,evidence,regime)
         if changing and parity=='MATCHED_ATTESTED': parity,why='MISMATCH','guidance hash changed within a condition'
         if parity=='MATCHED_ATTESTED':
             base=group['CDF_06'][0]['record']['result']; new=group['CDF_20'][0]['record']['result']
@@ -133,6 +142,8 @@ def analyze(entries, evidence):
                  for s in selected if s['parity']=='MATCHED_ATTESTED')):
         gate='BLOCKED'
     else: gate='PASS'
+    # Installed integration setup is not independently observed by this runner.
+    if regime == 'installed-system' and gate == 'PASS': gate = 'BLOCKED'
     return summaries, wins, losses, ties, gate
 
 
@@ -164,6 +175,7 @@ def paired_statistics(summaries):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('runs',nargs='+',type=Path,help='Directories containing results.json')
+    p.add_argument('--regime', choices=('standardized', 'installed-system'), default='standardized', help='Comparison regime; installed-system permits attested condition-specific tools')
     p.add_argument('--csv',type=Path,help='New CSV path; never overwrite')
     p.add_argument('--parity-evidence',type=Path,help='Reviewer-attested runtime parity evidence JSON')
     p.add_argument('--require-release-gate',action='store_true',help='Return nonzero unless the evaluation gate passes')
@@ -180,9 +192,10 @@ def main():
                     raise ValueError('Result identity does not match manifest')
                 entries.append(read_run(folder,record))
         evidence=attestations(args.parity_evidence,entries)
-        summaries,wins,losses,ties,gate=analyze(entries,evidence)
+        summaries,wins,losses,ties,gate=analyze(entries,evidence,args.regime)
     except (OSError,ValueError,KeyError,TypeError) as exc:
         print(f'comparison error: {exc}',file=sys.stderr); return 2
+    print(f'Comparison regime: {args.regime}; installed-system comparisons are descriptive and do not isolate guidance effects.' if args.regime == 'installed-system' else 'Comparison regime: standardized; equal attested tools required.')
     print('| Case | Condition | Behavior | Activation | Unobserved checks |')
     print('| --- | --- | --- | --- | ---: |')
     for item in entries:

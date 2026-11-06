@@ -14,25 +14,25 @@ import os
 from pathlib import Path
 import random
 import shutil
-import signal
 import stat
 import subprocess
 import sys
 import tarfile
 import tempfile
-import time
 import uuid
 from datetime import datetime, timezone
 from cdf_runtime.contracts import validate_record
+from cdf_registry import CORE
+from .evidence import write_manifest
+from .process import _process
+from .compatibility import inspect_case
 
 ROOT = Path(__file__).resolve().parents[1]
 EVALS = ROOT / 'evals'
 BASELINE = '3ff534627e8b10de3dba2c6443855e870567ef84'
 CONDITIONS = ('BASE', 'CDF_06', 'CDF_20')
 RUBRIC_VERSION = 2
-CORE = ('cdf-backend', 'cdf-code-review', 'cdf-codebase-research', 'cdf-debugging',
-        'cdf-documentation', 'cdf-frontend', 'cdf-implementation', 'cdf-orchestration',
-        'cdf-planning', 'cdf-requirements', 'cdf-ui-design', 'cdf-verification')
+
 
 
 def _save(path: Path, content: str | bytes):
@@ -53,25 +53,6 @@ def _env(home: Path):
             'PYTHONDONTWRITEBYTECODE': '1'}
 
 
-def _process(command, cwd, env, prompt, timeout):
-    started = time.monotonic()
-    with tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:
-        try:
-            proc = subprocess.Popen(command, cwd=cwd, env=env, stdin=subprocess.PIPE,
-                                    stdout=out, stderr=err, start_new_session=True)
-            try:
-                proc.communicate(prompt.encode(), timeout=timeout)
-                state, code = 'completed', proc.returncode
-            except subprocess.TimeoutExpired:
-                try: os.killpg(proc.pid, signal.SIGKILL)
-                except (ProcessLookupError, AttributeError): proc.kill()
-                proc.communicate()
-                state, code = 'timeout', None
-        except OSError as exc:
-            state, code = 'runner-error', None
-            err.write(str(exc).encode())
-        out.seek(0); err.seek(0)
-        return state, code, out.read(), err.read(), round(time.monotonic() - started, 3)
 
 
 def _safe_archive(destination: Path):
@@ -193,6 +174,24 @@ def _snapshot(directory: Path, *, skip_git=False):
             else:
                 result[relative] = ('special', str(stat.S_IFMT(metadata.st_mode)).encode(), permissions)
         dirs[:] = [d for d in dirs if not (Path(folder) / d).is_symlink()]
+    return result
+
+
+def _git_policy_snapshot(workspace):
+    """Capture policy-relevant Git metadata without object packs or transient logs."""
+    git = workspace / '.git'
+    names = ('config', 'config.worktree', 'HEAD', 'packed-refs', 'hooks', 'refs', 'info/exclude')
+    result = {}
+    for name in names:
+        path = git / name
+        if path.is_symlink():
+            result[name] = ('symlink', os.readlink(path).encode(), stat.S_IMODE(path.lstat().st_mode))
+        elif path.is_dir():
+            result[name] = ('directory', b'', stat.S_IMODE(path.stat().st_mode))
+            result.update({name + '/' + key: value for key, value in _snapshot(path).items()
+                           if not key.endswith('.lock')})
+        elif path.is_file() and not name.endswith('.lock'):
+            result[name] = ('file', path.read_bytes(), stat.S_IMODE(path.stat().st_mode))
     return result
 
 
@@ -337,12 +336,12 @@ def preflight(case_id, conditions, adapter, kind, protocol='prompt-v1', declared
     if 'CDF_06' in conditions:
         proc = subprocess.run(['git', 'cat-file', '-e', BASELINE + '^{commit}'], cwd=ROOT, capture_output=True)
         if proc.returncode: raise ValueError('Pinned CDF 0.6 source commit unavailable')
-    return {'case_id': case_id, 'conditions': conditions, 'fixture_revision': case['fixture_revision'],
+    return {'compatibility': inspect_case(case, kind), 'case_id': case_id, 'conditions': conditions, 'fixture_revision': case['fixture_revision'],
             'adapter': str(adapter), 'adapter_kind': kind, 'adapter_protocol': protocol,
             'scripted_answer_count': len(answers), 'runtime_controls': controls,
             'dialogue_capability': ('operator_asserted_unverified' if protocol == 'json-dialogue-v1' else
                                     'native_resume_unverified' if kind == 'codex' and answers else 'unsupported'),
-            'runtime_version': _runtime_version(adapter, kind), 'model_observed': None,
+            'runtime_version': 'unverified', 'model_observed': None,
             'capabilities': 'unverified', 'limitations': [
                 'Adapter executable and generated fixture code require an external OS sandbox.',
                 'Model, sandbox, agent availability, skill loads and comparable usage are not inferred.',
@@ -385,6 +384,7 @@ def _native_followups(adapter, workspace, home_env, folder, initial, answers, ti
                  '--skip-git-repo-check','-c','sandbox_mode="workspace-write"']
         if model: command += ['--model',model]
         if effort: command += ['-c','model_reasoning_effort='+json.dumps(effort)]
+        _json(folder / 'turns' / f'{index}.command.json', {'argv': command, 'timeout_seconds': timeout})
         state,code,out,err,duration = _process(command,workspace,home_env,answer,timeout)
         outputs.append((out,err)); elapsed += duration
         stdout += (b'\n' if stdout and not stdout.endswith(b'\n') else b'') + out
@@ -413,6 +413,8 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
         guidance = {path: value for path, value in before.items() if path not in fixture_initial}
         guidance_hash = _hash_snapshot(guidance)
         git_initial = _git_identity(workspace, env)
+        git_metadata_before = _git_policy_snapshot(workspace)
+        _json(folder / 'git-metadata-before.json', _snapshot_metadata(git_metadata_before))
         _save(folder / 'prompt.txt', case['prompt'] + '\n')
         _save(folder / 'initial_sha.txt', git_head + '\n')
         _json(folder / 'workspace-before.json', _snapshot_metadata(before))
@@ -449,6 +451,7 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
                        'runtime_controls': case.get('runtime_controls', {})}
             adapter_input = json.dumps(request, ensure_ascii=False)
             _json(folder / 'dialogue-request.json', request)
+        _json(folder / 'command.json', {'argv': command, 'protocol': protocol, 'timeout_seconds': timeout})
         started_at = datetime.now(timezone.utc).isoformat()
         initial = _process(command, workspace, env, adapter_input, timeout)
         before_answers = None
@@ -481,6 +484,11 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
             ok = before == after
             checks.append({'name': 'fixture_source_unchanged', 'status': 'PASS' if ok else 'FAIL',
                            'evidence': 'Compared all workspace paths, file types, contents and permission modes.'})
+        git_metadata_after = _git_policy_snapshot(workspace)
+        _json(folder / 'git-metadata-after.json', _snapshot_metadata(git_metadata_after))
+        checks.append({'name': 'git_policy_metadata_unchanged',
+                       'status': 'PASS' if git_metadata_before == git_metadata_after else 'FAIL',
+                       'evidence': 'Compared Git config, hooks and refs metadata.'})
         git_after = _git_identity(workspace, env)
         checks.append({'name': 'git_head_branch_and_index_unchanged',
                        'status': 'PASS' if git_initial == git_after else 'FAIL',
@@ -528,12 +536,18 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
               'adapter_exit_code': code, 'unobserved_assertions': [c['name'] for c in checks if c['status']=='NOT_OBSERVED']})
         if result != 'NOT_OBSERVED':
             _save(folder / 'failure-notes.md', f'Adapter state: {state}; exit: {code}. See check and trace files.\n')
+        write_manifest(folder)
         return record
 
 
-def run(case_id, conditions, adapter, kind, output, seed=0, timeout=300, model=None, effort=None, protocol='prompt-v1', declared_capabilities=None):
+def run(case_id, conditions, adapter, kind, output, seed=0, timeout=300, model=None, effort=None, protocol='prompt-v1', declared_capabilities=None, trusted_local_execution=False):
+    if not trusted_local_execution:
+        raise ValueError('Live execution requires trusted_local_execution; no OS sandbox is provided')
     capabilities = preflight(case_id, conditions, adapter, kind, protocol, declared_capabilities)
+    if capabilities['compatibility']['status'] != 'AVAILABLE':
+        raise ValueError('Evaluation unavailable: ' + ', '.join(capabilities['compatibility']['missing_prerequisites']))
     case = load_case(case_id)
+    capabilities['runtime_version'] = _runtime_version(adapter, kind)
     output.mkdir(parents=True, exist_ok=False)
     order = list(conditions); random.Random(seed).shuffle(order)
     _json(output / 'manifest.json', {'case_id': case_id, 'seed': seed, 'conditions': order,
@@ -549,22 +563,28 @@ def run(case_id, conditions, adapter, kind, output, seed=0, timeout=300, model=N
             # Preserve any artifacts written before preparation or checking failed.
             if not (folder / 'stdout.ndjson').exists(): _save(folder / 'stdout.ndjson', '')
             if not (folder / 'stderr.txt').exists(): _save(folder / 'stderr.txt', str(exc))
+            if (folder / 'run.json').exists():
+                raise RuntimeError(f'Incomplete run after record was written: {exc}') from exc
             behavior_names, activation_names = rubric_names(case, condition)
             checks = [{'name': n, 'status': 'NOT_OBSERVED', 'evidence': 'Runner failed.'}
                       for n in behavior_names]
             activation_checks = [{'name': n, 'status': 'NOT_OBSERVED', 'evidence': 'Runner failed.'}
                                  for n in activation_names]
+            timing_path = folder / 'timing.json'
+            elapsed = json.loads(timing_path.read_text()).get('elapsed_seconds') if timing_path.is_file() else None
+            environment_path = folder / 'environment.json'
+            recorded_kind = json.loads(environment_path.read_text()).get('adapter_kind') if environment_path.is_file() else None
             record = {'schema': 2, 'rubric_version': RUBRIC_VERSION, 'activation_result': 'RUNNER_ERROR',
                       'activation_checks': activation_checks, 'case_id': case_id, 'condition': condition, 'seed': seed,
                       'runtime_version': 'unverified', 'model_requested': model, 'model_observed': None,
                       'result': 'RUNNER_ERROR', 'acceptance_checks': checks,
-                      'resource_measurement': {'basis': 'not_available', 'input_tokens': None,
-                                               'output_tokens': None, 'elapsed_seconds': None},
+                      'resource_measurement': _usage((folder / 'stdout.ndjson').read_bytes(), recorded_kind, elapsed),
                       'raw_trace_path': 'stdout.ndjson'}
             validate_record('eval-run', record)
-            if not (folder / 'run.json').exists(): _json(folder / 'run.json', record)
+            _json(folder / 'run.json', record)
             if not (folder / 'failure-notes.md').exists():
                 _save(folder / 'failure-notes.md', f'Runner failed: {exc}\n')
+            if not (folder / 'evidence-manifest.json').exists(): write_manifest(folder)
             records.append(record)
     _json(output / 'results.json', records)
     return records

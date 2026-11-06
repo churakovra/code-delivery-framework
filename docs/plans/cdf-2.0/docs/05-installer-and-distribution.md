@@ -139,7 +139,7 @@ On ordinary exception: attempt `recover` immediately. On kill/power loss: next m
 
 ## 5.8 Uninstall rules
 
-For each owned file: if unchanged from manifest, delete; if changed, **preserve and list**. For AGENTS, remove exactly the intact managed block and preserve bytes outside it. Never delete user-created `AGENTS.md` merely because its managed block is removed. Remove CDF-created empty directories only. Do **not** remove third-party subskills, MCP binaries, indexes, user-managed `.codex/config.toml`, or old v0.6 files not owned by this manifest. Keep a partial manifest with preserved files if cleanup is incomplete. Re-running uninstall is safe and should complete when conflicts are resolved.
+For each owned file: if unchanged from manifest, delete; if changed, **preserve and list**. Repeated uninstall converges when owned paths are already absent. `--release-modified-skills` explicitly preserves each entire modified skill and releases its CDF ownership; it does not discard the edits. AGENTS content and its backup are preserved. CDF does not untrack files or mutate the Git index, so inspect and remediate any tracked secret manually. For AGENTS, remove exactly the intact managed block and preserve bytes outside it. Never delete user-created `AGENTS.md` merely because its managed block is removed. Remove CDF-created empty directories only. Do **not** remove third-party subskills, MCP binaries, indexes, user-managed `.codex/config.toml`, or old v0.6 files not owned by this manifest. Keep a partial manifest with preserved files if cleanup is incomplete. Re-running uninstall is safe and should complete when conflicts are resolved.
 
 ## 5.9 Legacy v0.6 migration behavior (explicitly manual for v2.0.0)
 
@@ -190,7 +190,9 @@ cdf_installer/runtime_probe.py   # read-only Codex availability (optional)
 cdf_installer/legacy.py          # v0.6 read-only migration report
 ```
 
-No module should be large purely because it acts as a giant CLI function. Reuse v0.6 tests for known safety cases; don't copy duplicated legacy implementations. The exact file splits can be simplified further when a pure-function decomposition remains testable.
+No module should be large purely because it acts as a giant CLI function. Reuse v0.6 tests for known safety cases; don't copy duplicated legacy implementations. The exact file splits can be simplified further when a pure-function decomposition remains testable. Current implementation extracts registry and validation helpers, but broad module refactoring is deferred.
+
+The installed private-state ignore rules are an additive managed block in `<target>/.codex/.gitignore`; the repository-root `.gitignore` is not edited. Final cleanup intent is `<target>/.codex/cdf-cleanup.json`; the legacy root `.cdf-cleanup.json` is recognized for recovery. POSIX is required for mutating operations and rejected before mutation; Windows support is not claimed.
 
 ## 5.12 Required isolated lifecycle tests
 

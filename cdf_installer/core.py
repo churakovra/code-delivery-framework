@@ -1,7 +1,8 @@
 """CDF 2.0 installation, ownership and crash recovery.
 
-The installer owns only its manifest-listed paths. It never touches Codex's
-configuration, third-party dependencies, or anything outside the selected root.
+The installer owns its manifest-listed payload and a persistent private-state
+ignore block. It never touches Codex's configuration, third-party dependencies,
+or anything outside the selected root.
 """
 from __future__ import annotations
 
@@ -17,18 +18,21 @@ import tomllib
 import uuid
 
 from cdf_runtime.contracts import validate_record
+from cdf_registry import CORE, EXTRAS
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = '.codex/cdf/manifest.json'
 TX = '.codex/cdf/transaction'
 LOCK = '.codex/cdf.lock'
-CLEANUP = '.cdf-cleanup.json'
+CLEANUP = '.codex/cdf-cleanup.json'
+LEGACY_CLEANUP = '.cdf-cleanup.json'
+IGNORE = '.codex/.gitignore'
+IGNORE_START = b'# BEGIN CDF private state\n'
+IGNORE_END = b'# END CDF private state\n'
+IGNORE_BLOCK = (IGNORE_START + b'/cdf.lock/\n/cdf-cleanup.json\n/cdf/manifest.json\n'
+                b'/cdf/backups/\n/cdf/transaction/\n' + IGNORE_END)
 START = b'<!-- BEGIN CDF 2.0 MANAGED: core -->'
 END = b'<!-- END CDF 2.0 MANAGED: core -->'
-CORE = ('cdf-backend', 'cdf-code-review', 'cdf-codebase-research', 'cdf-debugging',
-        'cdf-documentation', 'cdf-frontend', 'cdf-implementation', 'cdf-orchestration',
-        'cdf-planning', 'cdf-requirements', 'cdf-ui-design', 'cdf-verification')
-EXTRAS = {'operator': ('cdf-model-calibration',), 'learning': ('cdf-explain', 'cdf-teach')}
 HEX = re.compile(r'^[0-9a-f]{64}$')
 
 
@@ -139,6 +143,11 @@ def cleanup_directories(root, values):
 
 def cleanup_intent(root, scope):
     raw = read_file(root, CLEANUP)
+    legacy = read_file(root, LEGACY_CLEANUP)
+    if raw is not None and legacy is not None:
+        raise CDFError('RECOVERY_REQUIRED', 'Multiple cleanup intents require manual inspection.', [CLEANUP, LEGACY_CLEANUP], 3)
+    if raw is None:
+        raw = legacy
     if raw is None:
         return None
     try:
@@ -176,7 +185,7 @@ def ensure_cleanup_intent(root, scope, directories):
             os.link(temporary, path)
         except FileExistsError as exc:
             raise CDFError('RECOVERY_REQUIRED', 'Cleanup intent appeared concurrently.', [CLEANUP], 3) from exc
-        sync_dir(root)
+        sync_dir(path.parent)
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
@@ -190,8 +199,9 @@ def finish_cleanup(root, scope, directories):
     if sorted(set(directories)) != intent:
         raise CDFError('RECOVERY_REQUIRED', 'Cleanup intent does not match the transaction.', [CLEANUP], 3)
     cleanup_directories(root, intent)
-    safe(root, CLEANUP).unlink()
-    sync_dir(root)
+    marker = CLEANUP if safe(root, CLEANUP).exists() else LEGACY_CLEANUP
+    safe(root, marker).unlink()
+    sync_dir(safe(root, marker).parent)
 
 
 def read_file(root, path):
@@ -323,7 +333,10 @@ def block_span(data):
     if data.count(START) != 1 or data.count(END) != 1:
         raise CDFError('MANAGED_BLOCK_MODIFIED', 'Expected exactly one intact managed block.')
     start = data.index(START)
-    end = data.index(END, start) + len(END)
+    end_marker = data.find(END)
+    if end_marker < start:
+        raise CDFError('MANAGED_BLOCK_MODIFIED', 'Managed block markers are reversed.')
+    end = end_marker + len(END)
     if data[end:end + 2] == b'\r\n': end += 2
     elif data[end:end + 1] == b'\n': end += 1
     return start, end
@@ -434,8 +447,10 @@ def find_duplicates(root, selected, owned, scope):
                 raise CDFError('PATH_COLLISION', 'A discovered unowned skill has the same name.', [path])
 
 
-def changes_plan(root, scope, action, extras=(), src=ROOT):
+def changes_plan(root, scope, action, extras=(), src=ROOT, release_modified_skills=False):
     agents = '.codex/AGENTS.md' if scope == 'global' else 'AGENTS.md'
+    if safe(root, LEGACY_CLEANUP).exists():
+        raise CDFError('RECOVERY_REQUIRED', 'Interrupted legacy directory cleanup requires recovery.', [LEGACY_CLEANUP], 3)
     if safe(root, CLEANUP).exists():
         raise CDFError('RECOVERY_REQUIRED', 'Interrupted directory cleanup requires recovery.', [CLEANUP], 3)
     tx = safe(root, TX)
@@ -477,7 +492,9 @@ def changes_plan(root, scope, action, extras=(), src=ROOT):
     else:
         preimages = dict(m['preserved_preimages'])
         for path, info in old_owned.items():
-            if digest(read_file(root, path)) != info['sha256'] or mode(root, path) != info['mode']:
+            actual = read_file(root, path)
+            if digest(actual) != info['sha256'] or mode(root, path) != info['mode']:
+                if action == 'uninstall' and actual is None: continue
                 if action == 'uninstall': preserved.append(path)
                 else: conflicts.append(path)
         if agents in m['managed_blocks']:
@@ -513,10 +530,16 @@ def changes_plan(root, scope, action, extras=(), src=ROOT):
                 conflicts.append(path)
     if conflicts:
         raise CDFError('MANAGED_FILE_MODIFIED' if m else 'PATH_COLLISION', 'Conflicting or modified paths prevent this operation.', sorted(set(conflicts)))
+    released = []
     if action == 'uninstall':
+        if release_modified_skills:
+            skill_names = {p.split('/')[2] for p in preserved if p.startswith('.agents/skills/')}
+            released = [p for p in old_owned if p.startswith('.agents/skills/')
+                        and p.split('/')[2] in skill_names and read_file(root, p) is not None]
+            preserved = list(set(preserved) | set(released))
         for path in preserved:
             desired.pop(path, None)
-        warnings = ['Modified files were preserved; resolve them before retrying.'] if preserved else []
+        warnings = ['Modified files were preserved; resolve them before retrying.'] if set(preserved) - set(released) else []
     candidates = set(desired) | (set(old_owned) - set(preserved))
     operations = []
     for path in sorted(candidates):
@@ -526,7 +549,7 @@ def changes_plan(root, scope, action, extras=(), src=ROOT):
         before_mode = mode(root, path)
         if path == agents and (before, before_mode) != (observed_agents, observed_agents_mode):
             raise CDFError('CONCURRENT_MUTATION', 'Managed instructions changed during planning.', [path])
-        if path in old_owned and path not in preserved and (digest(before), before_mode) != (old_owned[path]['sha256'], old_owned[path]['mode']):
+        if path in old_owned and path not in preserved and not (action == 'uninstall' and before is None) and (digest(before), before_mode) != (old_owned[path]['sha256'], old_owned[path]['mode']):
             raise CDFError('CONCURRENT_MUTATION', 'Managed file changed during planning.', [path])
         after_mode = (before_mode if before_mode is not None else (0o600 if path.startswith('.codex/cdf/backups/') else 0o644)) if after is not None else None
         if before == after and before_mode == after_mode: op = 'unchanged'
@@ -534,11 +557,14 @@ def changes_plan(root, scope, action, extras=(), src=ROOT):
         elif after is None: op = 'remove'
         else: op = 'update'
         operations.append({'path': path, 'operation': op, 'before_sha256': digest(before), 'after_sha256': digest(after), '_before': before, '_after': after, '_old_mode': before_mode, '_new_mode': after_mode})
-    if action == 'uninstall' and not preserved:
+    if released:
+        warnings.append('Modified skills were preserved and ownership was released: ' + ', '.join(sorted(released)))
+    remaining = [p for p in preserved if p not in released]
+    if action == 'uninstall' and not remaining:
         new_manifest = None
     else:
         if action == 'uninstall':
-            kept = {p: v for p, v in old_owned.items() if p in preserved or p in desired}
+            kept = {p: v for p, v in old_owned.items() if p in remaining or p in desired}
             keep_block = agents in preserved
             new_manifest = dict(m, state='partial', owned_files=kept,
                                 managed_blocks=m['managed_blocks'] if keep_block else {},
@@ -812,16 +838,62 @@ def transact(root, scope, action, ops, new_manifest, lock_created=False):
         raise
 
 
-def perform(root, scope, action, *, dry=False, enable=(), disable=(), src=ROOT):
+def private_ignore_plan(root):
+    """Validate and describe the durable private-state ignore policy."""
+    if read_file(root, '.codex/cdf/.gitignore') is not None:
+        raise CDFError('PATH_COLLISION', 'Nested ignore rules could expose private state.', ['.codex/cdf/.gitignore'])
+    existing = read_file(root, IGNORE)
+    data = existing or b''
+    if IGNORE_START in data or IGNORE_END in data:
+        if data.count(IGNORE_START) != 1 or data.count(IGNORE_END) != 1 or IGNORE_BLOCK not in data:
+            raise CDFError('PATH_COLLISION', 'CDF private ignore rules were modified.', [IGNORE])
+        # Rules must be last, so later negations cannot expose private data.
+        if data[data.index(IGNORE_BLOCK) + len(IGNORE_BLOCK):].strip():
+            raise CDFError('PATH_COLLISION', 'CDF private ignore rules must be last.', [IGNORE])
+        return None
+    new = data + (b'\n' if data and not data.endswith(b'\n') else b'') + IGNORE_BLOCK
+    return {'path': IGNORE, 'operation': 'add' if existing is None else 'update',
+            'before_sha256': digest(existing), 'after_sha256': digest(new),
+            '_before': existing, '_after': new}
+
+
+def ensure_private_ignore(root):
+    """Publish ignore rules before creating any recoverable private state."""
+    planned = private_ignore_plan(root)
+    if planned is None:
+        return
+    existing, new = planned['_before'], planned['_after']
+    mkdir_durable(root, '.codex')
+    if read_file(root, IGNORE) != existing:
+        raise CDFError('CONCURRENT_MUTATION', 'Ignore file changed during setup.', [IGNORE])
+    write_atomic(safe(root, IGNORE), new, mode(root, IGNORE) or 0o644)
+
+
+def perform(root, scope, action, *, dry=False, enable=(), disable=(), src=ROOT, release_modified_skills=False):
+    if not dry and (os.name != 'posix' or not hasattr(os, 'fchmod')):
+        raise CDFError('UNSUPPORTED_PLATFORM', 'Mutating operations require a POSIX platform.')
     if scope not in ('project', 'global'): raise CDFError('INVALID_REQUEST', 'Unknown scope.')
     if action == 'recover':
-        if dry: return recover_locked(root, scope, True)
+        if safe(root, LOCK).exists():
+            raise CDFError('CONCURRENT_MUTATION', 'CDF lock exists; inspect the current operation before retrying.', [LOCK])
+        preview = recover_locked(root, scope, True)
+        if preview['state'] == 'absent':
+            return preview
+        ignore_op = private_ignore_plan(root)
+        if dry:
+            if ignore_op:
+                preview['planned_actions'].insert(0, {k: v for k, v in ignore_op.items() if not k.startswith('_')})
+            preview['warnings'].append('The private-state ignore policy remains after recovery.')
+            return preview
+        ensure_private_ignore(root)
         with Lock(root):
             result = recover_locked(root, scope)
         cleanup = result.pop('_cleanup_directories', [])
         finish_cleanup(root, scope, cleanup)
         return result
     if action not in ('install', 'upgrade', 'uninstall'): raise CDFError('INVALID_REQUEST', 'Unknown action.')
+    if release_modified_skills and action != 'uninstall':
+        raise CDFError('INVALID_REQUEST', 'Releasing modified skills is only valid during uninstall.')
     if set(enable) & set(disable): raise CDFError('INVALID_REQUEST', 'Cannot enable and disable the same extra.')
     def plan():
         old = manifest_read(root, scope)
@@ -836,30 +908,40 @@ def perform(root, scope, action, *, dry=False, enable=(), disable=(), src=ROOT):
         extras = set(old['selected_extras']) if old and action == 'upgrade' else set()
         extras.update(enable)
         extras.difference_update(disable)
-        ops, new, preserved, warnings = changes_plan(root, scope, action, extras, src)
+        ops, new, preserved, warnings = changes_plan(root, scope, action, extras, src, release_modified_skills)
         if new is not None and action in ('install', 'upgrade'): new['framework_version'] = source_version
         return ops, new, preserved, warnings
     if dry:
         if safe(root, LOCK).exists():
             raise CDFError('CONCURRENT_MUTATION', 'CDF lock exists; inspect the current operation before retrying.', [LOCK])
-        ops, _, _, warnings = plan()
+        ops, new, _, warnings = plan()
+        if action == 'uninstall' and new is None and not ops and read_file(root, MANIFEST) is None:
+            return public_plan(root, scope, action, ops, warnings)
+        ignore_op = private_ignore_plan(root)
+        if ignore_op:
+            ops.insert(0, ignore_op)
+        warnings.append('The private-state ignore policy remains after uninstall and recovery.')
         return public_plan(root, scope, action, ops, warnings)
     # Fail deterministic collisions before creating any lock or directories.
-    plan()
+    ops, new, _, _ = plan()
+    if action == 'uninstall' and new is None and not ops and read_file(root, MANIFEST) is None:
+        return {'schema': 1, 'state': 'absent', 'preserved': []}
+    private_ignore_plan(root)
+    ensure_private_ignore(root)
     with Lock(root) as lock:
         ops, new, preserved, warnings = plan()
         if action == 'uninstall' and new is None and not ops and read_file(root, MANIFEST) is None:
             return {'schema': 1, 'state': 'absent', 'preserved': []}
         cleanup = transact(root, scope, action, ops, new, lock.parent_created)
-        result = {'schema': 1, 'state': 'partial' if preserved else ('absent' if action == 'uninstall' else 'installed'),
+        result = {'schema': 1, 'state': 'partial' if new is not None and action == 'uninstall' else ('absent' if action == 'uninstall' else 'installed'),
                   'preserved': preserved, 'warnings': warnings}
     finish_cleanup(root, scope, cleanup)
     return result
 
 
 def status(root, scope):
-    if safe(root, TX).exists() or safe(root, CLEANUP).exists():
-        issues = [p for p in (TX, CLEANUP) if safe(root, p).exists()]
+    if safe(root, TX).exists() or safe(root, CLEANUP).exists() or safe(root, LEGACY_CLEANUP).exists():
+        issues = [p for p in (TX, CLEANUP, LEGACY_CLEANUP) if safe(root, p).exists()]
         try:
             recover_locked(root, scope, dry=True)
         except CDFError as exc:

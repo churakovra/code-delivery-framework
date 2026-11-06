@@ -6,6 +6,19 @@ from pathlib import Path
 import tomllib
 
 
+def _candidates(policy):
+    candidates = policy.get('candidates', {})
+    allowed = {'t0', 't1', 't2', 't3', 'explorer', 'reviewer', 'diagnostician'}
+    if not isinstance(candidates, dict) or set(candidates) - allowed:
+        raise ValueError('Invalid candidate table or unsupported candidate fields')
+    for value in candidates.values():
+        if not isinstance(value, str) or (value != 'inherit' and (
+                len(value.split(':')) != 2 or
+                any(not part or any(c.isspace() for c in part) for part in value.split(':')))):
+            raise ValueError('Candidates must be inherit or explicit model:effort strings')
+    return candidates
+
+
 def _fallback_rules(policy):
     defaults = {'when_model_unavailable': 'inherit_with_disclosure',
                 'when_effort_unavailable': 'runtime_default_with_disclosure',
@@ -24,12 +37,18 @@ def _fallback_rules(policy):
 def load_policy(path):
     """Read an operator-selected policy without changing session configuration."""
     policy = tomllib.loads(Path(path).read_text())
-    if policy.get('schema') != 1 or policy.get('selection_mode') != 'advisory':
+    allowed = {'schema', 'selection_mode', 'selected_profile', 'checked_on',
+               'budget', 'balanced', 'quality', 'candidates', 'fallback'}
+    if set(policy) - allowed or type(policy.get('schema')) is not int or policy['schema'] != 1 or policy.get('selection_mode') != 'advisory':
         raise ValueError('Unsupported advisory policy')
+    if 'checked_on' in policy and not isinstance(policy['checked_on'], str):
+        raise ValueError('checked_on must be a string')
     for name in ('budget', 'balanced', 'quality'):
         entry = policy.get(name, {})
         if not isinstance(entry, dict):
             raise ValueError('Invalid operator profile table')
+        if set(entry) - {'parallel_agents_max', 'review_medium_by_default', 'allow_unverified_fallback'}:
+            raise ValueError('Unsupported operator profile fields')
         if type(entry.get('parallel_agents_max')) is not int or not 1 <= entry['parallel_agents_max'] <= 2:
             raise ValueError('Profile worker limit must be between one and two')
         if any(type(entry.get(k)) is not bool for k in ('review_medium_by_default', 'allow_unverified_fallback')):
@@ -37,6 +56,7 @@ def load_policy(path):
     if policy.get('selected_profile') not in ('budget', 'balanced', 'quality'):
         raise ValueError('Invalid selected profile')
     _fallback_rules(policy)
+    _candidates(policy)
     return policy
 
 
@@ -108,7 +128,7 @@ def resolve_child(policy, *, role, tier, catalog=None, override_supported=False,
     if profile not in {'budget', 'balanced', 'quality'} or profile not in policy:
         raise ValueError('Invalid operator profile')
     key = {'worker': tier, 'cdf_reviewer': 'reviewer', 'cdf_diagnostician': 'diagnostician', 'explorer': 'explorer'}[role]
-    spec = policy.get('candidates', {}).get(key, 'inherit')
+    spec = _candidates(policy).get(key, 'inherit')
     if required_pair is not None:
         pair = _pair(required_pair)
     elif spec == 'inherit':

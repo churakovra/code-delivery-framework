@@ -2,6 +2,7 @@
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 import tomllib
 import unittest
@@ -82,6 +83,38 @@ class PolicyTests(unittest.TestCase):
         self.assertIsNone(result.observed_model)
         result = resolve_child(self.policy, role='worker', tier='t1', catalog={pair}, override_supported=True, observed=pair)
         self.assertEqual(result.state, 'confirmed')
+
+    def test_malformed_candidate_tables_return_clean_cli_errors(self):
+        source = (ROOT / 'policies/model-routing.example.toml').read_text()
+        before, rest = source.split('[candidates]', 1)
+        _, fallback = rest.split('[fallback]', 1)
+        variants = [
+            'candidates = []\n' + before + '[fallback]' + fallback,
+            before + '[candidates]\nt1 = []\n[fallback]' + fallback,
+            before + '[candidates]\ntypo = "inherit"\n[fallback]' + fallback,
+            before + '[candidates]\nt1 = "model:"\n[fallback]' + fallback,
+            before + '[candidates]\nt1 = "model: low"\n[fallback]' + fallback,
+            source.replace('schema = 1', 'schema = true'),
+            source.replace('[budget]', '[budget]\nunknown = true'),
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'policy.toml'
+            for content in variants:
+                with self.subTest(content=content):
+                    path.write_text(content)
+                    with self.assertRaises(ValueError):
+                        load_policy(path)
+                    result = subprocess.run([sys.executable, str(ROOT / 'scripts/inspect_cdf_policy.py'),
+                                             '--policy', str(path), '--risk', 'LOW'],
+                                            capture_output=True, text=True)
+                    self.assertEqual(result.returncode, 2)
+                    self.assertEqual(json.loads(result.stdout)['state'], 'error')
+                    self.assertNotIn('Traceback', result.stderr)
+
+    def test_direct_resolution_rejects_malformed_candidates(self):
+        for candidates in [[], 'inherit', {'t1': 1}, {'typo': 'inherit'}]:
+            with self.subTest(candidates=candidates), self.assertRaises(ValueError):
+                resolve_child(dict(self.policy, candidates=candidates), role='worker', tier='t1')
 
     def test_policy_load_and_worker_budget_are_consumed(self):
         policy = load_policy(ROOT / 'policies/model-routing.example.toml')

@@ -1042,4 +1042,6 @@ def main(argv=None):
     return cli_main(argv, globals())
 
 if __name__ == '__main__':
+    print('Deprecated: this is the legacy CDF 0.6 CLI. Use scripts/cdf.py for CDF 2; '
+          'use the pinned 0.6 checkout for legacy installations.', file=sys.stderr)
     sys.exit(main())

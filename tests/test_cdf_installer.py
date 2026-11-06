@@ -51,6 +51,123 @@ class InstallerTests(unittest.TestCase):
     def action(self, name, **kw):
         return core.perform(self.target, 'project', name, src=self.src, **kw)
 
+    def test_ignore_preflight_is_in_dry_run_and_conflicts_without_writes(self):
+        plan = self.action('install', dry=True)
+        ignore_op = next(op for op in plan['planned_actions'] if op['path'] == core.IGNORE)
+        self.assertEqual(ignore_op['operation'], 'add')
+        self.assertTrue(any('ignore policy remains' in warning for warning in plan['warnings']))
+        self.assertEqual(list(self.target.iterdir()), [])
+        ignore = self.target / core.IGNORE
+        ignore.parent.mkdir()
+        ignore.write_bytes(b'user rules')
+        plan = self.action('install', dry=True)
+        ignore_op = next(op for op in plan['planned_actions'] if op['path'] == core.IGNORE)
+        self.assertEqual(ignore_op['operation'], 'update')
+        self.assertEqual(ignore_op['before_sha256'], core.digest(b'user rules'))
+        self.assertEqual(ignore.read_bytes(), b'user rules')
+        ignore.write_bytes(core.IGNORE_START + b'changed\n' + core.IGNORE_END)
+        before = ignore.read_bytes()
+        for dry in (True, False):
+            with self.assertRaises(core.CDFError) as caught:
+                self.action('install', dry=dry)
+            self.assertEqual(caught.exception.code, 'PATH_COLLISION')
+            self.assertEqual(ignore.read_bytes(), before)
+            self.assertFalse((self.target / core.LOCK).exists())
+
+    def test_absent_uninstall_and_recover_have_no_side_effects(self):
+        for action in ('uninstall', 'recover'):
+            for dry in (True, False):
+                self.action(action, dry=dry)
+                self.assertEqual(list(self.target.iterdir()), [])
+
+    def test_recovery_dry_run_plans_ignore_policy_and_detects_conflict(self):
+        real_apply = core.apply_file
+        def crash(*args):
+            real_apply(*args)
+            raise KeyboardInterrupt('crash')
+        with patch.object(core, 'apply_file', side_effect=crash):
+            with self.assertRaises(KeyboardInterrupt): self.action('install')
+        ignore = self.target / core.IGNORE
+        ignore.unlink()
+        plan = self.action('recover', dry=True)
+        self.assertEqual(plan['planned_actions'][0]['path'], core.IGNORE)
+        self.assertEqual(plan['planned_actions'][0]['operation'], 'add')
+        self.assertFalse(ignore.exists())
+        ignore.write_bytes(core.IGNORE_START + b'broken\n' + core.IGNORE_END)
+        for dry in (True, False):
+            with self.assertRaises(core.CDFError) as caught: self.action('recover', dry=dry)
+            self.assertEqual(caught.exception.code, 'PATH_COLLISION')
+
+    def test_private_state_is_ignored_before_crash_and_catalog_is_trackable(self):
+        subprocess.run(['git', 'init', '-q', str(self.target)], check=True)
+        (self.target / 'AGENTS.md').write_text('private original')
+        ignore = self.target / '.codex/.gitignore'
+        ignore.parent.mkdir()
+        ignore.write_bytes(b'# user rules without newline')
+        real_apply = core.apply_file
+        def crash(*args):
+            real_apply(*args)
+            subprocess.run(['git', '-C', str(self.target), 'add', '-A'], check=True)
+            raise KeyboardInterrupt('crash')
+        with patch.object(core, 'apply_file', side_effect=crash):
+            with self.assertRaises(KeyboardInterrupt): self.action('install')
+        self.assertTrue(ignore.read_bytes().startswith(b'# user rules without newline\n'))
+        staged = subprocess.check_output(['git', '-C', str(self.target), 'diff', '--cached', '--name-only'], text=True).splitlines()
+        self.assertFalse(any(p.startswith('.codex/cdf/transaction/') or p.startswith('.codex/cdf/backups/') or p == core.LOCK or p == core.CLEANUP for p in staged))
+        self.action('recover')
+        self.action('install')
+        subprocess.run(['git', '-C', str(self.target), 'add', '-A'], check=True)
+        staged = subprocess.check_output(['git', '-C', str(self.target), 'diff', '--cached', '--name-only'], text=True).splitlines()
+        self.assertIn('.codex/cdf/subskills.catalog.json', staged)
+        self.assertNotIn(core.MANIFEST, staged)
+
+    def test_uninstall_can_release_modified_skill_without_deleting_it(self):
+        self.action('install')
+        skill = self.target / '.agents/skills/cdf-backend/SKILL.md'
+        skill.write_text('user changes')
+        plan = self.action('uninstall', dry=True, release_modified_skills=True)
+        self.assertTrue(any('ownership was released' in warning for warning in plan['warnings']))
+        result = self.action('uninstall', release_modified_skills=True)
+        self.assertEqual(result['state'], 'absent')
+        self.assertEqual(skill.read_text(), 'user changes')
+        self.assertFalse((self.target / core.MANIFEST).exists())
+
+    def test_uninstall_accepts_missing_owned_files(self):
+        self.action('install')
+        (self.target / '.agents/skills/cdf-backend/SKILL.md').unlink()
+        self.assertEqual(self.action('uninstall')['state'], 'absent')
+        self.assertFalse((self.target / core.MANIFEST).exists())
+
+    def test_reversed_markers_are_structured_conflict(self):
+        self.action('install')
+        agents = self.target / 'AGENTS.md'
+        agents.write_bytes(core.END + b'\n' + core.START + b'\n')
+        with self.assertRaises(core.CDFError) as caught:
+            self.action('upgrade')
+        self.assertEqual(caught.exception.code, 'MANAGED_FILE_MODIFIED')
+        self.assertEqual(self.action('uninstall')['state'], 'partial')
+
+    def test_unsupported_platform_does_not_write(self):
+        with patch.object(core.os, 'name', 'nt'):
+            with self.assertRaises(core.CDFError) as caught: self.action('install')
+        self.assertEqual(caught.exception.code, 'UNSUPPORTED_PLATFORM')
+        self.assertEqual(list(self.target.iterdir()), [])
+
+    def test_modified_ignore_rules_prevent_writes(self):
+        ignore = self.target / core.IGNORE
+        ignore.parent.mkdir()
+        ignore.write_bytes(core.IGNORE_START + b'user content\n' + core.IGNORE_END)
+        before = ignore.read_bytes()
+        with self.assertRaises(core.CDFError): self.action('install')
+        self.assertEqual(ignore.read_bytes(), before)
+        self.assertFalse((self.target / core.LOCK).exists())
+
+    def test_legacy_cleanup_intent_recovers(self):
+        marker = self.target / core.LEGACY_CLEANUP
+        marker.write_text(json.dumps({'schema': 1, 'target': str(self.target), 'scope': 'project', 'directories': []}))
+        self.assertEqual(self.action('recover')['state'], 'recovered')
+        self.assertFalse(marker.exists())
+
     def test_dry_run_and_round_trip_preserve_unterminated_agents(self):
         agents = self.target / 'AGENTS.md'
         agents.write_bytes(b'Existing user text')
@@ -233,7 +350,7 @@ class InstallerTests(unittest.TestCase):
         self.assertTrue(preexisting.is_dir())
         self.assertEqual(retained.read_text(), 'user data')
         self.assertFalse((self.target / '.agents/skills/cdf-backend').exists())
-        self.assertFalse((self.target / '.codex').exists())
+        self.assertEqual((self.target / core.IGNORE).read_bytes(), core.IGNORE_BLOCK)
 
     def test_recovery_cleans_only_recorded_directories(self):
         real_apply = core.apply_file
@@ -249,7 +366,7 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(self.action('recover')['state'], 'recovered')
         self.assertEqual(user_file.read_text(), 'preserve')
         self.assertFalse((self.target / '.agents/skills/cdf-backend').exists())
-        self.assertFalse((self.target / '.codex').exists())
+        self.assertEqual((self.target / core.IGNORE).read_bytes(), core.IGNORE_BLOCK)
 
     def test_committed_uninstall_cleanup_interruption_is_recoverable(self):
         self.action('install')
@@ -258,7 +375,7 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(core.status(self.target, 'project')['state'], 'recovery-required')
         self.assertEqual(self.action('recover')['state'], 'recovered')
         self.assertFalse((self.target / '.agents').exists())
-        self.assertFalse((self.target / '.codex').exists())
+        self.assertEqual((self.target / core.IGNORE).read_bytes(), core.IGNORE_BLOCK)
 
     def test_recovery_after_journal_removal_finishes_directory_cleanup(self):
         self.action('install')
@@ -275,7 +392,7 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(self.action('recover')['state'], 'recovered')
         self.assertFalse((self.target / core.CLEANUP).exists())
         self.assertFalse((self.target / '.agents').exists())
-        self.assertFalse((self.target / '.codex').exists())
+        self.assertEqual((self.target / core.IGNORE).read_bytes(), core.IGNORE_BLOCK)
 
     def test_cleanup_intent_is_recoverable_after_atomic_publish_interruption(self):
         self.action('install')
@@ -289,7 +406,7 @@ class InstallerTests(unittest.TestCase):
         self.assertTrue((self.target / core.CLEANUP).exists())
         self.assertEqual(self.action('recover')['state'], 'recovered')
         self.assertFalse((self.target / core.CLEANUP).exists())
-        self.assertFalse((self.target / '.codex').exists())
+        self.assertEqual((self.target / core.IGNORE).read_bytes(), core.IGNORE_BLOCK)
 
     def test_recovery_after_journal_removal_uses_cleanup_intent(self):
         (self.target / 'AGENTS.md').write_bytes(b'existing')
@@ -305,7 +422,7 @@ class InstallerTests(unittest.TestCase):
         self.assertTrue((self.target / core.CLEANUP).exists())
         self.assertEqual(self.action('recover')['state'], 'recovered')
         self.assertEqual((self.target / 'AGENTS.md').read_bytes(), b'existing')
-        self.assertFalse((self.target / '.codex').exists())
+        self.assertEqual((self.target / core.IGNORE).read_bytes(), core.IGNORE_BLOCK)
 
     def test_failure_after_journal_cleanup_stays_recoverable(self):
         self.action('install')
@@ -326,6 +443,7 @@ class InstallerTests(unittest.TestCase):
 
     def test_unowned_cleanup_marker_is_preserved(self):
         marker = self.target / core.CLEANUP
+        marker.parent.mkdir()
         marker.write_text('user-owned')
         with self.assertRaises(core.CDFError): self.action('install')
         self.assertEqual(marker.read_text(), 'user-owned')
@@ -526,6 +644,8 @@ class InstallerTests(unittest.TestCase):
                 replacements = sum(op['operation'] != 'unchanged' for op in operations) + 1
                 self.assertGreater(replacements, 1)
                 expected = files(baseline)
+                if action == 'install':
+                    expected[core.IGNORE] = (core.IGNORE_BLOCK, 0o644)
                 for failed_index in range(replacements):
                     with self.subTest(action=action, replacement=failed_index):
                         working = self.base / f'run-{action}-{failed_index}'

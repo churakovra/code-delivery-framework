@@ -135,3 +135,10 @@ This is a **telemetry and advisory** structure. The root CDF skill reads policy 
 `CONTRACT-06`: extras retention/enabling/disabling deterministic; 12 core installed by default, 15 with all extras.  
 `CONTRACT-07`: model resolution states distinguish requested/observed and prohibit false substitution.  
 `CONTRACT-08`: legacy marker detection does not delete or overwrite CDF 0.6 installations.
+
+
+## 9.8 Implemented interface clarifications and limits
+
+This appendix records design intent; the current CLI and implementation are authoritative where they differ. Mutating operations require POSIX and fail early on unsupported platforms. Installer private-state exclusions are a managed additive block in `<target>/.codex/.gitignore`; cleanup intent is `<target>/.codex/cdf-cleanup.json`, with recovery support for the legacy root `.cdf-cleanup.json`. Uninstall converges when owned paths are already missing. `uninstall --release-modified-skills` preserves an entire modified skill while releasing CDF ownership. It preserves AGENTS content and backup. The installer never untracks files or changes the Git index; tracked-secret remediation is manual.
+
+Evaluation execution requires both `--allow-model-runs` and `--trusted-local-execution`. Trusted-local execution is not an OS sandbox and applies to adapter and fixture code; no verified sandbox provider ships. Preflight is read-only and does not execute the adapter or validate live Codex version/resume compatibility. `standardized` comparison is the default and requires equal attested tools. `installed-system` allows attested tool differences, is descriptive, and remains blocked until actual installed-system setup evidence is supplied. Run and grading manifests test hash consistency, not authenticity; usage is re-derived from retained trace data. No live G01/G02/G09/G13 acceptance or savings measurement is claimed.

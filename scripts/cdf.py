@@ -38,6 +38,8 @@ def parser():
         q.add_argument('--json', action='store_true')
         if action in ('install', 'upgrade', 'uninstall', 'recover', 'migrate-legacy'):
             q.add_argument('--dry-run', action='store_true', required=action == 'migrate-legacy')
+        if action == 'uninstall':
+            q.add_argument('--release-modified-skills', action='store_true', help='Preserve modified skill files and release their ownership')
         if action in ('install', 'upgrade'):
             for extra in ('learning', 'operator'):
                 g = q.add_mutually_exclusive_group()
@@ -98,7 +100,7 @@ def run(args):
     if args.action == 'migrate-legacy': return core.legacy_report(root, args.scope)
     enabled = [n for n in ('learning', 'operator') if getattr(args, 'with_' + n, False)]
     disabled = [n for n in ('learning', 'operator') if getattr(args, 'without_' + n, False)]
-    return core.perform(root, args.scope, args.action, dry=args.dry_run, enable=enabled, disable=disabled)
+    return core.perform(root, args.scope, args.action, dry=args.dry_run, enable=enabled, disable=disabled, release_modified_skills=getattr(args, 'release_modified_skills', False))
 
 
 def main(argv=None):

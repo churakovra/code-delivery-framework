@@ -26,6 +26,8 @@ def main():
     p.add_argument('--effort', help='Candidate reasoning effort for Codex adapter, not confirmation')
     p.add_argument('--preflight', action='store_true', help='Inspect requirements without running an adapter')
     p.add_argument('--allow-model-runs', action='store_true', help='Explicitly authorize adapter execution')
+    p.add_argument('--trusted-local-execution', action='store_true',
+                   help='Execute only trusted adapters and fixture code locally; this does not provide a sandbox')
     args = p.parse_args()
     if args.timeout < 1 or args.seed < 0 or len(set(args.conditions)) != len(args.conditions):
         p.error('timeout must be positive, seed nonnegative, conditions unique')
@@ -33,13 +35,19 @@ def main():
         p.error('--model and --effort apply only to the Codex adapter')
     if not args.preflight and (not args.allow_model_runs or not args.output):
         p.error('running requires --allow-model-runs and a new --output directory')
+    if not args.preflight and not args.trusted_local_execution:
+        p.error('untrusted execution is refused: no verified OS sandbox provider is configured. '
+                'Use --trusted-local-execution only for trusted adapters and fixture code; '
+                '--allow-model-runs is authorization, not isolation')
     try:
         declaration = json.loads(args.adapter_capabilities.read_text()) if args.adapter_capabilities else None
         if args.preflight:
             result = runner.preflight(args.case, args.conditions, args.adapter, args.adapter_kind, args.adapter_protocol, declaration)
         else:
             result = runner.run(args.case, args.conditions, args.adapter, args.adapter_kind,
-                                args.output.resolve(), args.seed, args.timeout, args.model, args.effort, args.adapter_protocol, declaration)
+                                args.output.resolve(), args.seed, args.timeout, args.model, args.effort,
+                                args.adapter_protocol, declaration,
+                                trusted_local_execution=args.trusted_local_execution)
     except (ValueError, OSError, RuntimeError, subprocess.SubprocessError) as exc:
         print(json.dumps({'error': str(exc)}), file=sys.stderr)
         return 2

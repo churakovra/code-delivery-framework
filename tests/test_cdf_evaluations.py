@@ -32,7 +32,88 @@ class CDFEvaluationTests(unittest.TestCase):
 
     def invoke(self, adapter, *args, case='G01', conditions=('BASE',)):
         return subprocess.run([sys.executable, str(CLI), '--adapter', str(adapter), '--case', case,
-                               '--conditions', *conditions, *args], capture_output=True, text=True)
+                               '--conditions', *conditions, *(['--trusted-local-execution'] if '--allow-model-runs' in args else []), *args], capture_output=True, text=True)
+
+    def test_manifest_detects_unreferenced_trace_and_usage_tampering(self):
+        from evals.evidence import write_manifest
+        from scripts.compare_eval_runs import read_run
+        adapter = self.adapter('print("trace")\n')
+        result = self.invoke(adapter, '--output', str(self.root/'r'), '--allow-model-runs', case='G03')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        folder = self.root/'r'/'BASE'
+        record = json.loads((folder/'run.json').read_text())
+        (folder/'stdout.ndjson').write_text('changed trace\n')
+        with self.assertRaisesRegex(ValueError, 'manifest mismatch'):
+            read_run(self.root/'r', record)
+        # Rebuilding a consistency manifest cannot make recorded usage agree with stdout.
+        record['resource_measurement']['input_tokens'] = 999
+        (folder/'run.json').write_text(json.dumps(record))
+        (folder/'evidence-manifest.json').unlink()
+        write_manifest(folder)
+        with self.assertRaisesRegex(ValueError, 'Resource measurement'):
+            read_run(self.root/'r', record)
+
+    def test_git_config_mutation_is_detected(self):
+        adapter = self.adapter("from pathlib import Path\nPath('.git/config').write_text('changed')\n")
+        result = self.invoke(adapter, '--output', str(self.root/'r'), '--allow-model-runs', case='G03')
+        record = json.loads((self.root/'r'/'BASE'/'run.json').read_text())
+        check = next(c for c in record['acceptance_checks'] if c['name'] == 'git_policy_metadata_unchanged')
+        self.assertEqual(check['status'], 'FAIL')
+
+    def test_comparison_regime_allows_only_attested_tool_differences(self):
+        from scripts.compare_eval_runs import group_parity
+        group = {}; evidence = {}
+        for condition in runner.CONDITIONS:
+            folder = self.root/condition
+            group[condition] = [{'folder': folder, 'environment': {
+                'case_sha256':'a', 'fixture_sha256':'b', 'fixture_git_head':'c',
+                'guidance_sha256': condition}}]
+            evidence[str(folder.resolve())] = {'runtime':'v', 'model':'m', 'effort':'e',
+                'permission_mode':'p', 'tools': condition}
+        self.assertEqual(group_parity(group, evidence)[0], 'MISMATCH')
+        self.assertEqual(group_parity(group, evidence, 'installed-system')[0], 'MATCHED_ATTESTED')
+        evidence.pop(str((self.root/'BASE').resolve()))
+        self.assertEqual(group_parity(group, evidence, 'installed-system')[0], 'UNVERIFIED')
+
+    def test_partial_runner_error_preserves_trace_and_is_comparable(self):
+        from scripts.compare_eval_runs import read_run
+        adapter = self.adapter('print("partial output")\n')
+        save_json = runner._json
+        def fail_after_trace(path, value):
+            if path.name == 'workspace-after.json': raise OSError('injected failure')
+            return save_json(path, value)
+        with mock.patch.object(runner, '_json', side_effect=fail_after_trace):
+            records = runner.run('G03', ['BASE'], adapter, 'external', self.root/'partial',
+                                 trusted_local_execution=True)
+        folder = self.root/'partial'/'BASE'
+        self.assertEqual((folder/'stdout.ndjson').read_text(), 'partial output\n')
+        self.assertIsNotNone(records[0]['resource_measurement']['elapsed_seconds'])
+        self.assertEqual(read_run(self.root/'partial', records[0])['record']['result'], 'RUNNER_ERROR')
+
+    def test_late_runner_error_never_emits_contradictory_summary(self):
+        adapter = self.adapter('print("trace")\n')
+        save_json = runner._json
+        def fail_after_record(path, value):
+            if path.name == 'score.json': raise OSError('injected failure')
+            return save_json(path, value)
+        with mock.patch.object(runner, '_json', side_effect=fail_after_record):
+            with self.assertRaisesRegex(RuntimeError, 'Incomplete run after record'):
+                runner.run('G03', ['BASE'], adapter, 'external', self.root/'late',
+                           trusted_local_execution=True)
+        self.assertTrue((self.root/'late'/'BASE'/'run.json').is_file())
+        self.assertFalse((self.root/'late'/'results.json').exists())
+
+    def test_malformed_evidence_manifests_fail_cleanly(self):
+        from evals.evidence import verify_manifest, verify_grade_manifest
+        folder = self.root/'evidence'; folder.mkdir()
+        for malformed in (None, [], {'schema': True, 'algorithm': 'sha256', 'files': {}}):
+            (folder/'evidence-manifest.json').write_text(json.dumps(malformed))
+            with self.assertRaises(ValueError): verify_manifest(folder)
+        (folder/'grade-manifest.json').write_text(json.dumps({'schema': True, 'files': {}}))
+        with self.assertRaises(ValueError): verify_grade_manifest(folder)
+        (folder/'grade-manifest.json').write_text(json.dumps({'schema': 1, 'files': {}}))
+        (folder/'grading.json').symlink_to(folder/'evidence-manifest.json')
+        with self.assertRaisesRegex(ValueError, 'Symlink'): verify_grade_manifest(folder)
 
     def test_all_cases_have_fixture_and_checks_are_external(self):
         data = json.loads((ROOT/'evals/golden-cases.json').read_text())
@@ -62,6 +143,16 @@ class CDFEvaluationTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertFalse((self.root/'out').exists())
 
+    def test_live_execution_requires_trusted_local_opt_in(self):
+        sentinel = self.root/'ran'
+        adapter = self.adapter(f'from pathlib import Path\nPath({str(sentinel)!r}).touch()\n')
+        result = subprocess.run([sys.executable, str(CLI), '--adapter', str(adapter), '--case', 'G03',
+                                 '--conditions', 'BASE', '--output', str(self.root/'out'),
+                                 '--allow-model-runs'], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 2)
+        self.assertFalse(sentinel.exists())
+        self.assertFalse((self.root/'out').exists())
+
     def test_three_conditions_isolate_home_and_preserve_truthful_results(self):
         adapter = self.adapter('''import os, sys
 from pathlib import Path
@@ -76,7 +167,7 @@ Path('app.py').write_text("def post(body):\\n    if not body: return 400, {'erro
 print('{"fake":true}')
 ''')
         result = subprocess.run([sys.executable,str(CLI),'--adapter',str(adapter),'--case','G01',
-                                 '--output',str(self.root/'results'),'--allow-model-runs'],
+                                 '--output',str(self.root/'results'),'--allow-model-runs','--trusted-local-execution'],
                                 env=dict(os.environ, CDF_EVAL_TEST_SECRET='private'), capture_output=True,text=True)
         self.assertEqual(result.returncode,0,result.stderr)
         records=json.loads(result.stdout)
@@ -174,7 +265,7 @@ print('adapter received separated answers')
                 runner.preflight('G03',['BASE'],adapter,'codex','json-dialogue-v1')
             result=runner.preflight('G03',['BASE'],adapter,'external','json-dialogue-v1',capabilities)
             self.assertEqual(result['dialogue_capability'],'operator_asserted_unverified')
-            records=runner.run('G03',['BASE'],adapter,'external',self.root/'dialogue',
+            records=runner.run('G03',['BASE'],adapter,'external',self.root/'dialogue',trusted_local_execution=True,
                                timeout=5,protocol='json-dialogue-v1',declared_capabilities=capabilities)
         self.assertEqual(records[0]['result'],'NOT_OBSERVED')
         folder=self.root/'dialogue'/'BASE'
@@ -255,8 +346,16 @@ print(json.dumps({'type':'turn.completed','usage':{'input_tokens':10,'output_tok
         outcome=grade.grade(folder,data)
         self.assertEqual(outcome['result'],'PASS')
         self.assertEqual(grade.load_graded(folder)['result'],'PASS')
+        grading_path = folder/'grading.json'
+        grading_bytes = grading_path.read_bytes()
+        grading_path.write_bytes(grading_bytes + b' ')
+        with self.assertRaisesRegex(ValueError, 'Grade manifest mismatch'): grade.load_graded(folder)
+        grading_path.write_bytes(grading_bytes)
+        (folder/'stderr.txt').write_text('unreferenced trace mutation\n')
+        with self.assertRaisesRegex(ValueError, 'manifest mismatch'): grade.load_graded(folder)
+        (folder/'stderr.txt').write_text('')
         (folder/'stdout.ndjson').write_text('tampered\n')
-        with self.assertRaisesRegex(ValueError,'evidence changed'): grade.load_graded(folder)
+        with self.assertRaisesRegex(ValueError,'manifest mismatch'): grade.load_graded(folder)
 
     def test_unobserved_grading_cannot_become_pass(self):
         adapter=self.adapter("from pathlib import Path\nPath('app.py').write_text(\"def post(body):\\n    if not body: return 400, {'error':'empty body'}\\n    return 200, {'received': body}\\n\")\n")
@@ -344,7 +443,7 @@ assert 'must' not in r and 'expected_review' not in r
 print('reviewer control passed to adapter')
 ''')
         caps={'schema':1,'protocols':['json-dialogue-v1'],'multi_turn':True,'runtime_controls':['reviewer_available']}
-        rec=runner.run('G13',['BASE'],adapter,'external',self.root/'r',timeout=5,
+        rec=runner.run('G13',['BASE'],adapter,'external',self.root/'r',timeout=5,trusted_local_execution=True,
                        protocol='json-dialogue-v1',declared_capabilities=caps)[0]
         self.assertEqual(rec['result'],'FAIL') # no migration performed
         environment=json.loads((self.root/'r'/'BASE'/'environment.json').read_text())
@@ -367,7 +466,7 @@ print(json.dumps({'type':'cdf.review.blocked','schema':1}))
 ''')
         caps={'schema':1,'protocols':['json-dialogue-v1'],'multi_turn':True,'runtime_controls':['reviewer_available']}
         with self.assertRaises(ValueError): runner.preflight('G09',['BASE'],adapter,'codex')
-        rec=runner.run('G09',['BASE'],adapter,'external',self.root/'blocked',timeout=5,
+        rec=runner.run('G09',['BASE'],adapter,'external',self.root/'blocked',timeout=5,trusted_local_execution=True,
                        protocol='json-dialogue-v1',declared_capabilities=caps)[0]
         self.assertEqual(rec['result'],'NOT_OBSERVED')
         folder=self.root/'blocked'/'BASE'
@@ -384,7 +483,7 @@ assert r['runtime_controls'] == {'reviewer_available': True}
 Path('service.py').write_text('def view(actor, owner, record):\\n    return (200, record) if actor == owner else (403, None)\\n')
 print(json.dumps({'type':'cdf.review.completed','schema':1,'independent':True,'reviewer_id':'child-reviewer','scope':'authorization diff'}))
 ''')
-        rec=runner.run('G09',['BASE'],adapter,'external',self.root/'completed',timeout=5,
+        rec=runner.run('G09',['BASE'],adapter,'external',self.root/'completed',timeout=5,trusted_local_execution=True,
                        protocol='json-dialogue-v1',declared_capabilities=caps)[0]
         self.assertEqual(rec['result'],'NOT_OBSERVED')
         self.assertEqual(grade.grade(self.root/'completed'/'BASE',data)['result'],'PASS')
@@ -400,7 +499,7 @@ assert 'skill_triggers' not in r and 'must' not in r
 print('interaction supplied to adapter')
 ''')
         caps={'schema':1,'protocols':['json-dialogue-v1'],'multi_turn':True,'runtime_controls':['force_compaction_before_prompt']}
-        records=runner.run('G16',['BASE'],adapter,'external',self.root/'r',timeout=5,
+        records=runner.run('G16',['BASE'],adapter,'external',self.root/'r',timeout=5,trusted_local_execution=True,
                            protocol='json-dialogue-v1',declared_capabilities=caps)
         request=json.loads((self.root/'r'/'BASE'/'dialogue-request.json').read_text())
         self.assertTrue(request['prelude_messages'])
@@ -418,7 +517,7 @@ Path('app.py').write_text("def post(body):\\n    if not body: return 422, {'erro
 print('simulated dialogue; sequence still requires review')
 ''')
         caps={'schema':1,'protocols':['json-dialogue-v1'],'multi_turn':True,'runtime_controls':[]}
-        records=runner.run('G19',['BASE'],adapter,'external',self.root/'r',timeout=5,
+        records=runner.run('G19',['BASE'],adapter,'external',self.root/'r',timeout=5,trusted_local_execution=True,
                            protocol='json-dialogue-v1',declared_capabilities=caps)
         self.assertEqual(records[0]['result'],'NOT_OBSERVED')
         self.assertTrue(any(c['name']=='fixture_behavior' and c['status']=='PASS' for c in records[0]['acceptance_checks']))
@@ -499,7 +598,7 @@ print('simulated dialogue; sequence still requires review')
         (self.root/'r'/'BASE'/'fixture-before'/'app.py').write_text('tampered\n')
         compare=subprocess.run(command,capture_output=True,text=True)
         self.assertEqual(compare.returncode,2)
-        self.assertIn('fixture differs',compare.stderr)
+        self.assertIn('manifest mismatch',compare.stderr)
 
     def test_invalid_runtime_attestation_never_claims_parity(self):
         adapter=self.adapter('print("trace")\n')

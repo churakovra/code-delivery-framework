@@ -1,6 +1,6 @@
 # CDF 2.0 implementation status
 
-Updated 2026-11-06. The follow-up scoring, journal-validation and scenario-coverage repairs are implemented and independently reviewed; deterministic checks and live acceptance are reported separately. This remains **2.0.0.dev0**, not a released or fully runtime-evaluated CDF2. The supplied proposal is the design record; current executable code and `skills/cdf-*/` are the implementation source. See [completion plan](COMPLETION_PLAN.md).
+Updated 2026-11-06. The follow-up installer, scoring, journal-validation and scenario-coverage repairs are implemented; deterministic checks and live acceptance are reported separately. This remains **2.0.0.dev0**, not a released or fully runtime-evaluated CDF2. The supplied proposal is the design record; current executable code and `skills/cdf-*/` are the implementation source. See [completion plan](COMPLETION_PLAN.md).
 
 | Phase | Repository implementation | Remaining acceptance |
 | --- | --- | --- |
@@ -8,9 +8,9 @@ Updated 2026-11-06. The follow-up scoring, journal-validation and scenario-cover
 | PR-01 | 12 core + 3 optional skills, 9 references, 31 optional candidates, executable positive/negative activation pairs | Live skill-selection observations; separate upstream verification before community installation |
 | PR-02 | Two native agent templates without model pins; earlier isolated discovery verified 12 core skill names | Actual custom-agent launch/behavior evidence |
 | PR-03 | Readiness and risk gates, bounded handoffs, two-worker default and operator-profile rules | Live readiness/review/continuity scenarios |
-| PR-04/05 | Offline lifecycle, ownership, journal and directory cleanup/recovery, structured status, migration report | Real power-loss and additional-platform validation |
+| PR-04/05 | Offline lifecycle, ownership, journal and directory cleanup/recovery, structured status, migration report; additive `.codex/.gitignore` managed block and `.codex/cdf-cleanup.json` intent | Real power-loss and additional-platform validation; tracked-secret inspection/remediation is manual and Git index is never changed |
 | PR-06 | Operator policy loader, profile worker/review decisions, fallback enforcement, advisory inspection CLI and runtime-aware model-pair resolver | Actual runtime model/effort confirmation and calibration; no allowance savings measured |
-| PR-07 | 27 golden cases, 24 executable activation cases, 15 behavioral checks, isolated Git baselines, native scripted resume, external control protocol, evidence-bound grading/comparison and critical gate | Authenticated live runs, real adapter-control observations, comparable runtime/tool evidence and human grading |
+| PR-07 | 27 golden cases, 24 executable activation cases, 15 behavioral checks, isolated Git baselines, native scripted resume, external control protocol, complete hash-consistency manifests, re-derived usage, evidence-bound grading/comparison and critical gate | Authenticated live runs, real adapter-control observations, comparable runtime/tool evidence and human grading; installed-system gate requires actual integration setup evidence |
 | PR-08 | Development docs and manual breaking-migration guidance | Live acceptance and explicit release authorization; legacy pruning deferred |
 
 ## Earlier audit corrections
@@ -60,4 +60,21 @@ These acceptance gates still block release and legacy pruning. Follow-up repairs
 - Focused installer suite: 41 passed. Focused evaluation suite: 36 passed. Contract suite: 19 passed. Independent review found no actionable defects in the journal or evaluation repairs.
 - Offline/source/archived-blueprint validation and whitespace checks passed. The archived blueprint still describes its original 18 cases; executable golden scenarios now number 27.
 
-No live model run, real permission-control validation, release, legacy pruning or commit occurred. Source provenance inherited from the proposal remains separately unverified upstream.
+No live G01/G02/G09/G13 model runs, real permission-control validation, external dialogue adapter, independent live trace review, savings measurement, release, legacy pruning or commit occurred. Source provenance inherited from the proposal remains separately unverified upstream.
+
+
+## Review upgrade gates
+
+- Installer lifecycle: use temporary targets; inspect additive `.codex/.gitignore` preservation, `.codex/cdf-cleanup.json` recovery, missing-path uninstall convergence, modified-skill release behavior and preservation of AGENTS/backups. Existing tracked secrets require manual inspection/remediation; no automatic untracking occurs. POSIX mutations are gated early; Windows support is not claimed.
+- Evaluation evidence: retain complete raw artifacts and consistency manifests; verify usage by re-deriving it from trace. Hashes establish consistency, not authenticity. Malformed evidence manifests fail with controlled errors. Early runner failures retain comparable error records; late failures after an immutable record stop without emitting a contradictory aggregate.
+- Comparison: standardized mode requires equal attested tools; installed-system mode allows condition-specific tools but its gate is currently disabled pending support for verifying actual integration setup.
+- Runtime acceptance: actual Codex version/resume compatibility, live G01/G02/G09/G13 runs, external dialogue controls, human independent trace review, and savings measurement remain open. CI is configured for Ubuntu/macOS and Python 3.11/3.13 with Node 22, but remote workflow execution and branch protection are unverified/unconfigured.
+- Keep release and legacy pruning blocked until live gates and explicit release authorization are complete. Process execution, evidence and bundle inventory have separate modules; broader installer decomposition remains deferred until the behavior stabilizes.
+
+## Verified review upgrades (2026-11-06)
+
+- `python3 -m unittest discover -s tests` — **258 tests passed in 20.585 seconds** on the current macOS host. This supersedes the historical 233-test checkpoint above; these are model-free tests.
+- `python3 scripts/validate_cdf.py`, `python3 scripts/cdf.py validate --offline --json`, `python3 docs/plans/cdf-2.0/tests/validate_blueprint.py`, and `git diff --check` passed. The archived blueprint still contains its original 18 cases.
+- Independent review found dry-run/no-op side effects and inconsistent late-failure evidence. Both were repaired with regression coverage; independent re-review found no remaining actionable defects in its scoped inspection of the integrated patch.
+- Regression coverage includes staging during an interrupted transaction, modified-skill ownership release, missing-file uninstall convergence, reversed markers, invalid policy tables, raw-trace/usage tampering, malformed evidence, early/late runner failures, and refusal before execution when trust or prerequisites are missing.
+- No live model run, real sandbox verification, remote CI run, branch protection change, commit, release or publication occurred. A controlled dialogue adapter, verified isolation for untrusted code, actual version/control observations and independent live trace review remain prerequisites for runtime acceptance.

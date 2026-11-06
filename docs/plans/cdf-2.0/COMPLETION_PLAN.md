@@ -25,3 +25,8 @@ Live model runs, release, legacy pruning, staging and commits remain outside thi
 
 
 Follow-up repairs are implemented: split versioned scoring, schema-validated journal recovery and eight additional scenarios. Independent review found no actionable defects in those scopes. Focused suites passed (41 installer, 36 evaluation, 19 contract). See IMPLEMENTATION_STATUS.md for fresh integrated evidence and the still-open runtime gates.
+
+
+## Remaining acceptance after review fixes
+
+The deterministic implementation is present; completion does not imply live acceptance. Keep release and legacy pruning blocked pending actual Codex version/resume compatibility, live G01/G02/G09/G13 runs, external control and dialogue evidence, independent live trace review, and measured savings if claimed. POSIX is the only supported mutation platform. CI configuration targets Ubuntu/macOS, Python 3.11/3.13 and Node 22, but has not been remotely executed and branch protection is not configured. Installed-system comparisons remain blocked until real integration setup evidence exists. Hash manifests provide consistency checks, not authenticity. Tracked-secret inspection/remediation is manual. Broad module splitting is deferred; only evidence and registry helpers have been extracted.

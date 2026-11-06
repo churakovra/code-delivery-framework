@@ -2,6 +2,7 @@
 """Offline CDF2 skill/catalog/agent/contract checks; no model or network calls."""
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 import re
@@ -11,18 +12,18 @@ import tomllib
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from cdf_runtime.contracts import validate_record
-
-CORE = {'cdf-backend', 'cdf-code-review', 'cdf-codebase-research', 'cdf-debugging',
-        'cdf-documentation', 'cdf-frontend', 'cdf-implementation', 'cdf-orchestration',
-        'cdf-planning', 'cdf-requirements', 'cdf-ui-design', 'cdf-verification'}
-EXTRAS = {'operator': {'cdf-model-calibration'}, 'learning': {'cdf-explain', 'cdf-teach'}}
+from cdf_registry import CORE, EXTRAS, NATIVE_AGENTS, inventory_markdown
 
 
 def validate_source(root=ROOT):
     skills = {p.parent.name: p for p in (root / 'skills').glob('cdf-*/SKILL.md')}
-    expected = CORE | set().union(*EXTRAS.values())
+    expected = set(CORE).union(*EXTRAS.values())
+    if len(CORE) + sum(map(len, EXTRAS.values())) != len(expected):
+        raise ValueError('Bundle inventory contains duplicate skills')
+    if (root / 'docs/bundle-inventory.md').read_text() != inventory_markdown():
+        raise ValueError('Stale bundle inventory documentation; run --write-inventory')
     if skills.keys() != expected:
-        raise ValueError('Expected exactly 12 core and 3 optional CDF skills')
+        raise ValueError('Skill folders differ from the bundle inventory')
     catalog = json.loads((root / 'subskills.catalog.json').read_text())
     candidates = catalog['candidates']
     for name, p in skills.items():
@@ -51,7 +52,7 @@ def validate_source(root=ROOT):
             raise ValueError(f'{key}: invalid pinned revision')
         if not item['cdf_skills'] or not set(item['cdf_skills']) <= expected:
             raise ValueError(f'{key}: invalid primary owner')
-    for name in ('cdf_reviewer', 'cdf_diagnostician'):
+    for name in NATIVE_AGENTS:
         fields = tomllib.loads((root / 'templates' / f'{name}.toml').read_text())
         if fields.get('name') != name or not all(fields.get(k) for k in ('description', 'developer_instructions')):
             raise ValueError(f'{name}: invalid native agent')
@@ -63,12 +64,17 @@ def validate_source(root=ROOT):
     examples = root / 'docs/plans/cdf-2.0/templates'
     for example, schema in [('handoff', 'handoff'), ('install-plan', 'install-plan'), ('task-checkpoint', 'task-state')]:
         validate_record(schema, json.loads((examples / f'{example}.example.json').read_text()))
-    return {'state': 'passed', 'core_skills': len(CORE), 'optional_skills': 3,
-            'community_candidates': len(candidates), 'native_agent_templates': 2,
+    return {'state': 'passed', 'core_skills': len(CORE), 'optional_skills': sum(map(len, EXTRAS.values())),
+            'community_candidates': len(candidates), 'native_agent_templates': len(NATIVE_AGENTS),
             'runtime_behavior': 'not_evaluated', 'network': 'not_used'}
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--write-inventory', action='store_true', help='Regenerate bundle inventory documentation')
+    args = parser.parse_args()
+    if args.write_inventory:
+        (ROOT / 'docs/bundle-inventory.md').write_text(inventory_markdown())
     try:
         result = validate_source()
     except (ValueError, KeyError, OSError) as exc:

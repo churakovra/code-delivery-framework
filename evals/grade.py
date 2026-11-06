@@ -10,17 +10,21 @@ import hashlib
 import json
 from pathlib import Path
 
-from .runner import RUBRIC_VERSION, _case_hash, _json, load_case, rubric_names, scored_status
+from .runner import RUBRIC_VERSION, _case_hash, _json, _usage, load_case, rubric_names, scored_status
+from .evidence import verify_manifest, write_grade_manifest, verify_grade_manifest
 from cdf_runtime.contracts import validate_record
 
 
 def _evidence(folder: Path, references):
     if not isinstance(references, list) or not references:
         raise ValueError('A pass or fail needs at least one evidence reference')
+    manifest = json.loads((folder / 'evidence-manifest.json').read_text())
     result = []
     for ref in references:
         if not isinstance(ref, dict) or set(ref) != {'path', 'start_line', 'end_line'}:
             raise ValueError('Evidence requires path, start_line and end_line')
+        if ref['path'] not in manifest['files']:
+            raise ValueError('Evidence is not bound by the source manifest')
         relative = Path(ref['path'])
         if relative.is_absolute() or '..' in relative.parts or not relative.parts:
             raise ValueError('Unsafe evidence path')
@@ -65,10 +69,16 @@ def _has_completed_review_event(folder: Path, refs):
 
 def grade(folder: Path, supplied):
     folder = folder.resolve()
+    manifest_hash = verify_manifest(folder)
     run_bytes = (folder / 'run.json').read_bytes()
     run = json.loads(run_bytes)
     case = load_case(run['case_id'])
     environment = json.loads((folder / 'environment.json').read_text())
+    timing = json.loads((folder / 'timing.json').read_text())
+    if run['resource_measurement']['elapsed_seconds'] != timing['elapsed_seconds']:
+        raise ValueError('Resource elapsed time disagrees with timing evidence')
+    if run['resource_measurement'] != _usage((folder / 'stdout.ndjson').read_bytes(), environment.get('adapter_kind'), run['resource_measurement']['elapsed_seconds']):
+        raise ValueError('Resource measurement disagrees with trace')
     if environment.get('case_sha256') != _case_hash(case):
         raise ValueError('The case or grading rubric changed since the run')
     if run['condition'] not in ('BASE', 'CDF_06', 'CDF_20'):
@@ -113,6 +123,7 @@ def grade(folder: Path, supplied):
     assessment = {'schema': 2, 'rubric_version': RUBRIC_VERSION, 'activation_result': run['activation_result'], 'case_id': run['case_id'], 'condition': run['condition'],
                   'reviewer': reviewer, 'result': run['result'],
                   'source_run_sha256': hashlib.sha256(run_bytes).hexdigest(),
+                  'source_manifest_sha256': manifest_hash,
                   'source_environment_sha256': hashlib.sha256((folder / 'environment.json').read_bytes()).hexdigest(),
                   'assessment_kind': 'human-reviewed; evidence presence and hashes checked, interpretation not verified',
                   'assertions': [check for check in graded if check['name'] in names]}
@@ -121,17 +132,28 @@ def grade(folder: Path, supplied):
         raise FileExistsError('This run already has a grade')
     _json(folder / 'grading.json', assessment)
     _json(folder / 'graded-run.json', run)
+    write_grade_manifest(folder)
     return assessment
 
 
 def load_graded(folder: Path):
     """Reject a grade if its source run or cited evidence changed after review."""
     folder = folder.resolve()
+    manifest_hash = verify_manifest(folder)
+    verify_grade_manifest(folder)
     raw = (folder / 'run.json').read_bytes()
     original = json.loads(raw)
     validate_record('eval-run', original)
     assessment = json.loads((folder / 'grading.json').read_text())
     graded = json.loads((folder / 'graded-run.json').read_text())
+    if assessment.get('source_manifest_sha256') != manifest_hash:
+        raise ValueError('Graded source manifest changed')
+    environment = json.loads((folder / 'environment.json').read_text())
+    timing = json.loads((folder / 'timing.json').read_text())
+    if original['resource_measurement']['elapsed_seconds'] != timing['elapsed_seconds']:
+        raise ValueError('Resource elapsed time disagrees with timing evidence')
+    if original['resource_measurement'] != _usage((folder / 'stdout.ndjson').read_bytes(), environment.get('adapter_kind'), original['resource_measurement']['elapsed_seconds']):
+        raise ValueError('Resource measurement disagrees with trace')
     if assessment.get('schema') != 2 or assessment.get('rubric_version') != RUBRIC_VERSION:
         raise ValueError('Incompatible grading rubric version')
     if hashlib.sha256(raw).hexdigest() != assessment['source_run_sha256']:
