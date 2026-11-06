@@ -1,7 +1,0 @@
-# Delegation
-
-Before launch, read `.codex/delivery-framework/roles.json` and `model-policy.toml` under the framework target. Resolve the role's policy key. Use a generic agent with explicit model/effort when supported and fresh context when required. Supply role instructions, skill paths, applicable helpers and specialist candidates, read-only constraints, objective, ownership, baseline, acceptance, locations, and evidence. Ask the subagent to verify candidate availability and use the fallback if absent. Preserve others' edits and prohibit nested delegation.
-
-Pass settled decisions, open decisions and dependencies in the assignment. For implementation readiness, follow `../decision-interview/SKILL.md`.
-
-Before using a fixed named role, compare its runtime-advertised model and reasoning effort with both policy values; use it as a disclosed fallback only when both match. Disk configuration does not prove active settings. Record the role, policy, requested settings, and runtime evidence; distinguish a request from a confirmed active setting. If settings are unknown or mismatched and a matching explicit launch is unavailable, disclose this and treat that delegation as unavailable. Never silently substitute settings or claim a policy changed a running model.

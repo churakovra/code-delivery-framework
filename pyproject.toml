@@ -1,8 +1,8 @@
 [project]
 name = "code-delivery-framework"
-version = "0.6.0"
+version = "1.0.0"
 requires-python = ">=3.11"
-description = "Conservative standalone Code Delivery Framework installer"
+description = "Offline skill-first Code Delivery Framework with recoverable installation"
 
 [tool.unittest]
 start-directory = "tests"

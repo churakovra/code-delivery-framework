@@ -1,0 +1,6 @@
+{
+  "schema": 1,
+  "protocols": ["json-dialogue-v1"],
+  "multi_turn": true,
+  "runtime_controls": ["reviewer_available", "force_compaction_before_prompt"]
+}

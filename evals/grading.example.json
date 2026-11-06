@@ -1,0 +1,34 @@
+{
+  "schema": 2,
+  "case_id": "G01",
+  "condition": "BASE",
+  "reviewer": "replace-with-reviewer",
+  "assertions": {
+    "preserve_success_contract": {
+      "status": "NOT_OBSERVED",
+      "reason": "Awaiting review.",
+      "evidence": []
+    },
+    "focused_check_passes": {
+      "status": "NOT_OBSERVED",
+      "reason": "Awaiting review.",
+      "evidence": []
+    },
+    "no_extra_question": {
+      "status": "NOT_OBSERVED",
+      "reason": "Awaiting review.",
+      "evidence": []
+    },
+    "spawn_subagent": {
+      "status": "NOT_OBSERVED",
+      "reason": "Awaiting review.",
+      "evidence": []
+    },
+    "unrelated_docs": {
+      "status": "NOT_OBSERVED",
+      "reason": "Awaiting review.",
+      "evidence": []
+    }
+  },
+  "rubric_version": 2
+}

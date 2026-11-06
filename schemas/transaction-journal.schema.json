@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cdf.local/schemas/transaction-journal.schema.json",
+  "title": "CDF v2 installer transaction journal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "transaction_id",
+    "action",
+    "target_canonical",
+    "scope",
+    "phase",
+    "paths",
+    "manifest_planned_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "transaction_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action": {
+      "enum": [
+        "install",
+        "upgrade",
+        "uninstall",
+        "recover"
+      ]
+    },
+    "target_canonical": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scope": {
+      "enum": [
+        "project",
+        "global"
+      ]
+    },
+    "phase": {
+      "enum": [
+        "prepared",
+        "applying",
+        "complete"
+      ]
+    },
+    "paths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "relative_path",
+          "old_sha256",
+          "new_sha256",
+          "backup"
+        ],
+        "properties": {
+          "relative_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "old_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "new_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "backup": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "old_mode": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "new_mode": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "manifest_planned_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "created_directories": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "cleanup_directories": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

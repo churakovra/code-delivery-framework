@@ -1,0 +1,817 @@
+{
+  "status": "fixtures_and_activation_cases_not_executed",
+  "controlled_conditions": [
+    "same Codex runtime/model/effort",
+    "same fixture and tool availability",
+    "raw trace and tool outputs",
+    "external skills either all installed or none, by scenario"
+  ],
+  "cases": [
+    {
+      "id": "small-clear",
+      "prompt": "In app.py, rename private helper _parse to _decode; preserve behavior.",
+      "expected": [
+        "cdf-implementation"
+      ],
+      "unexpected": [
+        "cdf-requirements",
+        "cdf-codebase-research",
+        "cdf-ui-design",
+        "cdf-orchestration:delegate"
+      ]
+    },
+    {
+      "id": "material-auth",
+      "prompt": "Make the authorization logic more secure.",
+      "expected": [
+        "cdf-requirements"
+      ],
+      "unexpected": [
+        "cdf-implementation:edit-before-answer"
+      ]
+    },
+    {
+      "id": "explain",
+      "prompt": "Explain the end-to-end request flow in this repo without changing files.",
+      "expected": [
+        "cdf-codebase-research"
+      ],
+      "unexpected": [
+        "cdf-implementation:edit"
+      ]
+    },
+    {
+      "id": "backend-async",
+      "prompt": "Fix the incorrect cancellation behavior of this async worker; test cleanup.",
+      "expected": [
+        "cdf-debugging",
+        "cdf-backend",
+        "cdf-verification"
+      ],
+      "unexpected": [
+        "cdf-ui-design"
+      ]
+    },
+    {
+      "id": "postgres",
+      "prompt": "Add a unique business key without dropping existing conflicting rows.",
+      "expected": [
+        "cdf-requirements",
+        "cdf-backend",
+        "cdf-verification"
+      ],
+      "unexpected": [
+        "cdf-implementation:data-loss"
+      ]
+    },
+    {
+      "id": "simple-react",
+      "prompt": "Fix the submit button disabled state in this existing React form.",
+      "expected": [
+        "cdf-frontend",
+        "cdf-verification"
+      ],
+      "unexpected": [
+        "cdf-ui-design",
+        "anthropic-frontend-design"
+      ]
+    },
+    {
+      "id": "react-architecture",
+      "prompt": "Refactor the repeated boolean-flag component API while preserving behavior.",
+      "expected": [
+        "cdf-frontend",
+        "vercel-composition"
+      ],
+      "unexpected": [
+        "cdf-ui-design"
+      ]
+    },
+    {
+      "id": "security-review",
+      "prompt": "Review the proposed authorization change for bypasses and regressions.",
+      "expected": [
+        "cdf-code-review"
+      ],
+      "unexpected": [
+        "cdf-implementation:edit"
+      ]
+    },
+    {
+      "id": "docs-small",
+      "prompt": "Update README.md because the known CLI flag was renamed.",
+      "expected": [
+        "cdf-documentation"
+      ],
+      "unexpected": [
+        "anthropic-doc-coauthoring",
+        "cdf-implementation:run-full-suite"
+      ]
+    },
+    {
+      "id": "parallel-work",
+      "prompt": "Implement two independent endpoints with settled shared API contracts.",
+      "expected": [
+        "cdf-planning",
+        "cdf-orchestration"
+      ],
+      "unexpected": [
+        "cdf-orchestration:unnecessary-overlap"
+      ]
+    },
+    {
+      "id": "coaching",
+      "prompt": "Teach me asyncio cancellation with exercises; do not edit the repo.",
+      "expected": [
+        "cdf-teach"
+      ],
+      "unexpected": [
+        "cdf-implementation:edit"
+      ]
+    },
+    {
+      "id": "models",
+      "prompt": "$cdf-model-calibration Compare my Codex Plus model-effort choices and propose a benchmark.",
+      "expected": [
+        "cdf-model-calibration"
+      ],
+      "unexpected": [
+        "cdf-implementation:edit-policy"
+      ]
+    }
+  ],
+  "executable_cases": [
+    {
+      "id": "A01P",
+      "class": "activation",
+      "prompt": "Trace the server-side async cancellation defect and propose a fix.",
+      "fixture": "fixtures/G06",
+      "must": [
+        "activate:cdf-backend"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-backend"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A01N",
+      "class": "activation",
+      "prompt": "Review the isolated frontend interaction; do not inspect backend behavior.",
+      "fixture": "fixtures/G07",
+      "must": [
+        "do_not_activate:cdf-backend"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-backend"
+        ]
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A02P",
+      "class": "activation",
+      "prompt": "Review the proposed authorization change for concrete defects; do not edit.",
+      "fixture": "fixtures/G17",
+      "must": [
+        "activate:cdf-code-review"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-code-review"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A02N",
+      "class": "activation",
+      "prompt": "Implement the requested simple endpoint behavior.",
+      "fixture": "fixtures/G01",
+      "must": [
+        "do_not_activate:cdf-code-review"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-code-review"
+        ]
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A03P",
+      "class": "activation",
+      "prompt": "Trace start() across this unfamiliar repository without edits.",
+      "fixture": "fixtures/G12",
+      "must": [
+        "activate:cdf-codebase-research"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-codebase-research"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A03N",
+      "class": "activation",
+      "prompt": "Correct the known README flag in this known file.",
+      "fixture": "fixtures/G18",
+      "must": [
+        "do_not_activate:cdf-codebase-research"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-codebase-research"
+        ]
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A04P",
+      "class": "activation",
+      "prompt": "Diagnose the async worker cancellation leak and fix it.",
+      "fixture": "fixtures/G06",
+      "must": [
+        "activate:cdf-debugging"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-debugging"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A04N",
+      "class": "activation",
+      "prompt": "Correct the known README flag.",
+      "fixture": "fixtures/G18",
+      "must": [
+        "do_not_activate:cdf-debugging"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-debugging"
+        ]
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A05P",
+      "class": "activation",
+      "prompt": "Correct the README example to match the implemented flag.",
+      "fixture": "fixtures/G18",
+      "must": [
+        "activate:cdf-documentation"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-documentation"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A05N",
+      "class": "activation",
+      "prompt": "Explain the tradeoffs of a background job without editing docs.",
+      "fixture": "fixtures/G03",
+      "must": [
+        "do_not_activate:cdf-documentation"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-documentation"
+        ]
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A06P",
+      "class": "activation",
+      "prompt": "Implement the existing component loading and error behavior.",
+      "fixture": "fixtures/G07",
+      "must": [
+        "activate:cdf-frontend"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-frontend"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A06N",
+      "class": "activation",
+      "prompt": "Fix the server worker cancellation behavior.",
+      "fixture": "fixtures/G06",
+      "must": [
+        "do_not_activate:cdf-frontend"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-frontend"
+        ]
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A07P",
+      "class": "activation",
+      "prompt": "Implement the specified empty-body handler behavior.",
+      "fixture": "fixtures/G01",
+      "must": [
+        "activate:cdf-implementation"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-implementation"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A07N",
+      "class": "activation",
+      "prompt": "Explain the background-job tradeoffs without editing.",
+      "fixture": "fixtures/G03",
+      "must": [
+        "do_not_activate:cdf-implementation"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-implementation"
+        ]
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A08P",
+      "class": "activation",
+      "prompt": "Coordinate the nontrivial API and UI contract work.",
+      "fixture": "fixtures/G08",
+      "must": [
+        "activate:cdf-orchestration"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-orchestration"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A08N",
+      "class": "activation",
+      "prompt": "Correct the one known README flag.",
+      "fixture": "fixtures/G18",
+      "must": [
+        "do_not_activate:cdf-orchestration"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-orchestration"
+        ]
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A09P",
+      "class": "activation",
+      "prompt": "Plan the API and UI integration sequence and checks without editing.",
+      "fixture": "fixtures/G08",
+      "must": [
+        "activate:cdf-planning"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-planning"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A09N",
+      "class": "activation",
+      "prompt": "Apply the fully specified tiny endpoint fix.",
+      "fixture": "fixtures/G01",
+      "must": [
+        "do_not_activate:cdf-planning"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-planning"
+        ]
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A10P",
+      "class": "activation",
+      "prompt": "Improve the error handling; product behavior is not specified.",
+      "fixture": "fixtures/G02",
+      "must": [
+        "activate:cdf-requirements"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-requirements"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A10N",
+      "class": "activation",
+      "prompt": "Apply the fully specified empty-body behavior.",
+      "fixture": "fixtures/G01",
+      "must": [
+        "do_not_activate:cdf-requirements"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-requirements"
+        ]
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A11P",
+      "class": "activation",
+      "prompt": "Design a substantially new interface direction with hierarchy and responsive interaction.",
+      "fixture": "fixtures/G07",
+      "must": [
+        "activate:cdf-ui-design"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-ui-design"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A11N",
+      "class": "activation",
+      "prompt": "Fix the existing submit control without visual redesign.",
+      "fixture": "fixtures/G07",
+      "must": [
+        "do_not_activate:cdf-ui-design"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-ui-design"
+        ]
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A12P",
+      "class": "activation",
+      "prompt": "Verify the authorization change using focused evidence.",
+      "fixture": "fixtures/G09",
+      "must": [
+        "activate:cdf-verification"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-verification"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    },
+    {
+      "id": "A12N",
+      "class": "activation",
+      "prompt": "Explain a possible background job without implementing it.",
+      "fixture": "fixtures/G03",
+      "must": [
+        "do_not_activate:cdf-verification"
+      ],
+      "must_not": [],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [],
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "deterministic_check": null,
+      "no_fixture_edits": false,
+      "expected_final_state": "Task-specific response or change without unrelated work",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-verification"
+        ]
+      },
+      "stop_conditions": [
+        "Skill load must be verified from actual trace"
+      ]
+    }
+  ]
+}
