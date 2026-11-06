@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-06",
+  "version": "2.0.0.dev0",
+  "tests": {
+    "command": "python3 -m unittest discover -s tests",
+    "count": 233,
+    "elapsed_seconds": 18.909,
+    "result": "PASS"
+  },
+  "source_validation": "PASS",
+  "diff_whitespace": "PASS",
+  "independent_review": "Follow-up journal and evaluation repairs independently reviewed; no actionable findings in reviewed scope",
+  "live_model_evaluations": "NOT_RUN",
+  "release_ready": false,
+  "scenarios": {
+    "golden": 27,
+    "executable_activation": 24,
+    "behavior_checks": 15
+  },
+  "runtime_gates": [
+    "authenticated model runs",
+    "controlled external reviewer/compaction adapter and observed behavior",
+    "runtime/tool/model parity and human grading",
+    "real-browser acceptance",
+    "additional platform/power-loss validation"
+  ],
+  "rubric_version": 2,
+  "blueprint_validation": "PASS (archived 18-case proposal; executable set has 27)"
+}
