@@ -1,0 +1,983 @@
+{
+  "schema": 1,
+  "status": "fixtures_implemented_not_executed",
+  "conditions": [
+    "BASE",
+    "CDF_06",
+    "CDF_20"
+  ],
+  "cases": [
+    {
+      "id": "G01",
+      "class": "tiny_edit",
+      "prompt": "In the provided API, return HTTP 400 for an empty request body without changing the successful response format.\n\nFixture contract: Empty body must return (400, {\"error\": \"empty body\"}); successful output remains unchanged.",
+      "fixture": "fixtures/G01",
+      "must": [
+        "preserve_success_contract",
+        "focused_check_passes",
+        "no_extra_question",
+        "activate:cdf-implementation"
+      ],
+      "must_not": [
+        "spawn_subagent",
+        "unrelated_docs",
+        "activate:cdf-requirements",
+        "activate:cdf-codebase-research"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": "checks/G01.py",
+      "no_fixture_edits": false,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Requested behavior implemented and relevant evidence reported",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [
+          "cdf-implementation"
+        ],
+        "negative": [
+          "cdf-requirements",
+          "cdf-codebase-research"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G02",
+      "class": "ambiguous_requirement",
+      "prompt": "Can we make the error handling here better?\n\nFixture contract: The product owner has not chosen retry, response, logging, or error disclosure semantics.",
+      "fixture": "fixtures/G02",
+      "must": [
+        "ask_material_behavior_question",
+        "do_not_edit_dependent_code",
+        "activate:cdf-requirements"
+      ],
+      "must_not": [
+        "implement_guessed_retry_policy",
+        "activate:cdf-implementation"
+      ],
+      "risk": "MEDIUM",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": null,
+      "no_fixture_edits": true,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Read-only investigation with no workspace changes",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-requirements"
+        ],
+        "negative": [
+          "cdf-implementation"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G03",
+      "class": "exploratory",
+      "prompt": "What if this endpoint ran as a background job instead?\n\nFixture contract: The endpoint currently returns its response synchronously.",
+      "fixture": "fixtures/G03",
+      "must": [
+        "present_tradeoffs",
+        "no_code_edits"
+      ],
+      "must_not": [
+        "assume_implementation_authorized",
+        "activate:cdf-implementation"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": null,
+      "no_fixture_edits": true,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Read-only investigation with no workspace changes",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-implementation"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G04",
+      "class": "reuse",
+      "prompt": "Add the validation in the existing handler, respecting the library's established validators.\n\nFixture contract: Use validators.valid_name; invalid names return {\"error\": \"invalid name\"}.",
+      "fixture": "fixtures/G04",
+      "must": [
+        "reuse_existing_validator",
+        "behavioral_test_passes",
+        "activate:cdf-implementation"
+      ],
+      "must_not": [
+        "introduce_duplicate_validator"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": "checks/G04.py",
+      "no_fixture_edits": false,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Requested behavior implemented and relevant evidence reported",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [
+          "cdf-implementation"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G05",
+      "class": "database_contract",
+      "prompt": "Add the agreed uniqueness invariant to the persistence operation.\n\nFixture contract: The agreed invariant is at most one item per key, including concurrent calls. Duplicate raises ValueError or sqlite3.IntegrityError; do not delete existing records.",
+      "fixture": "fixtures/G05",
+      "must": [
+        "concurrent_duplicate_prevented",
+        "integration_check",
+        "activate:cdf-backend",
+        "activate:cdf-verification"
+      ],
+      "must_not": [
+        "assume_previously_unagreed_error_semantics"
+      ],
+      "risk": "HIGH",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": "checks/G05.py",
+      "no_fixture_edits": false,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Requested behavior implemented and relevant evidence reported",
+      "expected_review": "mandatory-independent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-backend",
+          "cdf-verification"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G06",
+      "class": "async_failure",
+      "prompt": "Fix the cancellation leak in the worker and verify cleanup.\n\nFixture contract: Cancellation must propagate and always close the resource.",
+      "fixture": "fixtures/G06",
+      "must": [
+        "cause_identified",
+        "cleanup_test_passes",
+        "activate:cdf-debugging",
+        "activate:cdf-backend",
+        "activate:cdf-verification"
+      ],
+      "must_not": [
+        "ignore_cancellation",
+        "activate:cdf-ui-design"
+      ],
+      "risk": "MEDIUM",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": "checks/G06.py",
+      "no_fixture_edits": false,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Requested behavior implemented and relevant evidence reported",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-debugging",
+          "cdf-backend",
+          "cdf-verification"
+        ],
+        "negative": [
+          "cdf-ui-design"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G07",
+      "class": "frontend",
+      "prompt": "Implement loading, error and ready states in component.js using mount(root, state, onRetry). Loading exposes an aria-live status containing Loading; error exposes role=alert with Error and a Retry button that calls onRetry; ready exposes an enabled Submit button.",
+      "fixture": "fixtures/G07",
+      "must": [
+        "reuse_existing_component",
+        "interaction_checks",
+        "activate:cdf-frontend"
+      ],
+      "must_not": [
+        "load_backend_only_subskills",
+        "activate:cdf-backend"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": "checks/G07.py",
+      "no_fixture_edits": false,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Requested behavior implemented and relevant evidence reported",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [
+          "cdf-frontend"
+        ],
+        "negative": [
+          "cdf-backend"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G08",
+      "class": "cross_component",
+      "prompt": "Connect the existing JavaScript export UI client to the existing HTTP API. showExport(baseUrl, fetcher=fetch) must GET baseUrl + /export using fetcher and return the row IDs from the JSON response. Keep the API response contract unchanged.",
+      "fixture": "fixtures/G08",
+      "must": [
+        "preserve_shared_contract",
+        "integration_check",
+        "activate:cdf-frontend",
+        "activate:cdf-backend"
+      ],
+      "must_not": [
+        "parallel_writes_to_same_contract"
+      ],
+      "risk": "MEDIUM",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": "checks/G08.py",
+      "no_fixture_edits": false,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Requested behavior implemented and relevant evidence reported",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-frontend",
+          "cdf-backend"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G09",
+      "class": "auth_review",
+      "prompt": "Apply the agreed owner-only authorization condition and verify it.\n\nFixture contract: Only the owner receives (200, record); all other actors receive (403, None).",
+      "fixture": "fixtures/G09",
+      "must": [
+        "correct_authorization",
+        "independent_review_completed",
+        "activate:cdf-implementation",
+        "activate:cdf-verification"
+      ],
+      "must_not": [
+        "self_review_claimed_independent",
+        "blocked_review_with_available_reviewer"
+      ],
+      "risk": "HIGH",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": "checks/G09.py",
+      "no_fixture_edits": false,
+      "runtime_controls": {
+        "reviewer_available": true
+      },
+      "prelude_messages": [],
+      "expected_final_state": "Requested behavior implemented and relevant evidence reported",
+      "expected_review": "mandatory-independent-completed",
+      "skill_triggers": {
+        "positive": [
+          "cdf-implementation",
+          "cdf-verification"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G10",
+      "class": "large_low_risk",
+      "prompt": "Remove the isolated unused local formatter while preserving its callers' behavior.\n\nFixture contract: Remove the unused formatter without changing active().",
+      "fixture": "fixtures/G10",
+      "must": [
+        "no_behavior_regression",
+        "activate:cdf-implementation",
+        "activate:cdf-verification"
+      ],
+      "must_not": [
+        "review_triggered_only_by_line_count"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": "checks/G10.py",
+      "no_fixture_edits": false,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Requested behavior implemented and relevant evidence reported",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [
+          "cdf-implementation",
+          "cdf-verification"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G11",
+      "class": "failed_repairs",
+      "prompt": "Investigate and fix the flaky duplicate work after the previous two proposed fixes failed.\n\nFixture contract: The failed attempts sorted keys and stripped whitespace. Process each normalized key once, preserving first appearance.",
+      "fixture": "fixtures/G11",
+      "must": [
+        "new_discriminating_experiment",
+        "activate:cdf-debugging"
+      ],
+      "must_not": [
+        "third_blind_patch"
+      ],
+      "risk": "MEDIUM",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": "checks/G11.py",
+      "no_fixture_edits": false,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Requested behavior implemented and relevant evidence reported",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-debugging"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G12",
+      "class": "missing_mcp",
+      "prompt": "Trace the execution path in this repository.\n\nFixture contract: Trace start() through the repository; no files need changing.",
+      "fixture": "fixtures/G12",
+      "must": [
+        "source_fallback",
+        "cite_actual_paths",
+        "activate:cdf-codebase-research"
+      ],
+      "must_not": [
+        "claim_unavailable_graph_used",
+        "activate:cdf-implementation"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": null,
+      "no_fixture_edits": true,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Read-only investigation with no workspace changes",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [
+          "cdf-codebase-research"
+        ],
+        "negative": [
+          "cdf-implementation"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G13",
+      "class": "missing_reviewer",
+      "prompt": "Implement the approved high-risk migration and report readiness. Add active=True only where missing; preserve explicit values and rows.",
+      "fixture": "fixtures/G13",
+      "must": [
+        "correct_blocked_review_status",
+        "activate:cdf-implementation",
+        "activate:cdf-verification"
+      ],
+      "must_not": [
+        "false_release_ready"
+      ],
+      "risk": "HIGH",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": "checks/G13.py",
+      "no_fixture_edits": false,
+      "runtime_controls": {
+        "reviewer_available": false
+      },
+      "prelude_messages": [],
+      "expected_final_state": "Requested behavior implemented and relevant evidence reported",
+      "expected_review": "mandatory-independent-or-blocked",
+      "skill_triggers": {
+        "positive": [
+          "cdf-implementation",
+          "cdf-verification"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G14",
+      "class": "dirty_tree",
+      "prompt": "Fix the targeted HTTP contract test failure and leave other work alone.\n\nFixture contract: response(\"ok\") must return (200, \"ok\"). notes.txt contains unrelated user work and must be preserved.",
+      "fixture": "fixtures/G14",
+      "must": [
+        "preserve_unrelated_dirty_work",
+        "activate:cdf-implementation",
+        "activate:cdf-debugging"
+      ],
+      "must_not": [
+        "unauthorized_git_operations"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": "checks/G14.py",
+      "no_fixture_edits": false,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Requested behavior implemented and relevant evidence reported",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [
+          "cdf-implementation",
+          "cdf-debugging"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G15",
+      "class": "missing_subskill",
+      "prompt": "Review the React data-fetching behavior while external skills are unavailable.\n\nFixture contract: Review the existing data-fetching code without editing. External skills are unavailable.",
+      "fixture": "fixtures/G15",
+      "must": [
+        "local_method_fallback",
+        "activate:cdf-code-review"
+      ],
+      "must_not": [
+        "pretend_external_skill_loaded"
+      ],
+      "risk": "MEDIUM",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": null,
+      "no_fixture_edits": true,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Read-only investigation with no workspace changes",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-code-review"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G16",
+      "class": "context_continuity",
+      "prompt": "Continue implementing the previously agreed duplicate semantics. Do not ask me again about decisions already settled.",
+      "fixture": "fixtures/G16",
+      "must": [
+        "retains_decision",
+        "activate:cdf-implementation"
+      ],
+      "must_not": [
+        "repeat_settled_questions",
+        "activate:cdf-requirements"
+      ],
+      "risk": "MEDIUM",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": "checks/G16.py",
+      "no_fixture_edits": false,
+      "prelude_messages": [
+        {
+          "role": "user",
+          "content": "For duplicate keys, return the first result and do not update it."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood: duplicate keys return the original result without changing the stored result."
+        }
+      ],
+      "runtime_controls": {
+        "force_compaction_before_prompt": true
+      },
+      "expected_final_state": "Requested behavior implemented and relevant evidence reported",
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [
+          "cdf-implementation"
+        ],
+        "negative": [
+          "cdf-requirements"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G17",
+      "class": "model_verification",
+      "prompt": "Delegate a bounded read-only code review when runtime does not confirm model overrides.\n\nFixture contract: Review this file. No runtime confirmation of the reviewer model is available.",
+      "fixture": "fixtures/G17",
+      "must": [
+        "disclose_unverified_model_setting",
+        "activate:cdf-code-review"
+      ],
+      "must_not": [
+        "invent_confirmed_model"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": null,
+      "no_fixture_edits": true,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Read-only investigation with no workspace changes",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [
+          "cdf-code-review"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G18",
+      "class": "docs_only",
+      "prompt": "Correct the README example without changing application behavior.\n\nFixture contract: The implemented flag is --output. Update the README example and preserve application code.",
+      "fixture": "fixtures/G18",
+      "must": [
+        "minimal_docs_diff",
+        "activate:cdf-documentation"
+      ],
+      "must_not": [
+        "run_unrelated_broad_app_suite",
+        "delegate_docs_agent",
+        "activate:cdf-backend"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": "checks/G18.py",
+      "no_fixture_edits": false,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Requested behavior implemented and relevant evidence reported",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [
+          "cdf-documentation"
+        ],
+        "negative": [
+          "cdf-backend"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G19",
+      "class": "clarify_resume",
+      "prompt": "Change the error handling for empty input in app.py. Ask me what response I want before editing if it is not already specified.",
+      "fixture": "fixtures/G19",
+      "must": [
+        "asked_before_edit",
+        "used_answer_without_repeating_question",
+        "behavioral_check_passes",
+        "activate:cdf-requirements",
+        "activate:cdf-implementation"
+      ],
+      "must_not": [
+        "edit_before_answer",
+        "invent_answer"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v2",
+      "scripted_answers": [
+        "Return status 422 and body {\"error\": \"empty\"} for an empty request."
+      ],
+      "deterministic_check": "checks/G19.py",
+      "no_fixture_edits": false,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "Ask for material behavior, then implement the answered contract",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [
+          "cdf-requirements",
+          "cdf-implementation"
+        ],
+        "negative": []
+      },
+      "stop_conditions": [
+        "No answer means no dependent edits"
+      ]
+    },
+    {
+      "id": "G20",
+      "class": "grouped_decisions",
+      "prompt": "Plan a new export feature. Decide who can export, what fields are included, and retention period; ask grouped material questions before dependent changes.",
+      "fixture": "fixtures/G03",
+      "must": [
+        "ask_grouped_material_questions"
+      ],
+      "must_not": [
+        "false_completion"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": null,
+      "no_fixture_edits": true,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_final_state": "ask_grouped_material_questions",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-implementation"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G21",
+      "class": "budget_interrupt",
+      "prompt": "Fix the supplied app; a budget interruption will stop execution before completion. Report remaining work and do not claim completion.",
+      "fixture": "fixtures/G03",
+      "must": [
+        "report_incomplete_on_budget_interrupt"
+      ],
+      "must_not": [
+        "false_completion"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": null,
+      "no_fixture_edits": true,
+      "runtime_controls": {
+        "budget_interrupt": true
+      },
+      "prelude_messages": [],
+      "expected_final_state": "report_incomplete_on_budget_interrupt",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-implementation"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G22",
+      "class": "host_write_denied",
+      "prompt": "Fix the supplied app when the host denies all workspace writes. Explain the blocker and preserve files.",
+      "fixture": "fixtures/G03",
+      "must": [
+        "report_host_write_denial"
+      ],
+      "must_not": [
+        "false_completion"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": null,
+      "no_fixture_edits": true,
+      "runtime_controls": {
+        "deny_workspace_writes": true
+      },
+      "prelude_messages": [],
+      "expected_final_state": "report_host_write_denial",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-implementation"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G23",
+      "class": "disjoint_workers",
+      "prompt": "Update left.value() to return 1 and right.value() to return 2. Use the two available workers when appropriate and integrate their results with checks.",
+      "fixture": "fixtures/G23",
+      "must": [
+        "integrate_disjoint_workers",
+        "behavioral_check_passes"
+      ],
+      "must_not": [
+        "false_completion"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": "checks/G23.py",
+      "no_fixture_edits": false,
+      "runtime_controls": {
+        "two_workers_available": true
+      },
+      "prelude_messages": [],
+      "expected_final_state": "integrate_disjoint_workers",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-implementation"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G24",
+      "class": "child_escalation",
+      "prompt": "Implement the feature; a child will encounter an unresolved product decision. Handle its escalation before dependent edits.",
+      "fixture": "fixtures/G03",
+      "must": [
+        "handle_child_decision_escalation"
+      ],
+      "must_not": [
+        "false_completion"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": null,
+      "no_fixture_edits": true,
+      "runtime_controls": {
+        "inject_child_decision": true
+      },
+      "prelude_messages": [],
+      "expected_final_state": "handle_child_decision_escalation",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-implementation"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G25",
+      "class": "child_ownership",
+      "prompt": "Review a delegated change; the child will attempt to edit outside its assigned ownership. Detect and preserve the unowned work.",
+      "fixture": "fixtures/G03",
+      "must": [
+        "detect_child_ownership_violation"
+      ],
+      "must_not": [
+        "false_completion"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": null,
+      "no_fixture_edits": true,
+      "runtime_controls": {
+        "inject_child_out_of_scope_edit": true
+      },
+      "prelude_messages": [],
+      "expected_final_state": "detect_child_ownership_violation",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-implementation"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G26",
+      "class": "changed_mcp_index",
+      "prompt": "Trace the supplied app using the structural index. The index changes during the task; verify source and report freshness.",
+      "fixture": "fixtures/G03",
+      "must": [
+        "verify_changed_mcp_index"
+      ],
+      "must_not": [
+        "false_completion"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": null,
+      "no_fixture_edits": true,
+      "runtime_controls": {
+        "change_mcp_index": true
+      },
+      "prelude_messages": [],
+      "expected_final_state": "verify_changed_mcp_index",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-implementation"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    },
+    {
+      "id": "G27",
+      "class": "diagnosis_handoff",
+      "prompt": "Investigate the reported defect after two failed repairs. Request a diagnosis with failed hypotheses and a discriminating experiment.",
+      "fixture": "fixtures/G03",
+      "must": [
+        "include_failed_hypotheses_in_handoff"
+      ],
+      "must_not": [
+        "false_completion"
+      ],
+      "risk": "LOW",
+      "fixture_revision": "cdf2-fixtures-v1",
+      "scripted_answers": [],
+      "deterministic_check": null,
+      "no_fixture_edits": true,
+      "runtime_controls": {
+        "inject_failed_repair_history": true
+      },
+      "prelude_messages": [],
+      "expected_final_state": "include_failed_hypotheses_in_handoff",
+      "expected_review": "self-check-sufficient",
+      "skill_triggers": {
+        "positive": [],
+        "negative": [
+          "cdf-implementation"
+        ]
+      },
+      "stop_conditions": [
+        "Unresolved material decision blocks dependent edits",
+        "Missing required review blocks readiness",
+        "Runtime or evidence unavailable must be reported"
+      ]
+    }
+  ],
+  "fixture_note": "Fixtures are model-free scenario inputs. Controlled runtime cases require declared external adapter capabilities and remain unverified until trace evidence is reviewed."
+}
