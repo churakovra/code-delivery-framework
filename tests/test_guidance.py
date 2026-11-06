@@ -91,6 +91,8 @@ class GuidanceContracts(unittest.TestCase):
     def test_entrypoint_word_budgets(self):
         limits = {ROOT / 'templates/AGENTS.md': 300}
         for entry in (ROOT / 'skills').rglob('SKILL.md'):
+            if entry.parent.name.startswith('cdf-'):
+                continue  # V2 contracts are checked independently in test_cdf_contracts.
             if entry.parent.name == 'model-routing':
                 continue  # Explicit model research has a separate, on-demand entrypoint.
             limits[entry] = 700 if entry.parent.name == 'delivery' else 250

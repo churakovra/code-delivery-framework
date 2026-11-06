@@ -1,0 +1,19 @@
+---
+name: cdf-codebase-research
+description: Trace unfamiliar repository behavior, callers, dependencies, existing patterns and change impact before making structural claims or duplicating code. Use for cross-file exploration, architecture audits and uncertain ownership; not for trivial known-file edits.
+---
+# Codebase research and reuse
+
+1. Define the question and the narrowest likely entry points. Establish branch, relevant working-tree changes, language/build tools and existing documentation. Avoid full-repository reads without a search hypothesis.
+2. Search names, routes, schemas, tests, relevant history and corresponding callers. Trace the path through boundaries and side effects. Prefer production source and current tests over stale summaries.
+3. Identify **reuse candidates**: existing services, utilities, queries, clients, protocols and architectural conventions. Before creating a new abstraction, compare whether extending an existing one changes its contract or violates ownership.
+4. For structural questions, use Codebase Memory MCP *when installed, indexed and relevant*. Validate project root, index freshness, scope and pagination. Check graph conclusions against real source; missing graph edges never prove absence.
+5. If the tool is unavailable or coverage is incomplete, use targeted search/reading; do not block routine work. For negative or safety-sensitive claims, expand scope and disclose gaps.
+6. Provide a compact evidence packet: relevant file paths/symbols, observed flow, important invariants, reuse options, likely change surface, confidence and unresolved questions. Include file/line evidence when possible. Do not generate large codebase reports without a user need.
+
+## Optional subskills
+Resolve a candidate ID only when needed through `.codex/cdf/subskills.catalog.json` in the installation target or configured home. Confirm native discovery and use the local fallback when absent; never install automatically.
+
+- `codebase-memory-mcp`: large, unfamiliar, structurally connected repositories; graph query only when it beats focused source search.
+- `trailofbits-audit-context`: security audit or unfamiliar trust boundaries; its original workflow may use dedicated agents/files and should be adapted, not assumed available in Codex.
+Fallback: source search, git history and tests; never hallucinate graph coverage. Never install automatically.

@@ -14,3 +14,16 @@ The ASD-STE100 skill at 8da6b6340aa22faf46fd07db8efbdea010cd38d9 is MIT-licensed
 Bundled helpers for communication, diagnosis, regression testing, verification, design, accessibility, and React are original concise adaptations. They do not redistribute upstream skill instructions, rule libraries, dictionaries, or tools. The communication helper does not claim certified ASD-STE100 compliance.
 
 The official OpenAI App Server documentation informed skill availability checks. No documentation text is reproduced. See sources.json for the inspected page and date.
+
+
+CDF 2.0 proposal and optional community candidates
+------------------------------------------------
+The CDF2 skills and architecture originate in the user-supplied planning package
+CDF2_COMPLETE.zip (SHA-256 0a4b0ea509a9cfdb656938291de2d96788f973a7804765844e7c7f755544433e).
+They are project-authored guidance; complete third-party community skills and
+executables are not included. subskills.catalog.json records candidate authors,
+repository revisions, activation conditions and license caveats. sources.json
+distinguishes inherited research claims from independently inspected evidence.
+Before any separate community installation, verify the exact asset, license and
+runtime compatibility. No permission or endorsement is inferred from a catalog
+entry. Existing historical attribution and dependency notices above remain.

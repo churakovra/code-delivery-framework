@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "date": "2026-11-05",
+  "codex_version": "0.166.0-alpha.6",
+  "method": "app-server skills/list with forceReload",
+  "environment": "temporary trusted project and temporary HOME/CODEX_HOME, no credentials copied",
+  "core_skills": [
+    "cdf-backend",
+    "cdf-code-review",
+    "cdf-codebase-research",
+    "cdf-debugging",
+    "cdf-documentation",
+    "cdf-frontend",
+    "cdf-implementation",
+    "cdf-orchestration",
+    "cdf-planning",
+    "cdf-requirements",
+    "cdf-ui-design",
+    "cdf-verification"
+  ],
+  "discovery": "verified",
+  "errors": [],
+  "native_agent_availability": "unverified",
+  "model_tasks_started": 0,
+  "limitations": [
+    "Discovery is not evidence of correct skill selection or instruction compliance.",
+    "No model, subscription allowance or runtime agent activation tested."
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "action": "install",
+  "state": "ready",
+  "scope": "project",
+  "target": "/tmp/disposable-repo",
+  "planned_actions": [
+    {"path": ".agents/skills/cdf-requirements/SKILL.md", "operation": "add", "before_sha256": null, "after_sha256": "0000000000000000000000000000000000000000000000000000000000000000"},
+    {"path": "AGENTS.md", "operation": "update", "before_sha256": null, "after_sha256": "0000000000000000000000000000000000000000000000000000000000000000"}
+  ],
+  "conflicts": [],
+  "warnings": ["Dry-run plan; apply will recheck hashes before mutations."]
+}

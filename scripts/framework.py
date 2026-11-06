@@ -49,6 +49,9 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 def framework_version(root=ROOT):
+    if root == ROOT:
+        # This retained CLI operates the frozen legacy payload, not the v2 bundle.
+        return '0.6.0'
     if root != ROOT and not (root/'pyproject.toml').is_file():
         return None  # Legacy test bundles have no release metadata.
     return _framework_version(root)
@@ -347,6 +350,9 @@ def payload(root=ROOT, selected_policy=None):
     files = {}
     skills = root/'skills'
     for source in sorted(skills.rglob('*')):
+        # Keep the legacy payload isolated while v2 is evaluated and migrated.
+        if source.relative_to(skills).parts[0].startswith('cdf-'):
+            continue
         if source.is_symlink():
             raise FrameworkError(f'Source symlink refused: {source}')
         if source.is_file():

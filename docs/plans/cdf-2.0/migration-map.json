@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "source_revision": "3ff534627e8b10de3dba2c6443855e870567ef84",
+  "old_to_new": {
+    "delivery": "cdf-orchestration",
+    "decision-interview": "cdf-requirements",
+    "planning": "cdf-planning",
+    "implementation": "cdf-implementation",
+    "backend-development": "cdf-backend",
+    "frontend-development": "cdf-frontend",
+    "interface-design": "cdf-ui-design",
+    "debugging": "cdf-debugging",
+    "code-review": "cdf-code-review",
+    "verification": "cdf-verification",
+    "documentation": "cdf-documentation",
+    "model-routing": "cdf-model-calibration",
+    "explain": "cdf-explain",
+    "teach": "cdf-teach"
+  },
+  "new_skill": "cdf-codebase-research",
+  "note": "Specification only. Do not rewrite current installation automatically."
+}

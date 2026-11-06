@@ -1,0 +1,4 @@
+# Optional per-skill metadata for skills/cdf-model-calibration/agents/openai.yaml
+# Check feature availability in the target Codex version.
+policy:
+  allow_implicit_invocation: false

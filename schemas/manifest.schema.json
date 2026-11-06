@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cdf.local/schemas/manifest.schema.json",
+  "title": "CDF v2 installer owned manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "framework_version",
+    "scope",
+    "source_revision",
+    "selected_extras",
+    "state",
+    "owned_files",
+    "managed_blocks",
+    "preserved_preimages",
+    "transaction"
+  ],
+  "properties": {
+    "schema": {
+      "const": 2
+    },
+    "framework_version": {
+      "type": "string",
+      "pattern": "^2\\.[0-9]+\\.[0-9]+(?:\\.dev[0-9]+)?(?:[-+].*)?$"
+    },
+    "scope": {
+      "enum": [
+        "project",
+        "global"
+      ]
+    },
+    "source_revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "selected_extras": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "learning",
+          "operator"
+        ]
+      }
+    },
+    "state": {
+      "enum": [
+        "installed",
+        "partial",
+        "recovery-required",
+        "conflict"
+      ]
+    },
+    "owned_files": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sha256",
+          "mode"
+        ],
+        "properties": {
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "mode": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4095
+          }
+        }
+      }
+    },
+    "managed_blocks": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "start_marker",
+          "end_marker",
+          "sha256"
+        ],
+        "properties": {
+          "start_marker": {
+            "type": "string"
+          },
+          "end_marker": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "preserved_preimages": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sha256",
+          "backup"
+        ],
+        "properties": {
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "backup": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "transaction": {
+      "type": [
+        "null",
+        "object"
+      ]
+    },
+    "created_directories": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "intent": "IMPLEMENT",
+  "state": "READY",
+  "objective": "Reject duplicate POST submissions idempotently",
+  "baseline": {"git_head": "<HEAD>", "dirty_paths": ["local-notes.md"]},
+  "accepted_decisions": [{"id": "BIZ-1", "decision": "Duplicate requests return the initial result", "source": "explicit_user"}],
+  "open_material_questions": [],
+  "acceptance": ["same key returns same result", "no duplicate side effect"],
+  "scope": ["app/api/submissions.py", "tests/test_submissions.py"],
+  "risk": "HIGH",
+  "review_required": true,
+  "verification": {"status": "NOT_RUN", "commands": []}
+}

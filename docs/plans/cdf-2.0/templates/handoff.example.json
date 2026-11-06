@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "task_id": "export-review-001",
+  "role": "cdf_reviewer",
+  "objective": "Check admin-only export behavior and compatibility",
+  "baseline": {"revision": "93fa2b", "dirty_paths": ["notes.md"]},
+  "scope": {"read_paths": ["handlers/export.py", "tests/test_export.py", "ui/export_client.ts"], "write_paths": []},
+  "accepted_decisions": ["Non-admin users receive HTTP 403", "CSV schema unchanged"],
+  "acceptance": ["Only admin can export", "CSV compatibility preserved"],
+  "permissions": ["read source", "non-destructive local tests"],
+  "evidence_requested": ["file-line findings", "test coverage gaps"],
+  "dependencies": [],
+  "subskills": [],
+  "model_request": {"model": null, "effort": null, "verification": "unknown"}
+}

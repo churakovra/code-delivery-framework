@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "policy": "Framework-authored skills and helpers are original adaptations. No third-party skill text, rule files, or executable code are copied into this repository. Historical workflow sources remain research provenance, not installation dependencies. Only the Codebase Memory integration is separately fetched; consult subskills.json and installed status.",
+  "policy": "Framework-authored guidance is original adaptation. CDF2 imports the user-supplied implementation proposal; community entries are optional research metadata, not vendored or automatically installed skills. The retained legacy installer is isolated pending release gates; its Codebase Memory dependency is not part of the v2 core.",
   "sources": [
     {
       "id": "asd-ste100-skill",
@@ -138,6 +138,312 @@
       "license": "Official documentation; no text reused",
       "installation": "research only",
       "used_for": "Checking installed skill availability through skills/list with forceReload, enabled skill paths, and separate activation reporting."
+    },
+    {
+      "id": "cdf2-matt-grilling",
+      "url": "https://github.com/mattpocock/skills/blob/4ae2317ddb22b046e26455e4f9c9b3aaaf62212d/skills/productivity/grilling/SKILL.md",
+      "revision": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: Several dependent high-stakes business decisions; questions can be grouped by dependency frontier",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-superpowers-brainstorming",
+      "url": "https://github.com/obra/superpowers/blob/22f0b463e7a5e579904dd6211a520321035526f7/skills/brainstorming/SKILL.md",
+      "revision": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: Open-ended feature design with unresolved desired behavior",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-superpowers-writing-plans",
+      "url": "https://github.com/obra/superpowers/blob/22f0b463e7a5e579904dd6211a520321035526f7/skills/writing-plans/SKILL.md",
+      "revision": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: Large approved specification needing executable, path-specific steps",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-wsh-task-coordination",
+      "url": "https://github.com/wshobson/agents/blob/7e2fb559cf4b824b27f1fec49fe88f7511066d26/plugins/agent-teams/skills/task-coordination-strategies/SKILL.md",
+      "revision": "7e2fb559cf4b824b27f1fec49fe88f7511066d26",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: Several parallel independent workstreams requiring dependency scheduling",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-codebase-memory-mcp",
+      "url": "https://github.com/DeusData/codebase-memory-mcp/blob/612eee2518ef84cc573e491fdee5fa5c90264cb5/README.md",
+      "revision": "612eee2518ef84cc573e491fdee5fa5c90264cb5",
+      "license": "MIT (verify versioned binary distribution)",
+      "used_for": "Optional candidate and original CDF2 methodology: Large unknown codebase, structural graph tracing or impact analysis",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-trailofbits-audit-context",
+      "url": "https://github.com/trailofbits/skills/blob/470419e16f97e112d01fc32f4898aea1755015d9/plugins/audit-context-building/skills/audit-context-building/SKILL.md",
+      "revision": "470419e16f97e112d01fc32f4898aea1755015d9",
+      "license": "CC BY-SA 4.0 repository; follow individual license where applicable",
+      "used_for": "Optional candidate and original CDF2 methodology: Trust-boundary analysis for high-risk security audit",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-superpowers-tdd",
+      "url": "https://github.com/obra/superpowers/blob/22f0b463e7a5e579904dd6211a520321035526f7/skills/test-driven-development/SKILL.md",
+      "revision": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: Complex behavior change with deterministic failing regression to guide implementation",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-ub-mode",
+      "url": "https://github.com/unclebob/ub-mode/blob/57a8bdd28e45ed41900ace0bafa2ff76dd9ed70f/SKILL.md",
+      "revision": "57a8bdd28e45ed41900ace0bafa2ff76dd9ed70f",
+      "license": "no license established at inspected historical revision; reference only",
+      "used_for": "Optional candidate and original CDF2 methodology: Focused refactor with domain modeling and small verifiable steps",
+      "installation": "research reference only until licence verified; do not install or vendor automatically",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-superpowers-receiving-review",
+      "url": "https://github.com/obra/superpowers/blob/22f0b463e7a5e579904dd6211a520321035526f7/skills/receiving-code-review/SKILL.md",
+      "revision": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: Complex, unclear or contradictory code review suggestions",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-wsh-architecture",
+      "url": "https://github.com/wshobson/agents/blob/7e2fb559cf4b824b27f1fec49fe88f7511066d26/plugins/backend-development/skills/architecture-patterns/SKILL.md",
+      "revision": "7e2fb559cf4b824b27f1fec49fe88f7511066d26",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: Nontrivial service boundaries, dependency direction, ports/adapters or DDD",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-wsh-api-design",
+      "url": "https://github.com/wshobson/agents/blob/7e2fb559cf4b824b27f1fec49fe88f7511066d26/plugins/backend-development/skills/api-design-principles/SKILL.md",
+      "revision": "7e2fb559cf4b824b27f1fec49fe88f7511066d26",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: New or breaking REST/GraphQL contract",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-wsh-postgres",
+      "url": "https://github.com/wshobson/agents/blob/7e2fb559cf4b824b27f1fec49fe88f7511066d26/plugins/database-design/skills/postgresql-table-design/SKILL.md",
+      "revision": "7e2fb559cf4b824b27f1fec49fe88f7511066d26",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: Postgres schema/index/constraint or online migration decisions",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-wsh-async-python",
+      "url": "https://github.com/wshobson/agents/blob/7e2fb559cf4b824b27f1fec49fe88f7511066d26/plugins/python-development/skills/async-python-patterns/SKILL.md",
+      "revision": "7e2fb559cf4b824b27f1fec49fe88f7511066d26",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: Python asyncio cancellation, concurrency, deadlines or IO lifecycle",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-vercel-react",
+      "url": "https://github.com/vercel-labs/agent-skills/blob/1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62/skills/react-best-practices/SKILL.md",
+      "revision": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "license": "skill-level license; verify each skill",
+      "used_for": "Optional candidate and original CDF2 methodology: React/Next rendering, loading waterfall, caching, performance",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-vercel-composition",
+      "url": "https://github.com/vercel-labs/agent-skills/blob/1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62/skills/composition-patterns/SKILL.md",
+      "revision": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "license": "skill-level license; verify each skill",
+      "used_for": "Optional candidate and original CDF2 methodology: Component API design with actual boolean prop or reuse complexity",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-vercel-web-guidelines",
+      "url": "https://github.com/vercel-labs/agent-skills/blob/1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62/skills/web-design-guidelines/SKILL.md",
+      "revision": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "license": "skill-level license; verify each skill",
+      "used_for": "Optional candidate and original CDF2 methodology: Explicit UI accessibility or interface guideline audit",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-anthropic-frontend-design",
+      "url": "https://github.com/anthropics/skills/blob/ca45fc496a3436251f191354091d557da31c15b5/skills/frontend-design/SKILL.md",
+      "revision": "ca45fc496a3436251f191354091d557da31c15b5",
+      "license": "individual skill license; verify before redistribution",
+      "used_for": "Optional candidate and original CDF2 methodology: Greenfield branded design or substantial redesign needing visual direction",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-superpowers-systematic-debugging",
+      "url": "https://github.com/obra/superpowers/blob/22f0b463e7a5e579904dd6211a520321035526f7/skills/systematic-debugging/SKILL.md",
+      "revision": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: Multiple plausible causes, repeated failures, complex environment",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-wsh-parallel-debugging",
+      "url": "https://github.com/wshobson/agents/blob/7e2fb559cf4b824b27f1fec49fe88f7511066d26/plugins/agent-teams/skills/parallel-debugging/SKILL.md",
+      "revision": "7e2fb559cf4b824b27f1fec49fe88f7511066d26",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: Independent rival hypotheses with bounded read-only workstreams",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-trailofbits-differential-review",
+      "url": "https://github.com/trailofbits/skills/blob/470419e16f97e112d01fc32f4898aea1755015d9/plugins/differential-review/skills/differential-review/SKILL.md",
+      "revision": "470419e16f97e112d01fc32f4898aea1755015d9",
+      "license": "CC BY-SA 4.0 repository; follow individual license where applicable",
+      "used_for": "Optional candidate and original CDF2 methodology: Security-sensitive diff, privilege/data integrity change or audit",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-superpowers-requesting-review",
+      "url": "https://github.com/obra/superpowers/blob/22f0b463e7a5e579904dd6211a520321035526f7/skills/requesting-code-review/SKILL.md",
+      "revision": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: Coordination of meaningful independent code review",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-wsh-multi-reviewer",
+      "url": "https://github.com/wshobson/agents/blob/7e2fb559cf4b824b27f1fec49fe88f7511066d26/plugins/agent-teams/skills/multi-reviewer-patterns/SKILL.md",
+      "revision": "7e2fb559cf4b824b27f1fec49fe88f7511066d26",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: Large consequential changes requiring separate security/compatibility/performance perspectives",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-superpowers-verification-before-completion",
+      "url": "https://github.com/obra/superpowers/blob/22f0b463e7a5e579904dd6211a520321035526f7/skills/verification-before-completion/SKILL.md",
+      "revision": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: High-stakes or multi-check completion evidence",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-wsh-python-testing",
+      "url": "https://github.com/wshobson/agents/blob/7e2fb559cf4b824b27f1fec49fe88f7511066d26/plugins/python-development/skills/python-testing-patterns/SKILL.md",
+      "revision": "7e2fb559cf4b824b27f1fec49fe88f7511066d26",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: Complex Python tests, pytest fixtures, mocking and integration setup",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-anthropic-doc-coauthoring",
+      "url": "https://github.com/anthropics/skills/blob/ca45fc496a3436251f191354091d557da31c15b5/skills/doc-coauthoring/SKILL.md",
+      "revision": "ca45fc496a3436251f191354091d557da31c15b5",
+      "license": "individual skill license; verify before redistribution",
+      "used_for": "Optional candidate and original CDF2 methodology: Substantial design doc, RFC, proposal or complex stakeholder-facing spec",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-vercel-writing-guidelines",
+      "url": "https://github.com/vercel-labs/agent-skills/blob/1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62/skills/writing-guidelines/SKILL.md",
+      "revision": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "license": "skill-level license; verify each skill",
+      "used_for": "Optional candidate and original CDF2 methodology: User explicitly requests editorial voice/style audit",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-superpowers-executing-plans",
+      "url": "https://github.com/obra/superpowers/blob/22f0b463e7a5e579904dd6211a520321035526f7/skills/executing-plans/SKILL.md",
+      "revision": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: Large dependent task handled in one context with check-pointed stages",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-superpowers-parallel-agents",
+      "url": "https://github.com/obra/superpowers/blob/22f0b463e7a5e579904dd6211a520321035526f7/skills/dispatching-parallel-agents/SKILL.md",
+      "revision": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "license": "MIT",
+      "used_for": "Optional candidate and original CDF2 methodology: At least two independent workstreams and non-overlapping ownership",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-jjenksy-explain-code",
+      "url": "https://github.com/jjenksy/agent-skills/blob/91bfa1a993ec9a246beaf9adbf8a532c5c27c66a/explain-code/SKILL.md",
+      "revision": "91bfa1a993ec9a246beaf9adbf8a532c5c27c66a",
+      "license": "unverified: review before installation",
+      "used_for": "Optional candidate and original CDF2 methodology: User explicitly wants richer diagrams/analogies for code explanation",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-think-before-code-concept-coach",
+      "url": "https://github.com/Far-200/think-before-code/blob/92318e2094f714d7038910232627cd7e97035fce/skills/concept-coach/SKILL.md",
+      "revision": "92318e2094f714d7038910232627cd7e97035fce",
+      "license": "unverified: review before installation",
+      "used_for": "Optional candidate and original CDF2 methodology: User requests Socratic concept practice or exercises",
+      "installation": "optional; install separately after review; do not vendor or auto-install",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-openai-docs",
+      "url": "https://learn.chatgpt.com/docs/build-skills",
+      "revision": null,
+      "license": "first-party runtime capability; availability varies",
+      "used_for": "Optional candidate and original CDF2 methodology: Explicit model policy review needing current official specs or plan limits",
+      "installation": "discover available runtime skill; otherwise use official docs directly",
+      "verification": "Source revision and license reported by the user-supplied CDF2 plan; not independently revalidated in this implementation. No upstream skill text redistributed."
+    },
+    {
+      "id": "cdf2-user-proposal",
+      "url": "user-supplied:CDF2_COMPLETE.zip",
+      "revision": "sha256:0a4b0ea509a9cfdb656938291de2d96788f973a7804765844e7c7f755544433e",
+      "license": "User-supplied project design; community works retain their own terms",
+      "used_for": "Imported architecture and original proposed CDF skills; canonical implementation source is skills/cdf-*/",
+      "installation": "project guidance only",
+      "verification": "All supplied archive duplicates and skill/reference appendices byte-compared before adaptation."
+    },
+    {
+      "id": "cdf2-codex-subagents-official",
+      "url": "https://learn.chatgpt.com/docs/agent-configuration/subagents",
+      "revision": "Official page inspected 2026-11-05; mutable documentation",
+      "license": "Documentation reference; no text copied",
+      "used_for": "Verified required native agent fields, model precedence and inherited permissions.",
+      "installation": "research only",
+      "verification": "Page fetched during implementation, not just a search snippet."
+    },
+    {
+      "id": "cdf2-codex-skills-official",
+      "url": "https://learn.chatgpt.com/docs/build-skills",
+      "revision": "Official page inspected 2026-11-05; mutable documentation",
+      "license": "Documentation reference; no text copied",
+      "used_for": "Verified explicit-only invocation metadata and discovery guidance.",
+      "installation": "research only",
+      "verification": "Page fetched during implementation, not just a search snippet."
     }
   ]
 }
