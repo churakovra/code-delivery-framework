@@ -1,6 +1,6 @@
 # CDF 2.0 implementation status
 
-Updated 2026-11-06. The follow-up installer, scoring, journal-validation and scenario-coverage repairs are implemented; deterministic checks and live acceptance are reported separately. This remains **2.0.0.dev0**, not a released or fully runtime-evaluated CDF2. The supplied proposal is the design record; current executable code and `skills/cdf-*/` are the implementation source. See [completion plan](COMPLETION_PLAN.md).
+Updated 2026-11-06. The follow-up installer, scoring, journal-validation and scenario-coverage repairs are implemented; deterministic checks and live acceptance are reported separately. This remains **1.0.0**, not a released or fully runtime-evaluated CDF2. The supplied proposal is the design record; current executable code and `skills/cdf-*/` are the implementation source. See [completion plan](COMPLETION_PLAN.md).
 
 | Phase | Repository implementation | Remaining acceptance |
 | --- | --- | --- |

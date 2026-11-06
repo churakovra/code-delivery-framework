@@ -2,7 +2,7 @@
 
 CDF delivers the behavior agreed with the user through focused skills. The root works directly by default, reuses project code, resolves material requirements before dependent edits, and delegates bounded work when independent review or another concrete benefit warrants it.
 
-This checkout is **2.0.0.dev0**, not a released or benchmark-validated version. See the [implementation plan](docs/plans/cdf-2.0/README.md) and [current evidence and release gates](docs/plans/cdf-2.0/IMPLEMENTATION_STATUS.md). No subscription savings are claimed.
+This checkout is **1.0.0**, not a released or benchmark-validated version. See the [implementation plan](docs/plans/cdf-2.0/README.md) and [current evidence and release gates](docs/plans/cdf-2.0/IMPLEMENTATION_STATUS.md). The package version is 1.0.0; CDF 2.0 names, schema versions, managed markers, and plan paths retain their existing architecture identifiers. No subscription savings are claimed.
 
 ## Offline installation
 

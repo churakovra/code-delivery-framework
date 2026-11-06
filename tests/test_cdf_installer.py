@@ -25,7 +25,7 @@ def fake_bundle(root):
     for name in ('cdf_reviewer', 'cdf_diagnostician'):
         (templates / f'{name}.toml').write_text(f'name = "{name}"\ndescription = "Role"\ndeveloper_instructions = "Check changes"\n')
     (root / 'subskills.catalog.json').write_text(json.dumps({'candidates': {'codebase-memory-mcp': {'source_url': 'https://example.com', 'revision': 'a'*40, 'license_note': 'MIT'}}}))
-    (root / 'pyproject.toml').write_text('[project]\nversion = "2.0.0.dev0"\n')
+    (root / 'pyproject.toml').write_text('[project]\nversion = "1.0.0.dev0"\n')
 
 
 class InstallerTests(unittest.TestCase):
@@ -243,7 +243,7 @@ class InstallerTests(unittest.TestCase):
     def test_downgrade_from_newer_or_final_version_is_refused_without_writes(self):
         self.action('install')
         manifest = self.target / core.MANIFEST
-        for installed_version in ('2.9.0', '2.0.0'):
+        for installed_version in ('1.9.0', '1.0.0', '2.0.0.dev0', '2.9.0', '2.0.0'):
             with self.subTest(installed_version=installed_version):
                 value = json.loads(manifest.read_text())
                 value['framework_version'] = installed_version
@@ -260,12 +260,22 @@ class InstallerTests(unittest.TestCase):
 
     def test_forward_development_version_upgrade_is_allowed(self):
         self.action('install')
-        (self.src / 'pyproject.toml').write_text('[project]\nversion = "2.0.0.dev1"\n')
+        (self.src / 'pyproject.toml').write_text('[project]\nversion = "1.0.0.dev1"\n')
         self.assertEqual(self.action('upgrade')['state'], 'installed')
-        self.assertEqual(core.manifest_read(self.target, 'project')['framework_version'], '2.0.0.dev1')
-        (self.src / 'pyproject.toml').write_text('[project]\nversion = "2.0.0"\n')
+        self.assertEqual(core.manifest_read(self.target, 'project')['framework_version'], '1.0.0.dev1')
+        (self.src / 'pyproject.toml').write_text('[project]\nversion = "1.0.0"\n')
         self.assertEqual(self.action('upgrade')['state'], 'installed')
-        self.assertEqual(core.manifest_read(self.target, 'project')['framework_version'], '2.0.0')
+        self.assertEqual(core.manifest_read(self.target, 'project')['framework_version'], '1.0.0')
+
+    def test_current_release_installs_and_upgrades_as_one_point_zero(self):
+        (self.src / 'pyproject.toml').write_text('[project]\nversion = "1.0.0"\n')
+        self.assertEqual(core._version(ROOT), '1.0.0')
+        self.action('install')
+        manifest = core.manifest_read(self.target, 'project')
+        self.assertEqual(manifest['framework_version'], '1.0.0')
+        self.assertEqual(manifest['schema'], 2)
+        self.assertEqual(self.action('upgrade')['state'], 'installed')
+        self.assertEqual(self.action('uninstall')['state'], 'absent')
 
     def test_upgrade_extras_preserves_and_removes_owned_skills(self):
         self.action('install', enable=['learning'])

@@ -349,7 +349,7 @@ def manifest_read(root, scope):
     try:
         m = json.loads(raw)
         required = {'schema', 'framework_version', 'scope', 'source_revision', 'selected_extras', 'state', 'owned_files', 'managed_blocks', 'preserved_preimages', 'transaction'}
-        if not isinstance(m, dict) or not required.issubset(m) or set(m) - required - {'created_directories'} or m['schema'] != 2 or m['scope'] != scope or not re.fullmatch(r'2\.\d+\.\d+(?:\.dev\d+|[-+][A-Za-z0-9.-]+)?', m['framework_version']) or not isinstance(m['source_revision'], str) or not m['source_revision']:
+        if not isinstance(m, dict) or not required.issubset(m) or set(m) - required - {'created_directories'} or m['schema'] != 2 or m['scope'] != scope or not re.fullmatch(r'[12]\.\d+\.\d+(?:\.dev\d+|[-+][A-Za-z0-9.-]+)?', m['framework_version']) or not isinstance(m['source_revision'], str) or not m['source_revision']:
             raise ValueError('unsupported manifest fields or scope')
         if m['state'] not in ('installed', 'partial', 'recovery-required', 'conflict') or not isinstance(m['selected_extras'], list) or len(set(m['selected_extras'])) != len(m['selected_extras']) or not set(m['selected_extras']) <= set(EXTRAS):
             raise ValueError('invalid state or extras')
@@ -571,7 +571,7 @@ def changes_plan(root, scope, action, extras=(), src=ROOT, release_modified_skil
                                 preserved_preimages=preimages if keep_block else {})
         else:
             owned = {op['path']: {'sha256': op['after_sha256'], 'mode': op['_new_mode']} for op in operations if op['path'] != agents and op['_after'] is not None}
-            new_manifest = {'schema': 2, 'framework_version': '2.0.0', 'scope': scope,
+            new_manifest = {'schema': 2, 'framework_version': _version(src), 'scope': scope,
                             'source_revision': source_identity, 'selected_extras': sorted(extras),
                             'state': 'installed', 'owned_files': owned,
                             'managed_blocks': {agents: {'start_marker': START.decode(), 'end_marker': END.decode(), 'sha256': digest(block)}},
@@ -580,7 +580,7 @@ def changes_plan(root, scope, action, extras=(), src=ROOT, release_modified_skil
 
 
 def _version_key(value):
-    """Return a comparable v2 version; reject forms we cannot safely order.
+    """Return a comparable framework version; reject forms we cannot safely order.
 
     Development releases precede alpha, beta, release candidates and final
     releases of the same numeric version. Local build metadata does not change
@@ -589,7 +589,7 @@ def _version_key(value):
     if not isinstance(value, str):
         raise ValueError('version must be a string')
     match = re.fullmatch(
-        r'(2)\.(\d+)\.(\d+)(?:(?:\.|-)(dev|a|b|rc)(\d+))?(?:\+[A-Za-z0-9.-]+)?',
+        r'([12])\.(\d+)\.(\d+)(?:(?:\.|-)(dev|a|b|rc)(\d+))?(?:\+[A-Za-z0-9.-]+)?',
         value,
     )
     if not match:
@@ -603,7 +603,7 @@ def _version(src):
     try:
         value = tomllib.loads((src / 'pyproject.toml').read_text())['project']['version']
         _version_key(value)
-        if not re.fullmatch(r'2\.\d+\.\d+(?:\.dev\d+|[-+][A-Za-z0-9.-]+)?', value):
+        if not re.fullmatch(r'[12]\.\d+\.\d+(?:\.dev\d+|[-+][A-Za-z0-9.-]+)?', value):
             raise ValueError('version does not match the installed manifest contract')
         return value
     except (OSError, KeyError, ValueError, tomllib.TOMLDecodeError) as exc:
