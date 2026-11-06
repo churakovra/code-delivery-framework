@@ -8,4 +8,4 @@ The evaluation harness compares bare and installed conditions. Fake adapters exe
 
 No verified sandbox provider is configured for executing untrusted adapters or generated fixture code. Live execution requires explicit trust and model-run flags. No subscription savings have been measured.
 
-CI targets Ubuntu/macOS, Python 3.11/3.13 and Node 22. Local checks do not prove a remote CI run or branch protection. Release and publication require explicit authorization and fresh acceptance evidence.
+No GitHub Actions workflows are configured. Local checks do not establish branch protection. Release and publication require explicit authorization and fresh acceptance evidence.
