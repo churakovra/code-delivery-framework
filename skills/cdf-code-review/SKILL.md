@@ -8,14 +8,14 @@ description: Review the actual diff or change for concrete correctness, contract
 Establish exact baseline, branch/commit/PR or working-tree diff, acceptance and change ownership. Independent review must be done by a separate actor/context that did not implement the changes. A master self-check is valuable but must not be called independent.
 
 ## Method
-1. Inspect actual changed code, surrounding callers, contracts, tests and relevant history. Challenge whether reported tests exercise affected production behavior.
-2. Trace high-risk paths: authorization, monetary/data integrity, migrations, concurrency, secret handling, external side effects, serialization and failure recovery as applicable. Do not infer risk from line count alone.
+1. Inspect actual changed code, surrounding callers, contracts, tests and relevant history. Use the original complaint, accepted constraints, unsuccessful attempts and evidence limits when relevant. Challenge whether reported tests detect the original problem and whether the patch changes unrelated behavior. Justify weakened assertions and check that a meaningful regression signal remains; lower thresholds can be valid but are not evidence by themselves.
+2. For added or changed scripts, plugins, callbacks and other invoked components, trace the actual production caller. Check arguments, working directory, environment, inputs and exit/output semantics; verify that supporting tests exercise the same invocation contract. Trace high-risk paths: authorization, monetary/data integrity, migrations, concurrency, secret handling, external side effects, serialization and failure recovery as applicable. Do not infer risk from line count alone.
 3. For every finding include severity, actual file/line or symbol, triggering scenario, consequence and minimum actionable correction. Prefer correctness and regression defects over opinions about naming or style.
 4. Validate potential findings against source; explicitly distinguish plausible concern from demonstrated defect. Do not rubber-stamp automated output or invent vulnerabilities.
 5. Review substantive repairs on the updated diff. Keep reviewer read-only; return problems to owner for fixes.
 
 ## Exit
-Concise findings in severity order, inspected scope, test-evidence gaps, and limitations. Zero findings does not equal proof of correctness.
+Concise findings in severity order, inspected scope, test-evidence gaps, and limitations. Distinguish integration boundaries exercised from those only inspected; passing component tests do not establish integration correctness. Zero findings does not equal proof of correctness or product acceptance. A compatibility-only review must state that limit; report concrete coverage gaps without inventing product-design requirements.
 
 ## Optional subskills
 Resolve a candidate ID only when needed through `.codex/cdf/subskills.catalog.json` in the installation target or configured home. Confirm native discovery and use the local fallback when absent; never install automatically.

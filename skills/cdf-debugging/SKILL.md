@@ -9,7 +9,7 @@ description: Diagnose reproducible defects, failing tests, unexpected behavior o
 3. Trace the first divergence between failing and working paths. List plausible causes; rank by evidence and choose a discriminating experiment instead of speculative edits.
 4. Identify root cause or the narrowest remaining uncertainty. Before repair, check whether any material choice about user-facing behavior must go to `cdf-requirements`.
 5. When authorized, implement the smallest causal fix. Verify original symptom, adjacent edge cases and no unintended behavior changes.
-6. After two unsuccessful repairs of the *same* failure, stop repeating the same premise; propose an independent diagnosis or a different experiment. Escalate without dumping an unbounded transcript.
+6. Count unsuccessful repairs of the same observable outcome across turns, including user reports that it remains wrong despite passing tests; distinguish new requirements. After the first rejection, reconcile the observation with prior evidence. After two unsuccessful repairs, run a different discriminating experiment or obtain independent diagnosis before another dependent edit. Keep symptom, attempts, failed hypotheses, accepted constraints and next experiment in context; write a file only for continuity. Continue useful independent work; a subagent is not required.
 
 ## Reference
 - `references/diagnostic-experiments.md` for multiple competing hypotheses or nondeterministic behavior.
