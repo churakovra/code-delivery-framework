@@ -23,7 +23,7 @@ def inspect_case(case, kind, *, platform_name=None, find_executable=None):
         'missing_prerequisites': missing,
         'required_executables': list(required),
         'required_runtime_controls': controls,
-        'native_resume_required': kind == 'codex' and bool(case.get('scripted_answers')),
+        'native_resume_required': kind == 'codex' and bool(case.get('scripted_answers') or case.get('feedback_turns')),
         'runtime_protocol': 'Codex JSON events and resume' if kind == 'codex' else 'external adapter protocol',
         'runtime_version_validation': 'UNVERIFIED',
         'note': 'Executable presence does not verify version compatibility or actual controls. '

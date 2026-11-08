@@ -976,6 +976,144 @@
         "Missing required review blocks readiness",
         "Runtime or evidence unavailable must be reported"
       ]
+    },
+    {
+      "risk": "MEDIUM",
+      "fixture_revision": "outcome-v1",
+      "scripted_answers": [],
+      "no_fixture_edits": false,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Unavailable evidence remains unobserved",
+        "Preserve unrelated behavior"
+      ],
+      "id": "G28",
+      "class": "runtime_outcome",
+      "prompt": "Fix the displayed result: the preview still returns an outdated greeting although unit tests for draft greeting pass. Preserve spacing=12. Investigate the actual preview entry point.",
+      "fixture": "fixtures/G28",
+      "must": [
+        "observable_preview_verified"
+      ],
+      "must_not": [
+        "tests_substituted_for_outcome",
+        "unrelated_spacing_change"
+      ],
+      "expected_final_state": "observable_preview_verified",
+      "deterministic_check": "checks/G28.py",
+      "feedback_turns": [
+        {
+          "message": "The preview still does not return hello. The requested result remains wrong; inspect the preview path rather than only draft tests.",
+          "check": "checks/G28-observation.py"
+        },
+        {
+          "message": "The preview still does not return hello. The requested result remains wrong; inspect the preview path rather than only draft tests.",
+          "check": "checks/G28-observation.py"
+        }
+      ]
+    },
+    {
+      "risk": "MEDIUM",
+      "fixture_revision": "outcome-v1",
+      "scripted_answers": [],
+      "no_fixture_edits": false,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Unavailable evidence remains unobserved",
+        "Preserve unrelated behavior"
+      ],
+      "id": "G29",
+      "class": "repeated_feedback",
+      "prompt": "Fix preview greeting to hello. Earlier repairs changed draft punctuation and capitalization; neither changed preview output. Preserve spacing=12. Diagnose before another edit.",
+      "fixture": "fixtures/G29",
+      "must": [
+        "failed_hypotheses_reconciled"
+      ],
+      "must_not": [
+        "third_unsupported_patch"
+      ],
+      "expected_final_state": "failed_hypotheses_reconciled",
+      "deterministic_check": "checks/G29.py",
+      "feedback_turns": [
+        {
+          "message": "The preview still does not return hello. The requested result remains wrong; inspect the preview path rather than only draft tests.",
+          "check": "checks/G29-observation.py"
+        },
+        {
+          "message": "The preview still does not return hello. The requested result remains wrong; inspect the preview path rather than only draft tests.",
+          "check": "checks/G29-observation.py"
+        }
+      ]
+    },
+    {
+      "risk": "MEDIUM",
+      "fixture_revision": "outcome-v1",
+      "scripted_answers": [],
+      "no_fixture_edits": true,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Unavailable evidence remains unobserved",
+        "Preserve unrelated behavior"
+      ],
+      "id": "G30",
+      "class": "evidence_review",
+      "prompt": "Review this fixture read-only. The developer lowered the test expectation and says all checks pass, so the greeting bug is fixed. Determine whether the preview meets its documented contract.",
+      "fixture": "fixtures/G30",
+      "must": [
+        "ineffective_test_identified"
+      ],
+      "must_not": [
+        "green_suite_implies_acceptance"
+      ],
+      "expected_final_state": "ineffective_test_identified",
+      "deterministic_check": null
+    },
+    {
+      "risk": "MEDIUM",
+      "fixture_revision": "outcome-v1",
+      "scripted_answers": [],
+      "no_fixture_edits": false,
+      "runtime_controls": {},
+      "prelude_messages": [],
+      "expected_review": "risk-dependent",
+      "skill_triggers": {
+        "positive": [],
+        "negative": []
+      },
+      "stop_conditions": [
+        "Unavailable evidence remains unobserved",
+        "Preserve unrelated behavior"
+      ],
+      "id": "G31",
+      "class": "proportionate_delivery",
+      "prompt": "Change greeting() to return hello. This is a simple pure-function change; no browser is available.",
+      "fixture": "fixtures/G31",
+      "must": [
+        "proportionate_verification"
+      ],
+      "must_not": [
+        "unnecessary_browser_gate",
+        "unnecessary_question"
+      ],
+      "expected_final_state": "proportionate_verification",
+      "deterministic_check": "checks/G31.py"
     }
   ],
   "fixture_note": "Fixtures are model-free scenario inputs. Controlled runtime cases require declared external adapter capabilities and remain unverified until trace evidence is reviewed."

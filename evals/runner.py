@@ -254,6 +254,9 @@ def preflight(case_id, conditions, adapter, kind, protocol='prompt-v1', declared
     if kind not in ('external', 'codex'): raise ValueError('Unknown adapter kind')
     if protocol not in ('prompt-v1', 'json-dialogue-v1'):
         raise ValueError('Unknown adapter protocol')
+    feedback = _feedback_turns(case)
+    if feedback and (kind != 'codex' or protocol != 'prompt-v1' or case.get('scripted_answers')):
+        raise ValueError('Feedback requires native Codex without scripted answers')
     answers = case.get('scripted_answers', [])
     if not isinstance(answers, list) or any(not isinstance(answer, str) for answer in answers):
         raise ValueError('Scripted answers must be a list of strings')
@@ -295,7 +298,7 @@ def preflight(case_id, conditions, adapter, kind, protocol='prompt-v1', declared
             'adapter': str(adapter), 'adapter_kind': kind, 'adapter_protocol': protocol,
             'scripted_answer_count': len(answers), 'runtime_controls': controls,
             'dialogue_capability': ('operator_asserted_unverified' if protocol == 'json-dialogue-v1' else
-                                    'native_resume_unverified' if kind == 'codex' and answers else 'unsupported'),
+                                    'native_resume_unverified' if kind == 'codex' and (answers or feedback) else 'unsupported'),
             'runtime_version': 'unverified', 'model_observed': None,
             'capabilities': 'unverified', 'limitations': [
                 'Adapter executable and generated fixture code require an external OS sandbox.',
@@ -304,6 +307,59 @@ def preflight(case_id, conditions, adapter, kind, protocol='prompt-v1', declared
                 'External dialogue support is operator-asserted; actual answer delivery is not verified.',
                 'Native resume requires an observed session ID and question; compaction and reviewer controls require an external adapter.',
                 'Automated trace grading is not implemented.']}
+
+
+def _feedback_turns(case):
+    turns = case.get('feedback_turns', [])
+    if not isinstance(turns, list) or len(turns) > 4:
+        raise ValueError('Feedback turns must be a list of at most four observations')
+    for turn in turns:
+        if not isinstance(turn, dict) or set(turn) != {'message', 'check'} or not isinstance(turn['message'], str) or not turn['message'].strip() or not isinstance(turn['check'], str):
+            raise ValueError('Invalid feedback turn')
+        path = (EVALS / turn['check']).resolve()
+        if not path.is_relative_to((EVALS / 'checks').resolve()) or not path.is_file():
+            raise ValueError('Missing or unsafe feedback check')
+    return turns
+
+
+def _native_feedback(adapter, workspace, env, folder, initial, feedback, timeout, model, effort, baseline):
+    state, code, stdout, stderr, elapsed = initial
+    outputs = [(stdout, stderr)]
+    if state != 'completed' or code != 0: return initial, outputs
+    thread, _ = _native_thread_and_question(stdout)
+    if not thread:
+        return ('runner-error', None, stdout, stderr + b'\nMissing valid thread.started ID.\n', elapsed), outputs
+    for index, turn in enumerate(feedback, 1):
+        prefix = folder / 'turns' / f'{index}.feedback'
+        oracle = 'import runpy,sys\ncheck=sys.argv.pop(1)\ntry: runpy.run_path(check,run_name="__main__")\nexcept AssertionError: sys.exit(42)'
+        observed = _process([sys.executable, '-I', '-c', oracle, str((EVALS / turn['check']).resolve()), str(workspace)],
+                            EVALS, env, '', timeout)
+        obs_state, obs_code, obs_out, obs_err, duration = observed
+        elapsed += duration
+        _save(Path(str(prefix) + '.observation.stdout.txt'), obs_out)
+        _save(Path(str(prefix) + '.observation.stderr.txt'), obs_err)
+        _json(Path(str(prefix) + '.observation.json'), {'state': obs_state, 'exit_code': obs_code,
+              'check': turn['check'], 'warranted': obs_state == 'completed' and obs_code == 42})
+        if obs_state != 'completed' or obs_code not in (0, 42):
+            return ('runner-error', None, stdout, stderr + b'\nFeedback observation failed.\n', elapsed), outputs
+        if obs_code == 0: break
+        current = _snapshot(workspace, skip_git=True)
+        _json(Path(str(prefix) + '.before.json'), _snapshot_metadata(current))
+        _save(Path(str(prefix) + '.before.diff'), _diff(baseline, current))
+        _save(Path(str(prefix) + '.stdin.txt'), turn['message'])
+        command = [str(adapter), 'exec', 'resume', thread, '-', '--json', '--ignore-user-config',
+                   '--skip-git-repo-check', '-c', 'sandbox_mode="workspace-write"']
+        if model: command += ['--model', model]
+        if effort: command += ['-c', 'model_reasoning_effort=' + json.dumps(effort)]
+        _json(Path(str(prefix) + '.command.json'), {'argv': command, 'timeout_seconds': timeout})
+        state, code, out, err, duration = _process(command, workspace, env, turn['message'], timeout)
+        _json(Path(str(prefix) + '.delivery.json'), {'attempted': True, 'state': state, 'exit_code': code,
+              'completed': state == 'completed' and code == 0})
+        elapsed += duration; outputs.append((out, err))
+        stdout += b'\n' + out; stderr += b'\n' + err
+        _json(Path(str(prefix) + '.after.json'), _snapshot_metadata(_snapshot(workspace, skip_git=True)))
+        if state != 'completed' or code != 0: break
+    return (state, code, stdout, stderr, elapsed), outputs
 
 
 def _native_thread_and_question(stdout):
@@ -382,7 +438,7 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
               'requested_runtime_controls': case.get('runtime_controls', {}),
               'declared_adapter_capabilities': declared_capabilities,
               'dialogue_capability': ('operator_asserted_unverified' if protocol == 'json-dialogue-v1' else
-                                      'native_resume_unverified' if kind == 'codex' and case.get('scripted_answers') else 'unsupported'),
+                                      'native_resume_unverified' if kind == 'codex' and (case.get('scripted_answers') or case.get('feedback_turns')) else 'unsupported'),
               'agent_availability': 'unverified', 'skill_discovery': 'unverified',
               'codebase_memory': 'not_installed_or_probed',
               'parity_limitations': ['Runtime model, tools and agent discovery are not verified.'],
@@ -390,7 +446,7 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
         command = [str(adapter)]
         if kind == 'codex':
             command += ['exec', '--json']
-            if not case.get('scripted_answers'): command += ['--ephemeral']
+            if not (case.get('scripted_answers') or case.get('feedback_turns')): command += ['--ephemeral']
             command += ['--ignore-user-config', '--skip-git-repo-check',
                         '--sandbox', 'workspace-write']
             if model: command += ['--model', model]
@@ -417,6 +473,13 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
             for index,(turn_out,turn_err) in enumerate(turns):
                 _save(turn_folder/f'{index}.stdout.ndjson',turn_out)
                 _save(turn_folder/f'{index}.stderr.txt',turn_err)
+        elif kind == 'codex' and case.get('feedback_turns'):
+            turn_folder = folder / 'turns'; turn_folder.mkdir()
+            (state,code,stdout,stderr,elapsed), turns = _native_feedback(
+                adapter,workspace,env,folder,initial,_feedback_turns(case),timeout,model,effort,before)
+            for index,(turn_out,turn_err) in enumerate(turns):
+                _save(turn_folder/f'{index}.stdout.ndjson',turn_out)
+                _save(turn_folder/f'{index}.stderr.txt',turn_err)
         else:
             state,code,stdout,stderr,elapsed=initial
         ended_at = datetime.now(timezone.utc).isoformat()
@@ -428,6 +491,12 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
         _json(folder / 'workspace-after.json', _snapshot_metadata(after))
         _save(folder / 'final.diff', _diff(before, after))
         checks = []
+        if case.get('feedback_turns'):
+            observations = list((folder / 'turns').glob('*.feedback.delivery.json')) if (folder / 'turns').exists() else []
+            delivered = sum(json.loads(p.read_text())['completed'] for p in observations)
+            checks.append({'name': 'feedback_sequence_observed',
+                           'status': 'PASS' if delivered == len(case['feedback_turns']) else 'NOT_OBSERVED',
+                           'evidence': f'{delivered}/{len(case["feedback_turns"])} corrective feedback turns completed after trusted observations.'})
         if before_answers is not None:
             checks.append({'name':'workspace_unchanged_before_answers',
                            'status':'PASS' if before_answers == before else 'FAIL',
