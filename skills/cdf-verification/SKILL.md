@@ -4,12 +4,13 @@ description: Verify an implementation or claim using fresh project-authoritative
 ---
 # Evidence-based verification
 
-1. Translate each acceptance criterion and changed contract into the smallest credible observable check. Include failure and regression cases when relevant; use integration checks for persistent/external boundaries.
+1. Translate each acceptance criterion and changed contract into the smallest credible check at the boundary of the claim. Invariant tests alone do not establish an experiential outcome. Include failure and regression cases when relevant; use integration checks for persistent/external boundaries.
 2. Discover authoritative commands from project tooling, CI and docs. Prefer affected tests and appropriate type/lint/build checks; run broader suites when scope/risk makes them informative or CI requires them.
-3. Read fresh output, exit code, environment and relevant revision. Distinguish checks that passed, failed, were skipped, or could not be run. A prior agent's summary is not raw evidence.
+3. Read fresh output, exit code, environment and relevant revision. If a rerun passes, retain the original failure and investigate intermittency with controlled inputs or a baseline comparison. Distinguish checks that passed, failed, were skipped, or could not be run. A prior agent's summary is not raw evidence.
 4. Check that an assertion could detect the claimed regression; avoid tests that only mirror the implementation. When appropriate, first see the test fail against the broken behavior.
-5. For UI, consider a bounded actual-browser/visual check; for migrations, compatibility or security-sensitive paths, verify relevant integration guarantees.
-6. Do not modify product code in a read-only verification assignment. Return failures to the implementer with a reproducible minimal report.
+5. For experiential UI claims, inspect rendered behavior where feasible; for API, persistence, compatibility or security claims, check the relevant integration boundary. When source and observed behavior disagree, verify the active version, configuration, data and reproduction path before further tuning. Do not impose browser checks on nonvisual work.
+6. Report implementation, passed technical checks, observed outcome and remaining human judgment distinctly without a mandatory status template. Unavailable tools leave a precise evidence gap; continue independent checks.
+7. Do not modify product code in a read-only verification assignment. Return failures to the implementer with a reproducible minimal report.
 
 ## Reference
 - `references/test-selection.md` for selecting unit/integration/contract/E2E layers.

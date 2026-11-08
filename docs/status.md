@@ -9,3 +9,5 @@ The evaluation harness compares bare and installed conditions. Fake adapters exe
 No verified sandbox provider is configured for executing untrusted adapters or generated fixture code. Live execution requires explicit trust and model-run flags. No subscription savings have been measured.
 
 No GitHub Actions workflows are configured. Local checks do not establish branch protection. Release and publication require explicit authorization and fresh acceptance evidence.
+
+Outcome-feedback guidance and G28–G31 fixtures have been added. Native bounded feedback support distinguishes unresolved observations from oracle errors and preserves clarification gating. Offline validation, the isolated full suite (130 tests), temporary installation lifecycle and independent review passed. Model-free checks exercise mechanics; live behavioral improvement, matched comparisons and the proposed 18-run pilot remain unverified. The developer's live global installation has not been upgraded.

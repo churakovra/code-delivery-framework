@@ -10,3 +10,5 @@
 | Documentation-only | Link/path/command checks as relevant | Do not run unrelated application suites |
 
 Tests should fail for the bug being addressed, not just assert current implementation details. Prefer existing fixtures and production paths. Do not impose a full new testing framework to cover a tiny change. A passing mocked test does not prove behavior at an unmocked boundary. Report the checked revision, commands, exit codes and skipped/unavailable tests.
+
+Select checks at the boundary of the claim. Geometry bounds, replay and local reachability do not establish perceived difficulty or whole-course playability. Likewise a mocked client response does not establish a real API or persistence contract. Use a bounded production-path observation and name sample limits. When a failed check passes on retry, retain both results and use controlled inputs or a baseline to investigate; do not report only the successful rerun.

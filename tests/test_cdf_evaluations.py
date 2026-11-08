@@ -34,6 +34,67 @@ class CDFEvaluationTests(unittest.TestCase):
         return subprocess.run([sys.executable, str(CLI), '--adapter', str(adapter), '--case', case,
                                '--conditions', *conditions, *(['--trusted-local-execution'] if '--allow-model-runs' in args else []), *args], capture_output=True, text=True)
 
+    def test_feedback_real_oracle_and_fake_cli_end_to_end(self):
+        for mode in ('repair', 'resolved', 'exception'):
+            with self.subTest(mode=mode):
+                folder = self.root / mode; folder.mkdir()
+                adapter = folder / 'adapter.py'
+                body = "import json,sys\nfrom pathlib import Path\nthread='9f227fe2-04a5-4d45-b073-49666d4745ae'\n"
+                body += "text=sys.stdin.read()\n"
+                body += "if sys.argv[1:3]==['exec','resume']:\n assert sys.argv[3]==thread\n Path('app.py').write_text(\"def preview(): return 'hello'\\nspacing=12\\n\")\n"
+                if mode == 'resolved':
+                    body += "else:\n Path('app.py').write_text(\"def preview(): return 'hello'\\nspacing=12\\n\")\n"
+                elif mode == 'exception':
+                    body += "else:\n Path('app.py').write_text('syntax error!')\n"
+                body += "print(json.dumps({'type':'thread.started','thread_id':thread}))\nprint(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':'Done.'}}))\n"
+                adapter.write_text('#!' + sys.executable + '\n' + body); adapter.chmod(0o755)
+                case = runner.load_case('G28')
+                runner.run_one(case, 'BASE', folder, adapter, 'codex', 0, 10)
+                run = folder / 'BASE'
+                observation = json.loads((run/'turns/1.feedback.observation.json').read_text())
+                record = json.loads((run/'run.json').read_text())
+                if mode == 'repair':
+                    self.assertTrue(observation['warranted'])
+                    self.assertTrue((run/'turns/1.feedback.stdin.txt').exists())
+                    self.assertFalse((run/'turns/2.feedback.stdin.txt').exists())
+                else:
+                    self.assertFalse((run/'turns/1.feedback.stdin.txt').exists())
+                if mode == 'exception': self.assertEqual(record['result'], 'RUNNER_ERROR')
+                from evals.evidence import verify_manifest
+                verify_manifest(run)
+
+    def test_native_feedback_observes_before_delivering_without_question(self):
+        folder = self.root / 'feedback'; (folder / 'turns').mkdir(parents=True)
+        workspace = self.root / 'workspace'; workspace.mkdir()
+        initial = ('completed', 0, b'{"type":"thread.started","thread_id":"9f227fe2-04a5-4d45-b073-49666d4745ae"}\n', b'', 0)
+        turn = {'message': 'Still wrong.', 'check': 'checks/G28.py'}
+        observation = ('completed', 42, b'', b'', 0)
+        resumed = ('completed', 0, b'fixed', b'', 0)
+        with mock.patch.object(runner, '_process', side_effect=[observation, resumed]) as process:
+            result, outputs = runner._native_feedback(Path('/adapter'), workspace, {}, folder, initial, [turn], 10, None, None, {})
+        self.assertEqual(result[0], 'completed')
+        self.assertEqual(process.call_args_list[1].args[0][3], '9f227fe2-04a5-4d45-b073-49666d4745ae')
+        self.assertEqual(len(outputs), 2)
+        self.assertTrue(json.loads((folder/'turns/1.feedback.observation.json').read_text())['warranted'])
+
+    def test_native_feedback_withholds_resolved_and_rejects_oracle_error(self):
+        for exit_code, expected in [(0, 'completed'), (1, 'runner-error')]:
+            with self.subTest(exit_code=exit_code):
+                folder = self.root / str(exit_code); (folder/'turns').mkdir(parents=True)
+                initial = ('completed', 0, b'{"type":"thread.started","thread_id":"9f227fe2-04a5-4d45-b073-49666d4745ae"}\n', b'', 0)
+                with mock.patch.object(runner, '_process', return_value=('completed', exit_code, b'', b'', 0)) as process:
+                    result, _ = runner._native_feedback(Path('/adapter'), self.root, {}, folder, initial, [{'message':'Still wrong', 'check':'checks/G28.py'}], 10, None, None, {})
+                self.assertEqual(result[0], expected)
+                self.assertEqual(process.call_count, 1)
+                self.assertFalse((folder/'turns/1.feedback.stdin.txt').exists())
+
+    def test_feedback_contract_is_bounded_and_external_rejected(self):
+        with self.assertRaises(ValueError): runner._feedback_turns({'feedback_turns': [{}] * 5})
+        with self.assertRaises(ValueError): runner._feedback_turns({'feedback_turns': [{'message':'x','check':'../runner.py'}]})
+        adapter = self.adapter('print("unused")')
+        with self.assertRaisesRegex(ValueError, 'native Codex'):
+            runner.preflight('G28', ['BASE'], adapter, 'external')
+
     def test_manifest_detects_unreferenced_trace_and_usage_tampering(self):
         from evals.evidence import write_manifest
         from scripts.compare_eval_runs import read_run
@@ -117,7 +178,7 @@ class CDFEvaluationTests(unittest.TestCase):
 
     def test_all_cases_have_fixture_and_checks_are_external(self):
         data = json.loads((ROOT/'evals/golden-cases.json').read_text())
-        self.assertEqual(len({x['id'] for x in data['cases']}), 27)
+        self.assertEqual(len({x['id'] for x in data['cases']}), 31)
         for case in data['cases']:
             with self.subTest(case=case['id']):
                 fixture = ROOT/'evals'/case['fixture']
