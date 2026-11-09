@@ -9,3 +9,5 @@
 **External clients:** Define timeouts, response validation, bounded retries and authentication. Do not retry non-idempotent writes blindly. Follow existing logging/metrics style without exposing secrets or personal payloads.
 
 **Checks:** Test observable endpoints and errors, real persistence constraints, relevant migration paths and event semantics. A mocked repository cannot prove database atomicity.
+
+Name the enforcing owner for each critical invariant and inspect alternative write paths. Check NULL/unique/FK and transaction semantics where relevant; use real DB evidence for a DB constraint claim. Include compatibility and rollback for a changed schema.

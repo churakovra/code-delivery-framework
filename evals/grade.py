@@ -10,7 +10,8 @@ import hashlib
 import json
 from pathlib import Path
 
-from .runner import RUBRIC_VERSION, _case_hash, _json, _usage, load_case, rubric_names, scored_status
+from .conditions import ALL_CONDITIONS, validate_guidance_identity
+from .runner import activation_rubric_hash, RUBRIC_VERSION, _case_hash, _json, _usage, load_case, rubric_names, scored_status
 from .evidence import verify_manifest, write_grade_manifest, verify_grade_manifest
 from cdf_runtime.contracts import validate_record
 
@@ -74,14 +75,17 @@ def grade(folder: Path, supplied):
     run = json.loads(run_bytes)
     case = load_case(run['case_id'])
     environment = json.loads((folder / 'environment.json').read_text())
+    validate_guidance_identity(folder, run['condition'], environment)
     timing = json.loads((folder / 'timing.json').read_text())
     if run['resource_measurement']['elapsed_seconds'] != timing['elapsed_seconds']:
         raise ValueError('Resource elapsed time disagrees with timing evidence')
     if run['resource_measurement'] != _usage((folder / 'stdout.ndjson').read_bytes(), environment.get('adapter_kind'), run['resource_measurement']['elapsed_seconds']):
         raise ValueError('Resource measurement disagrees with trace')
+    if run['condition'] == 'CANDIDATE_CDF' and environment.get('activation_rubric_sha256') != activation_rubric_hash(case, run['condition']):
+        raise ValueError('Candidate activation rubric changed since the run')
     if environment.get('case_sha256') != _case_hash(case):
         raise ValueError('The case or grading rubric changed since the run')
-    if run['condition'] not in ('BASE', 'CDF_20'):
+    if run['condition'] not in ALL_CONDITIONS:
         raise ValueError('Unknown condition')
     validate_record('eval-run', run)
     if supplied.get('schema') != 2 or supplied.get('rubric_version') != RUBRIC_VERSION or supplied.get('case_id') != run['case_id'] or supplied.get('condition') != run['condition']:
@@ -149,6 +153,7 @@ def load_graded(folder: Path):
     if assessment.get('source_manifest_sha256') != manifest_hash:
         raise ValueError('Graded source manifest changed')
     environment = json.loads((folder / 'environment.json').read_text())
+    validate_guidance_identity(folder, original['condition'], environment)
     timing = json.loads((folder / 'timing.json').read_text())
     if original['resource_measurement']['elapsed_seconds'] != timing['elapsed_seconds']:
         raise ValueError('Resource elapsed time disagrees with timing evidence')
@@ -165,6 +170,8 @@ def load_graded(folder: Path):
     if any(graded[k] != v for k, v in original.items() if k not in ('result', 'acceptance_checks', 'activation_result', 'activation_checks')):
         raise ValueError('Graded record changed source metadata')
     case = load_case(original['case_id'])
+    if original['condition'] == 'CANDIDATE_CDF' and environment.get('activation_rubric_sha256') != activation_rubric_hash(case, original['condition']):
+        raise ValueError('Candidate activation rubric changed since the run')
     behavior_names, activation_names = rubric_names(case, original['condition'])
     names = behavior_names + activation_names
     if set(names) != {c['name'] for c in assessment['assertions']}:

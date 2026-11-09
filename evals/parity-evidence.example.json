@@ -10,8 +10,15 @@
       "tools": "observed-tool-and-agent-availability-fingerprint",
       "permission_mode": "observed-sandbox-and-approval-mode",
       "evidence": [
-        {"path": "stdout.ndjson", "start_line": 1, "end_line": 1, "sha256": "replace-with-file-sha256"}
-      ]
+        {
+          "path": "stdout.ndjson",
+          "start_line": 1,
+          "end_line": 1,
+          "sha256": "replace-with-file-sha256"
+        }
+      ],
+      "network_policy": "observed-network-isolation-and-allowlist-policy",
+      "credentials_policy": "observed-credential-isolation-policy"
     }
   ]
 }

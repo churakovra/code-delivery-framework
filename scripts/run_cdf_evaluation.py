@@ -13,12 +13,14 @@ from evals import runner
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--case', required=True, help='Golden case ID, e.g. G01')
-    p.add_argument('--conditions', nargs='+', choices=runner.CONDITIONS, default=list(runner.CONDITIONS))
+    p.add_argument('--conditions', nargs='+', choices=runner.AVAILABLE_CONDITIONS, default=list(runner.CONDITIONS))
     p.add_argument('--adapter', type=Path, required=True, help='Absolute executable path')
     p.add_argument('--adapter-kind', choices=('external', 'codex'), default='external')
     p.add_argument('--adapter-protocol', choices=('prompt-v1', 'json-dialogue-v1'), default='prompt-v1',
                    help='Protocol implemented by the supplied adapter; dialogue capability is operator-asserted')
     p.add_argument('--adapter-capabilities', type=Path, help='External adapter capability declaration JSON')
+    p.add_argument('--legacy-snapshot', type=Path, help='Explicit frozen 1.1.0 guidance snapshot')
+    p.add_argument('--legacy-sha256', help='Independently selected SHA-256 of the legacy snapshot')
     p.add_argument('--output', type=Path, help='A new results directory')
     p.add_argument('--seed', type=int, default=0)
     p.add_argument('--timeout', type=int, default=300)
@@ -42,12 +44,13 @@ def main():
     try:
         declaration = json.loads(args.adapter_capabilities.read_text()) if args.adapter_capabilities else None
         if args.preflight:
-            result = runner.preflight(args.case, args.conditions, args.adapter, args.adapter_kind, args.adapter_protocol, declaration)
+            result = runner.preflight(args.case, args.conditions, args.adapter, args.adapter_kind, args.adapter_protocol, declaration, args.legacy_snapshot, args.legacy_sha256)
         else:
             result = runner.run(args.case, args.conditions, args.adapter, args.adapter_kind,
                                 args.output.resolve(), args.seed, args.timeout, args.model, args.effort,
                                 args.adapter_protocol, declaration,
-                                trusted_local_execution=args.trusted_local_execution)
+                                trusted_local_execution=args.trusted_local_execution,
+                                legacy_snapshot=args.legacy_snapshot, legacy_sha256=args.legacy_sha256)
     except (ValueError, OSError, RuntimeError, subprocess.SubprocessError) as exc:
         print(json.dumps({'error': str(exc)}), file=sys.stderr)
         return 2

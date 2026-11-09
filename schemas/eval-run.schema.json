@@ -30,7 +30,9 @@
     "condition": {
       "enum": [
         "BASE",
-        "CDF_20"
+        "CDF_20",
+        "LEGACY_CDF_11",
+        "CANDIDATE_CDF"
       ]
     },
     "seed": {

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline CDF2 skill/catalog/agent/contract checks; no model or network calls."""
+"""Offline skill/catalog/agent/contract checks; no model or network calls."""
 from __future__ import annotations
 
 import argparse
@@ -41,7 +41,7 @@ def validate_source(root=ROOT):
         for relative in re.findall(r'`(references/[^`]+\.md)`', text):
             if '..' in Path(relative).parts or not (p.parent / relative).is_file():
                 raise ValueError(f'{name}: unresolved local reference {relative}')
-        routes = text.split('## Optional subskills', 1)[1]
+        routes = text.split('## Optional subskills', 1)[1] if '## Optional subskills' in text else ''
         for key in re.findall(r'^- `([^`]+)`:', routes, re.M):
             if key not in candidates or name not in candidates[key]['cdf_skills']:
                 raise ValueError(f'{name}: unknown or unowned candidate {key}')

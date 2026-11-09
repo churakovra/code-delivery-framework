@@ -3,6 +3,7 @@ import json
 import subprocess
 import sys
 import tempfile
+import shutil
 from pathlib import Path
 import tomllib
 import unittest
@@ -14,9 +15,30 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ContractTests(unittest.TestCase):
+    def test_kernel_without_external_routes_still_validates_and_checks_references(self):
+        from scripts.validate_cdf import validate_source
+        from cdf_installer.core import parse_skill, CDFError
+        with tempfile.TemporaryDirectory() as folder:
+            target = Path(folder)
+            for name in ('skills', 'docs', 'templates'):
+                shutil.copytree(ROOT / name, target / name)
+            shutil.copyfile(ROOT / 'subskills.catalog.json', target / 'subskills.catalog.json')
+            kernel = target / 'skills/cdf/SKILL.md'
+            text = kernel.read_text().split('## Optional subskills', 1)[0] + 'Fallback: local delivery methods.\n'
+            kernel.write_text(text)
+            self.assertEqual(validate_source(target)['core_skills'], 10)
+            parse_skill(kernel, 'cdf')
+            reference = target / 'skills/cdf/references/quality-contract.md'
+            reference.unlink()
+            with self.assertRaisesRegex(ValueError, 'unresolved local reference'):
+                validate_source(target)
+            with self.assertRaises(CDFError) as caught:
+                parse_skill(kernel, 'cdf')
+            self.assertEqual(caught.exception.code, 'INVALID_BUNDLE')
+
     def test_source_contains_only_registered_skills(self):
         from scripts.validate_cdf import validate_source
-        self.assertEqual(validate_source()['core_skills'], 12)
+        self.assertEqual(validate_source()['core_skills'], 10)
         from cdf_registry import CORE, EXTRAS
         expected = set(CORE).union(*EXTRAS.values())
         self.assertEqual({p.name for p in (ROOT / 'skills').iterdir()}, expected)

@@ -1,13 +1,23 @@
 # Acceptance status
 
-Package version: **1.0.0**. The current source provides the offline installer, ownership and recovery lifecycle, 15 selectable skills, two agent templates, advisory policy resolution, and model-free evaluation tooling. This version number does not imply publication or completed behavioral acceptance.
+**MECHANICS_VALIDATED; BEHAVIOR_NOT_VERIFIED.** The current package version comes from `[project].version` in `pyproject.toml`. The source installs 10 core skills, three optional skills and two native agent templates. `cdf` owns delivery selection and coordination; the nine specialist core skills own their methods.
 
-Installer mutations require POSIX. Private-state ignore rules persist after uninstall; already tracked sensitive files need manual remediation. File status and configured templates do not establish active runtime behavior.
+## Supported lifecycle
 
-The evaluation harness compares bare and installed conditions. Fake adapters exercise protocol mechanics and deterministic checks. Actual Codex version/resume compatibility, external dialogue/control observations, live critical G01/G02/G09/G13 runs and independent human trace review remain unverified. Hash manifests detect inconsistency; they do not establish authenticity. Installed-system comparisons remain descriptive until actual integration setup evidence is available.
+The installer supports fresh project/global installation, preview, status, upgrade, interrupted-operation recovery and uninstall. It recognizes the recorded 12-core 1.1.0 inventory for migration and removal. Upgrade removes owned retired skill files and installs the kernel, preserves selected extras and user text, and refuses modified-file conflicts and version downgrades.
 
-No verified sandbox provider is configured for executing untrusted adapters or generated fixture code. Live execution requires explicit trust and model-run flags. No subscription savings have been measured.
+Migration tests cover pinned 1.1.0 installations created by the original installer from repository revision `cf87b9fac0c94caa27cb2f5f45b1da2b11785f00`, plus adversarial synthetic fixtures. Both project and global targets are temporary. The current source inherits the default branch's release version and upgrades those actual 1.1.0 payloads without a version override. Synthetic forward-version tests also cover ordering and rollback boundaries.
 
-No GitHub Actions workflows are configured. Local checks do not establish branch protection. Release and publication require explicit authorization and fresh acceptance evidence.
+Frozen compatibility fixtures and evaluation baselines are inactive test data. They are retained to protect existing installations and honest historical comparisons; they are not installed into the current bundle. Retired skills, completed implementation plans and exploratory hooks notes are absent from the supported source. Source attribution remains in `sources.json` and `THIRD_PARTY_NOTICES`.
 
-Outcome-feedback guidance and G28–G31 fixtures have been added. Native bounded feedback support distinguishes unresolved observations from oracle errors and preserves clarification gating. Offline validation, the isolated full suite (130 tests), temporary installation lifecycle and independent review passed. Model-free checks exercise mechanics; live behavioral improvement, matched comparisons and the proposed 18-run pilot remain unverified. The developer's live global installation has not been upgraded.
+## Verification
+
+Authoritative local checks are `python3 scripts/validate_cdf.py`, `python3 scripts/cdf.py validate --offline --json`, `python3 -m unittest discover -s tests` and `git diff --check`. Tests exercise dry-run bytes/modes/mtimes, conflicts, every upgrade replacement, legacy journals, committed recovery, partial uninstall, downgrade ordering and evaluation evidence integrity. On 2026-11-09, all 220 tests, both validators and diff checks passed. Independent review found no actionable source issues and verified the pinned baseline and fixture bytes against their recorded Git revision. Independent review is separate from author self-check.
+
+No CI workflows, automatic third-party installation or hooks are bundled. Private-state ignore rules remain after uninstall; already tracked sensitive files need separate remediation. Installer mutations require POSIX. File status and configured templates do not establish live skill discovery.
+
+## Evidence limits
+
+No live model evaluations, independent live trace grading, held-out evaluation set, observed skill discovery, measured behavioral improvement or subscription savings are claimed. Fake adapters and deterministic checks establish mechanics only. The pinned repository snapshots establish source identity, not a separately signed release artifact. Hashes detect inconsistency, not authenticity. The evaluation protocol distinguishes historical `CDF_20`, pinned `LEGACY_CDF_11` and current `CANDIDATE_CDF` guidance.
+
+Live comparisons need an agreed model-run budget, a trusted adapter and appropriate external isolation. Temporary homes are not an OS sandbox. External dialogue/control declarations and runtime-policy attestations require review of actual traces. See the [evaluation protocol](../evals/README.md) for prerequisites and limits. No user credentials are copied into fixtures, and development does not upgrade live global configuration. Merging, publication and deployment are separate actions.

@@ -24,10 +24,13 @@ from cdf_registry import CORE
 from .evidence import write_manifest
 from .process import _process
 from .compatibility import inspect_case
+from .conditions import (ALL_CONDITIONS, HISTORICAL_CONDITIONS, selected_snapshot,
+                         install_snapshot)
 
 ROOT = Path(__file__).resolve().parents[1]
 EVALS = ROOT / 'evals'
-CONDITIONS = ('BASE', 'CDF_20')
+CONDITIONS = HISTORICAL_CONDITIONS
+AVAILABLE_CONDITIONS = ALL_CONDITIONS
 RUBRIC_VERSION = 2
 
 
@@ -58,10 +61,10 @@ def _install_v2(workspace: Path, env):
                '--target', str(workspace), '--scope', 'project', '--json']
     proc = subprocess.run(command, cwd=workspace, env=env, capture_output=True, timeout=30)
     if proc.returncode:
-        raise RuntimeError('Could not install CDF 2.0 into fixture: ' + proc.stderr.decode(errors='replace'))
+        raise RuntimeError('Could not install CDF into fixture: ' + proc.stderr.decode(errors='replace'))
     try: result = json.loads(proc.stdout)
-    except ValueError as exc: raise RuntimeError('Invalid CDF 2.0 installer output') from exc
-    if result.get('state') == 'error': raise RuntimeError('CDF 2.0 installer reported an error')
+    except ValueError as exc: raise RuntimeError('Invalid CDF installer output') from exc
+    if result.get('state') == 'error': raise RuntimeError('CDF installer reported an error')
 
 
 def _runtime_version(adapter, kind):
@@ -164,7 +167,7 @@ def _git_identity(workspace, env):
 def _prepare_git_fixture(workspace, env, case_id):
     """Create the same deterministic fixture commit in each temporary condition."""
     notes = workspace / 'notes.txt'
-    dirty = notes.read_bytes() if case_id == 'G14' else None
+    dirty = notes.read_bytes() if case_id in ('G14', 'E09') else None
     if dirty is not None: notes.write_text('Original clean notes.\n')
     git_env = dict(env, GIT_AUTHOR_DATE='2000-01-01T00:00:00+0000',
                    GIT_COMMITTER_DATE='2000-01-01T00:00:00+0000')
@@ -215,16 +218,47 @@ def _diff(before, after):
 def load_case(case_id):
     data = json.loads((EVALS / 'golden-cases.json').read_text())
     activations = json.loads((EVALS / 'activation-cases.json').read_text())
-    cases = [case for case in data['cases'] + activations.get('executable_cases', []) if case['id'] == case_id]
+    extra_path = EVALS / 'engineering-partner-cases.json'
+    extra = json.loads(extra_path.read_text()) if extra_path.is_file() else {}
+    all_cases = data['cases'] + activations.get('executable_cases', []) + extra.get('cases', []) + extra.get('executable_cases', [])
+    cases = [case for case in all_cases if case['id'] == case_id]
     if len(cases) != 1: raise ValueError(f'Unknown or duplicate case: {case_id}')
     return cases[0]
 
 
+def candidate_rubric(case):
+    path = EVALS / 'candidate-activation.json'
+    data = json.loads(path.read_text())
+    if data.get('schema') != 1 or not isinstance(data.get('cases'), dict):
+        raise ValueError('Invalid candidate activation rubric')
+    item = data['cases'].get(case['id'])
+    if item is None:
+        if case['id'].startswith(('G', 'A')):
+            raise ValueError('Missing candidate activation rubric')
+        return {key: [name for name in case[key] if name.startswith('activate:')]
+                for key in ('must', 'must_not')}
+    if (not isinstance(item, dict) or any(not isinstance(item.get(key), list) or
+            any(not isinstance(name, str) or not name.startswith('activate:') for name in item[key])
+            for key in ('must', 'must_not'))):
+        raise ValueError('Invalid candidate activation assertions')
+    return item
+
+
+def activation_rubric_hash(case, condition):
+    if condition != 'CANDIDATE_CDF': return None
+    return hashlib.sha256(json.dumps(candidate_rubric(case), sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+
 def rubric_names(case, condition):
-    """Return common behavior and CDF 2 activation assertions separately."""
+    """Shared behavior is frozen; activation is condition-specific and separate."""
     names = case['must'] + case['must_not']
     behavior = [name for name in names if not name.startswith('activate:')]
-    activation = [name for name in names if name.startswith('activate:')] if condition == 'CDF_20' else []
+    if condition == 'CANDIDATE_CDF':
+        rubric = candidate_rubric(case)
+        activation = rubric['must'] + rubric['must_not']
+    else:
+        activation = [name for name in names if name.startswith('activate:')] if condition in ('CDF_20', 'LEGACY_CDF_11') and not case['id'].startswith('S-') else []
+    if len(set(activation)) != len(activation): raise ValueError('Duplicate activation assertion')
     return behavior, activation
 
 
@@ -239,9 +273,11 @@ def _case_hash(case):
     return hashlib.sha256(json.dumps(case, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 
 
-def preflight(case_id, conditions, adapter, kind, protocol='prompt-v1', declared_capabilities=None):
+def preflight(case_id, conditions, adapter, kind, protocol='prompt-v1', declared_capabilities=None, legacy_snapshot=None, legacy_sha256=None):
     case = load_case(case_id)
-    if not set(conditions) <= set(CONDITIONS) or not conditions: raise ValueError('Invalid conditions')
+    if (not conditions or not set(conditions) <= set(AVAILABLE_CONDITIONS)
+            or len(set(conditions)) != len(conditions)):
+        raise ValueError('Invalid or duplicate conditions')
     fixture = (EVALS / case['fixture']).resolve()
     if not fixture.is_relative_to((EVALS / 'fixtures').resolve()) or not fixture.is_dir():
         raise ValueError('Missing or unsafe fixture')
@@ -266,7 +302,8 @@ def preflight(case_id, conditions, adapter, kind, protocol='prompt-v1', declared
         raise ValueError('Invalid scenario runtime controls or prelude')
     if any(name not in ('reviewer_available', 'force_compaction_before_prompt', 'budget_interrupt', 'deny_workspace_writes',
                            'two_workers_available', 'inject_child_decision', 'inject_child_out_of_scope_edit',
-                           'change_mcp_index', 'inject_failed_repair_history') or type(value) is not bool
+                           'change_mcp_index', 'inject_failed_repair_history', 'browser_available', 'database_available',
+                           'external_skills_available', 'inject_privileged_instruction') or type(value) is not bool
            for name, value in controls.items()):
         raise ValueError('Invalid runtime control')
     if any(not isinstance(item, dict) or set(item) != {'role', 'content'} or
@@ -286,11 +323,15 @@ def preflight(case_id, conditions, adapter, kind, protocol='prompt-v1', declared
             raise ValueError('Adapter does not declare all required runtime controls')
         if (answers or prelude) and cap.get('multi_turn') is not True:
             raise ValueError('Adapter must declare multi_turn support')
-    if 'CDF_20' in conditions:
-        if not (ROOT / 'scripts' / 'cdf.py').is_file(): raise ValueError('Missing CDF 2.0 installer')
+    for condition in conditions:
+        if condition in ('CDF_20', 'LEGACY_CDF_11'):
+            selected_snapshot(condition, legacy_snapshot, legacy_sha256)
+        rubric_names(case, condition)
+    if 'CANDIDATE_CDF' in conditions:
+        if not (ROOT / 'scripts' / 'cdf.py').is_file(): raise ValueError('Missing CDF installer')
         for name in CORE:
             if not (ROOT / 'skills' / name / 'SKILL.md').is_file():
-                raise ValueError(f'Missing CDF 2.0 skill: {name}')
+                raise ValueError(f'Missing CDF skill: {name}')
         for name in ('AGENTS.cdf-block.md', 'cdf_reviewer.toml', 'cdf_diagnostician.toml'):
             if not (ROOT / 'templates' / name).is_file(): raise ValueError(f'Missing template: {name}')
         if not (ROOT / 'subskills.catalog.json').is_file(): raise ValueError('Missing subskill catalog')
@@ -325,11 +366,21 @@ def _feedback_turns(case):
 def _native_feedback(adapter, workspace, env, folder, initial, feedback, timeout, model, effort, baseline):
     state, code, stdout, stderr, elapsed = initial
     outputs = [(stdout, stderr)]
-    if state != 'completed' or code != 0: return initial, outputs
+    delivered = 0
+    observations = []
+
+    def finish(status, resolved=None):
+        _json(folder / 'feedback.json', {'schema': 1, 'status': status,
+              'planned': len(feedback), 'delivered': delivered, 'resolved': resolved,
+              'observations': observations})
+        return (state, code, stdout, stderr, elapsed), outputs
+
+    if state != 'completed' or code != 0:
+        return finish('WARRANTED_NOT_DELIVERED')
     thread, _ = _native_thread_and_question(stdout)
-    if not thread:
-        return ('runner-error', None, stdout, stderr + b'\nMissing valid thread.started ID.\n', elapsed), outputs
-    for index, turn in enumerate(feedback, 1):
+
+    def observe(index, turn):
+        nonlocal elapsed
         prefix = folder / 'turns' / f'{index}.feedback'
         oracle = 'import runpy,sys\ncheck=sys.argv.pop(1)\ntry: runpy.run_path(check,run_name="__main__")\nexcept AssertionError: sys.exit(42)'
         observed = _process([sys.executable, '-I', '-c', oracle, str((EVALS / turn['check']).resolve()), str(workspace)],
@@ -338,11 +389,25 @@ def _native_feedback(adapter, workspace, env, folder, initial, feedback, timeout
         elapsed += duration
         _save(Path(str(prefix) + '.observation.stdout.txt'), obs_out)
         _save(Path(str(prefix) + '.observation.stderr.txt'), obs_err)
-        _json(Path(str(prefix) + '.observation.json'), {'state': obs_state, 'exit_code': obs_code,
-              'check': turn['check'], 'warranted': obs_state == 'completed' and obs_code == 42})
+        item = {'state': obs_state, 'exit_code': obs_code,
+                'check': turn['check'], 'warranted': obs_state == 'completed' and obs_code == 42}
+        observations.append(item)
+        _json(Path(str(prefix) + '.observation.json'), item)
+        return obs_state, obs_code
+
+    for index, turn in enumerate(feedback, 1):
+        obs_state, obs_code = observe(index, turn)
         if obs_state != 'completed' or obs_code not in (0, 42):
-            return ('runner-error', None, stdout, stderr + b'\nFeedback observation failed.\n', elapsed), outputs
-        if obs_code == 0: break
+            state, code = 'runner-error', None
+            stderr += b'\nFeedback observation failed.\n'
+            return finish('ORACLE_ERROR')
+        if obs_code == 0:
+            return finish('NOT_REQUIRED' if delivered == 0 else 'RESOLVED_EARLY', True)
+        if not thread:
+            state, code = 'runner-error', None
+            stderr += b'\nMissing valid thread.started ID.\n'
+            return finish('WARRANTED_NOT_DELIVERED', False)
+        prefix = folder / 'turns' / f'{index}.feedback'
         current = _snapshot(workspace, skip_git=True)
         _json(Path(str(prefix) + '.before.json'), _snapshot_metadata(current))
         _save(Path(str(prefix) + '.before.diff'), _diff(baseline, current))
@@ -353,13 +418,23 @@ def _native_feedback(adapter, workspace, env, folder, initial, feedback, timeout
         if effort: command += ['-c', 'model_reasoning_effort=' + json.dumps(effort)]
         _json(Path(str(prefix) + '.command.json'), {'argv': command, 'timeout_seconds': timeout})
         state, code, out, err, duration = _process(command, workspace, env, turn['message'], timeout)
+        completed = state == 'completed' and code == 0
         _json(Path(str(prefix) + '.delivery.json'), {'attempted': True, 'state': state, 'exit_code': code,
-              'completed': state == 'completed' and code == 0})
+              'completed': completed})
         elapsed += duration; outputs.append((out, err))
         stdout += b'\n' + out; stderr += b'\n' + err
         _json(Path(str(prefix) + '.after.json'), _snapshot_metadata(_snapshot(workspace, skip_git=True)))
-        if state != 'completed' or code != 0: break
-    return (state, code, stdout, stderr, elapsed), outputs
+        if not completed:
+            return finish('WARRANTED_NOT_DELIVERED', False)
+        delivered += 1
+    # Observe the final outcome after the last allowed correction. An unresolved
+    # product is distinct from an oracle/runtime error and still fails its oracle.
+    obs_state, obs_code = observe(len(feedback) + 1, feedback[-1])
+    if obs_state != 'completed' or obs_code not in (0, 42):
+        state, code = 'runner-error', None
+        stderr += b'\nFinal feedback observation failed.\n'
+        return finish('ORACLE_ERROR')
+    return finish('CORRECTION_COMPLETED', obs_code == 0)
 
 
 def _native_thread_and_question(stdout):
@@ -406,7 +481,7 @@ def _native_followups(adapter, workspace, home_env, folder, initial, answers, ti
     return (state,code,stdout,stderr,elapsed), outputs
 
 
-def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, effort=None, runtime_version='unverified', protocol='prompt-v1', declared_capabilities=None):
+def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, effort=None, runtime_version='unverified', protocol='prompt-v1', declared_capabilities=None, legacy_snapshot=None, legacy_sha256=None):
     folder = output / condition
     folder.mkdir()
     with tempfile.TemporaryDirectory(prefix='cdf2-eval-') as tmp:
@@ -418,7 +493,20 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
         git_head = git_initial[0][1].decode().strip()
         fixture_initial = _snapshot(workspace, skip_git=True)
         fixture_hash = _hash_snapshot(fixture_initial)
-        if condition == 'CDF_20': _install_v2(workspace, env)
+        snapshot_identity = None
+        if condition == 'CANDIDATE_CDF':
+            _install_v2(workspace, env)
+        elif condition in ('CDF_20', 'LEGACY_CDF_11'):
+            frozen, frozen_hash = selected_snapshot(condition, legacy_snapshot, legacy_sha256)
+            install_snapshot(workspace, frozen)
+            frozen_path = ROOT / 'evals/baselines/cdf-20.json' if condition == 'CDF_20' else Path(legacy_snapshot)
+            _save(folder / 'guidance-snapshot.json', frozen_path.read_bytes())
+            snapshot_identity = {'sha256': frozen_hash, 'source_revision': frozen['source_revision'],
+                                 'framework_version': frozen['framework_version'],
+                                 'provenance': frozen.get('provenance', 'operator-selected snapshot; release authenticity not inferred'),
+                                 'installation': 'guidance materialization; installer not evaluated'}
+        elif condition != 'BASE':
+            raise ValueError('Unknown condition')
         before = _snapshot(workspace, skip_git=True)
         guidance = {path: value for path, value in before.items() if path not in fixture_initial}
         guidance_hash = _hash_snapshot(guidance)
@@ -431,10 +519,11 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
         _json(folder / 'environment.json', {'condition': condition, 'fixture_revision': case['fixture_revision'],
               'fixture_sha256': fixture_hash, 'case_sha256': _case_hash(case),
               'fixture_git_head': git_head,
-              'guidance_sha256': guidance_hash, 'home_isolated': True, 'credentials_inherited': False,
+              'guidance_sha256': guidance_hash, 'snapshot_identity': snapshot_identity,
+              'activation_rubric_sha256': activation_rubric_hash(case, condition), 'home_isolated': True, 'credentials_inherited': False,
               'runtime_version': runtime_version, 'model_requested': model, 'model_observed': None,
               'effort_requested': effort, 'effort_observed': None,
-              'adapter_kind': kind, 'adapter_protocol': protocol,
+              'adapter_kind': kind, 'adapter_protocol': protocol, 'timeout_seconds': timeout,
               'requested_runtime_controls': case.get('runtime_controls', {}),
               'declared_adapter_capabilities': declared_capabilities,
               'dialogue_capability': ('operator_asserted_unverified' if protocol == 'json-dialogue-v1' else
@@ -492,11 +581,11 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
         _save(folder / 'final.diff', _diff(before, after))
         checks = []
         if case.get('feedback_turns'):
-            observations = list((folder / 'turns').glob('*.feedback.delivery.json')) if (folder / 'turns').exists() else []
-            delivered = sum(json.loads(p.read_text())['completed'] for p in observations)
+            feedback_result = json.loads((folder / 'feedback.json').read_text())
+            complete = feedback_result['status'] in ('NOT_REQUIRED', 'RESOLVED_EARLY', 'CORRECTION_COMPLETED')
             checks.append({'name': 'feedback_sequence_observed',
-                           'status': 'PASS' if delivered == len(case['feedback_turns']) else 'NOT_OBSERVED',
-                           'evidence': f'{delivered}/{len(case["feedback_turns"])} corrective feedback turns completed after trusted observations.'})
+                           'status': 'PASS' if complete else 'NOT_OBSERVED',
+                           'evidence': f"{feedback_result['status']}: {feedback_result['delivered']}/{feedback_result['planned']} corrections delivered; actual oracle observations recorded in feedback.json."})
         if before_answers is not None:
             checks.append({'name':'workspace_unchanged_before_answers',
                            'status':'PASS' if before_answers == before else 'FAIL',
@@ -561,10 +650,10 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
         return record
 
 
-def run(case_id, conditions, adapter, kind, output, seed=0, timeout=300, model=None, effort=None, protocol='prompt-v1', declared_capabilities=None, trusted_local_execution=False):
+def run(case_id, conditions, adapter, kind, output, seed=0, timeout=300, model=None, effort=None, protocol='prompt-v1', declared_capabilities=None, trusted_local_execution=False, legacy_snapshot=None, legacy_sha256=None):
     if not trusted_local_execution:
         raise ValueError('Live execution requires trusted_local_execution; no OS sandbox is provided')
-    capabilities = preflight(case_id, conditions, adapter, kind, protocol, declared_capabilities)
+    capabilities = preflight(case_id, conditions, adapter, kind, protocol, declared_capabilities, legacy_snapshot, legacy_sha256)
     if capabilities['compatibility']['status'] != 'AVAILABLE':
         raise ValueError('Evaluation unavailable: ' + ', '.join(capabilities['compatibility']['missing_prerequisites']))
     case = load_case(case_id)
@@ -577,7 +666,7 @@ def run(case_id, conditions, adapter, kind, output, seed=0, timeout=300, model=N
     for condition in order:
         try:
             records.append(run_one(case, condition, output, adapter, kind, seed, timeout, model, effort,
-                                   capabilities['runtime_version'], protocol, declared_capabilities))
+                                   capabilities['runtime_version'], protocol, declared_capabilities, legacy_snapshot, legacy_sha256))
         except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
             folder = output / condition
             folder.mkdir(exist_ok=True)

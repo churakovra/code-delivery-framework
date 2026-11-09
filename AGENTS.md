@@ -2,7 +2,7 @@
 
 This repository develops a portable delivery-guidance bundle and its installer. Keep skills model-neutral and focused; skills should add useful task-specific guidance without repeating generic agent competence. Use progressive disclosure only where a reference materially reduces the entrypoint.
 
-The bundled `templates/AGENTS.cdf-block.md` is consumer guidance inserted as a managed block. `skills/cdf-*/` and `cdf_registry.py` define the supported bundle. Preserve user-authored text and bytes outside managed blocks. Expose instruction conflicts rather than silently replacing user content.
+The bundled `templates/AGENTS.cdf-block.md` is consumer guidance inserted as a managed block. `skills/cdf/`, `skills/cdf-*/` and `cdf_registry.py` define the supported bundle. The kernel supplies delivery selection; narrow skills own their methods. Frozen legacy inventory defines historical ownership, not installable skills. Preserve user-authored text and bytes outside managed blocks. Expose instruction conflicts rather than silently replacing user content.
 
 Treat the framework installer and manifest as a recoverable lifecycle. Do not mutate the developer's live global configuration while developing or validating. Use temporary targets and dry runs. Keep docs aligned with the actual CLI contract and explicitly mark implementation or evaluation gaps.
 

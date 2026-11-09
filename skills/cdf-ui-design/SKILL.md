@@ -11,6 +11,8 @@ description: Design or substantially redesign a user interface based on audience
 5. Specify an actionable design handoff (components, tokens, responsive behavior and acceptance). When code implementation is authorized, use `cdf-frontend`; do not build an unsolicited prototype.
 6. Verify the resulting UI through rendered inspection when tools allow it; record remaining acceptance needs.
 
+Make the handoff testable: name component/token reuse, key actions, responsive behavior and keyboard/error states. Separate an accepted visual direction from optional proposals; a routine behavior fix does not authorize redesign. Rendered acceptance and remaining human judgment must be reported separately.
+
 ## Optional subskills
 Resolve a candidate ID only when needed through `.codex/cdf/subskills.catalog.json` in the installation target or configured home. Confirm native discovery and use the local fallback when absent; never install automatically.
 

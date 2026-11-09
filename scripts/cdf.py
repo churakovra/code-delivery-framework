@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install and maintain CDF 2.0 without network or model calls.
+"""Install and maintain CDF without network or model calls.
 
 For global scope, --target must equal the current home directory. Supply
 --home with --target to select a different, explicitly named home (for example,
@@ -63,7 +63,7 @@ def run(args):
         except (OSError, ValueError, KeyError, ImportError) as exc:
             raise core.CDFError('INVALID_BUNDLE', f'Source contract validation failed: {exc}') from exc
         version = core._version(core.ROOT)
-        result = {'schema': 1, 'state': 'valid', 'version': version, 'skills': 15, 'network': 'not_used', 'runtime': 'unverified', 'source_contracts': validated}
+        result = {'schema': 1, 'state': 'valid', 'version': version, 'skills': validated['core_skills'] + validated['optional_skills'], 'network': 'not_used', 'runtime': 'unverified', 'source_contracts': validated}
         if args.runtime:
             executable = shutil.which('codex')
             if not executable:

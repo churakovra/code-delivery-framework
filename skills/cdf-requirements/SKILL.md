@@ -18,6 +18,8 @@ Do not start edits that depend on unresolved **material** decisions. Recommendat
 ## Exit
 **READY**: behavior and acceptance can be implemented without inventing a user decision. **BLOCKED**: list only remaining material questions and safely independent next steps. **EXPLORATORY**: answer/plan; do not edit.
 
+For each material question, state the observed gap, consequence, alternatives, an explicitly unapproved recommendation and the decision needed. Ask only the current decision frontier: prerequisites must be known. Retain high-impact answers with their source and scope; a new direction or revision requires reconciling affected acceptance, not repeating settled questions.
+
 ## Reference on demand
 - `references/interview-patterns.md` when the decision tree is large, consequential or needs a durable checkpoint.
 

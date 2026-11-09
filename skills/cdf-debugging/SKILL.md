@@ -11,6 +11,8 @@ description: Diagnose reproducible defects, failing tests, unexpected behavior o
 5. When authorized, implement the smallest causal fix. Verify original symptom, adjacent edge cases and no unintended behavior changes.
 6. Count unsuccessful repairs of the same observable outcome across turns, including user reports that it remains wrong despite passing tests; distinguish new requirements. After the first rejection, reconcile the observation with prior evidence. After two unsuccessful repairs, run a different discriminating experiment or obtain independent diagnosis before another dependent edit. Keep symptom, attempts, failed hypotheses, accepted constraints and next experiment in context; write a file only for continuity. Continue useful independent work; a subagent is not required.
 
+Record the active revision, route, configuration and relevant data when they could explain source/runtime disagreement. Before each discriminating experiment, predict the different observations for competing hypotheses; update the hypothesis from the result. A passing unit assertion does not by itself resolve the original user complaint.
+
 ## Reference
 - `references/diagnostic-experiments.md` for multiple competing hypotheses or nondeterministic behavior.
 

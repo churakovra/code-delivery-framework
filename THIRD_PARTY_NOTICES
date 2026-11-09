@@ -16,7 +16,7 @@ Project guidance for communication, diagnosis, testing, verification, design, ac
 The official OpenAI App Server documentation informed skill availability checks. No documentation text is reproduced. See sources.json for the inspected page and date.
 
 
-CDF 2.0 proposal and optional community candidates
+Project specification and optional community candidates
 ------------------------------------------------
 The CDF2 skills and architecture originate in the user-supplied planning package
 CDF2_COMPLETE.zip (SHA-256 0a4b0ea509a9cfdb656938291de2d96788f973a7804765844e7c7f755544433e).
@@ -27,3 +27,7 @@ distinguishes inherited research claims from independently inspected evidence.
 Before any separate community installation, verify the exact asset, license and
 runtime compatibility. No permission or endorsement is inferred from a catalog
 entry. Existing historical attribution and dependency notices above remain.
+
+The Engineering Partner iteration follows the user-supplied FINAL implementation pack identified by archive SHA-256 in sources.json. Kernel guidance and new evaluation fixtures are original project content. Official OpenAI hooks documentation informed an optional NOT_SHIPPED assessment; no hook, documentation excerpt or third-party executable is bundled. Historical baseline guidance is frozen from this repository, with its existing research notices retained.
+
+The pinned 1.1.0 compatibility fixtures and evaluation guidance baseline come from this repository at cf87b9fac0c94caa27cb2f5f45b1da2b11785f00. They preserve existing project guidance and research notices as inactive test data; they do not install retired skills into the current bundle.

@@ -1,0 +1,233 @@
+{
+  "core": [
+    "cdf-backend",
+    "cdf-code-review",
+    "cdf-codebase-research",
+    "cdf-debugging",
+    "cdf-documentation",
+    "cdf-frontend",
+    "cdf-implementation",
+    "cdf-orchestration",
+    "cdf-planning",
+    "cdf-requirements",
+    "cdf-ui-design",
+    "cdf-verification"
+  ],
+  "kind": "synthetic installed snapshots, not released payload bytes",
+  "reference_revision_available_locally": false,
+  "shape_reference_revision": "cf87b9fac0c94caa27cb2f5f45b1da2b11785f00",
+  "snapshots": {
+    "global": {
+      ".agents/skills/cdf-backend/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-backend\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-backend payload.\n"
+      },
+      ".agents/skills/cdf-code-review/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-code-review\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-code-review payload.\n"
+      },
+      ".agents/skills/cdf-codebase-research/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-codebase-research\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-codebase-research payload.\n"
+      },
+      ".agents/skills/cdf-debugging/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-debugging\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-debugging payload.\n"
+      },
+      ".agents/skills/cdf-documentation/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-documentation\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-documentation payload.\n"
+      },
+      ".agents/skills/cdf-explain/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-explain\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-explain payload.\n"
+      },
+      ".agents/skills/cdf-frontend/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-frontend\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-frontend payload.\n"
+      },
+      ".agents/skills/cdf-implementation/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-implementation\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-implementation payload.\n"
+      },
+      ".agents/skills/cdf-implementation/references/legacy.md": {
+        "mode": 420,
+        "text": "Frozen reference for cdf-implementation.\n"
+      },
+      ".agents/skills/cdf-model-calibration/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-model-calibration\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-model-calibration payload.\n"
+      },
+      ".agents/skills/cdf-orchestration/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-orchestration\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-orchestration payload.\n"
+      },
+      ".agents/skills/cdf-orchestration/references/legacy.md": {
+        "mode": 420,
+        "text": "Frozen reference for cdf-orchestration.\n"
+      },
+      ".agents/skills/cdf-planning/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-planning\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-planning payload.\n"
+      },
+      ".agents/skills/cdf-planning/references/legacy.md": {
+        "mode": 420,
+        "text": "Frozen reference for cdf-planning.\n"
+      },
+      ".agents/skills/cdf-requirements/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-requirements\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-requirements payload.\n"
+      },
+      ".agents/skills/cdf-teach/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-teach\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-teach payload.\n"
+      },
+      ".agents/skills/cdf-ui-design/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-ui-design\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-ui-design payload.\n"
+      },
+      ".agents/skills/cdf-verification/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-verification\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-verification payload.\n"
+      },
+      ".codex/.gitignore": {
+        "mode": 420,
+        "text": "# BEGIN CDF private state\n/cdf.lock/\n/cdf-cleanup.json\n/cdf/manifest.json\n/cdf/backups/\n/cdf/transaction/\n# END CDF private state\n"
+      },
+      ".codex/AGENTS.md": {
+        "mode": 420,
+        "text": "User policy before legacy block.\r\n<!-- BEGIN CDF 2.0 MANAGED: core -->\n# Synthetic legacy delivery policy\nPreserve user decisions and verify changes.\n<!-- END CDF 2.0 MANAGED: core -->\nUser policy after legacy block.\r\n"
+      },
+      ".codex/agents/cdf_diagnostician.toml": {
+        "mode": 420,
+        "text": "name = \"cdf_diagnostician\"\ndescription = \"Synthetic legacy role\"\ndeveloper_instructions = \"Read-only review\"\n"
+      },
+      ".codex/agents/cdf_reviewer.toml": {
+        "mode": 420,
+        "text": "name = \"cdf_reviewer\"\ndescription = \"Synthetic legacy role\"\ndeveloper_instructions = \"Read-only review\"\n"
+      },
+      ".codex/cdf/backups/AGENTS.original": {
+        "mode": 384,
+        "text": "User policy before legacy block.\r\n"
+      },
+      ".codex/cdf/manifest.json": {
+        "mode": 384,
+        "text": "{\n  \"created_directories\": [\n    \".agents\",\n    \".agents/skills\",\n    \".agents/skills/cdf-backend\",\n    \".agents/skills/cdf-code-review\",\n    \".agents/skills/cdf-codebase-research\",\n    \".agents/skills/cdf-debugging\",\n    \".agents/skills/cdf-documentation\",\n    \".agents/skills/cdf-explain\",\n    \".agents/skills/cdf-frontend\",\n    \".agents/skills/cdf-implementation\",\n    \".agents/skills/cdf-implementation/references\",\n    \".agents/skills/cdf-model-calibration\",\n    \".agents/skills/cdf-orchestration\",\n    \".agents/skills/cdf-orchestration/references\",\n    \".agents/skills/cdf-planning\",\n    \".agents/skills/cdf-planning/references\",\n    \".agents/skills/cdf-requirements\",\n    \".agents/skills/cdf-teach\",\n    \".agents/skills/cdf-ui-design\",\n    \".agents/skills/cdf-verification\",\n    \".codex/agents\",\n    \".codex/cdf\",\n    \".codex/cdf/backups\"\n  ],\n  \"framework_version\": \"1.1.0\",\n  \"managed_blocks\": {\n    \".codex/AGENTS.md\": {\n      \"end_marker\": \"<!-- END CDF 2.0 MANAGED: core -->\",\n      \"sha256\": \"d6ad15f2526b0e88bf6a3de4fb04811f058f9444c218cfaf0cd5b011b42bc9ef\",\n      \"start_marker\": \"<!-- BEGIN CDF 2.0 MANAGED: core -->\"\n    }\n  },\n  \"owned_files\": {\n    \".agents/skills/cdf-backend/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"df70bbb75d283a588e1301ac3cfd9b4f3cec108e4df3447de45340b0f3ddd361\"\n    },\n    \".agents/skills/cdf-code-review/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"3bec634073933e8cc1ab2fccc44926850fec6d3896eb27cde3928049efa1b1c0\"\n    },\n    \".agents/skills/cdf-codebase-research/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"d3d415e2e68f3f9e5985deadf007c90d43ec264e733f98c37bd47db1acada789\"\n    },\n    \".agents/skills/cdf-debugging/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"3181dac05e4a6760850536669cd5e3f72123b9c6f8b4110282279bda0d8162ce\"\n    },\n    \".agents/skills/cdf-documentation/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"185cc1af2a2f679ad1fca3b485c37210d5ae591ac9229bbd84b707b109da897d\"\n    },\n    \".agents/skills/cdf-explain/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"92760548a3ff8542a0422f44290b4a24c782b88eb9514bb893a676b7c02dcb5e\"\n    },\n    \".agents/skills/cdf-frontend/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"3deae3cccaf33fa5fb72d5061b3d13ba1bef059381b681243547eee6ab92c167\"\n    },\n    \".agents/skills/cdf-implementation/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"733d14ba459e9128b0bf5057bbfd33d7a8fbc9aeff0cb0a159b9133bd15b6e57\"\n    },\n    \".agents/skills/cdf-implementation/references/legacy.md\": {\n      \"mode\": 420,\n      \"sha256\": \"c03b3aa0447dbe5cdee08056b8a781631343700f26e9d6608fd998f6047e28a7\"\n    },\n    \".agents/skills/cdf-model-calibration/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"1466e6ea63fd37379268b6aa31aca167a41de6a7a6769665465bf166e6c640af\"\n    },\n    \".agents/skills/cdf-orchestration/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"fd0a0b45587c84f4b99e4900686acf5d6842e7fb413be09ca08fb11ade2d777f\"\n    },\n    \".agents/skills/cdf-orchestration/references/legacy.md\": {\n      \"mode\": 420,\n      \"sha256\": \"d0bab086ac815760bac344b1cdd52030b20ffddb22688b92f2e2b6eb9d8b90a7\"\n    },\n    \".agents/skills/cdf-planning/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"da7d0e4883ff0638a73242f837774bfbfefbfe4db37de13602897f28f673903c\"\n    },\n    \".agents/skills/cdf-planning/references/legacy.md\": {\n      \"mode\": 420,\n      \"sha256\": \"38b99da7adac9da72a5832966123093d454e9291ce045d3d361ea9032d433b52\"\n    },\n    \".agents/skills/cdf-requirements/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"1b75900d92c559d709f1d4af861e7cf173e6db5813db06fa12af81252c859a96\"\n    },\n    \".agents/skills/cdf-teach/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"e1f375313c448ebbe30a983dfd6c7cf77410c3d9c7827b32272028fa52753109\"\n    },\n    \".agents/skills/cdf-ui-design/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"12adbc0e4d24d6631a947ddbff44e2362686f5bb0e210bdb83a813a361b8d6fb\"\n    },\n    \".agents/skills/cdf-verification/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"9fc658bca3dd275c6b942039b7bf2d0b09d5475c0a8d7ad04ae15b11b1ea8402\"\n    },\n    \".codex/agents/cdf_diagnostician.toml\": {\n      \"mode\": 420,\n      \"sha256\": \"d151ce86105f91061b36b726ed77a8d6e9102df683f9672b56671053c819faa3\"\n    },\n    \".codex/agents/cdf_reviewer.toml\": {\n      \"mode\": 420,\n      \"sha256\": \"7d9a98b3ea99c97ea24c1d5c742ad44f23b4953f00f9836e9b816da2760bbbc3\"\n    },\n    \".codex/cdf/backups/AGENTS.original\": {\n      \"mode\": 384,\n      \"sha256\": \"4f0da1bf36062ffe9d54e89c7fc6db0c36ee4331eb1b620a86389ecf9315ed28\"\n    },\n    \".codex/cdf/subskills.catalog.json\": {\n      \"mode\": 420,\n      \"sha256\": \"d4763f5779116ed0bbeae8142c37725ba80f4aa54158955d1860e44cc357c2f6\"\n    }\n  },\n  \"preserved_preimages\": {\n    \".codex/AGENTS.md\": {\n      \"backup\": \".codex/cdf/backups/AGENTS.original\",\n      \"sha256\": \"4f0da1bf36062ffe9d54e89c7fc6db0c36ee4331eb1b620a86389ecf9315ed28\"\n    }\n  },\n  \"schema\": 2,\n  \"scope\": \"global\",\n  \"selected_extras\": [\n    \"learning\",\n    \"operator\"\n  ],\n  \"source_revision\": \"sha256:7f387afa2ebb4e8ef758726aacc70715e14ddbe496fed12b08d6d3088d71c5c0\",\n  \"state\": \"installed\",\n  \"transaction\": null\n}\n"
+      },
+      ".codex/cdf/subskills.catalog.json": {
+        "mode": 420,
+        "text": "{\"candidates\": {}}\n"
+      },
+      "user-data.txt": {
+        "mode": 420,
+        "text": "Preserve this unowned file.\n"
+      }
+    },
+    "project": {
+      ".agents/skills/cdf-backend/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-backend\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-backend payload.\n"
+      },
+      ".agents/skills/cdf-code-review/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-code-review\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-code-review payload.\n"
+      },
+      ".agents/skills/cdf-codebase-research/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-codebase-research\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-codebase-research payload.\n"
+      },
+      ".agents/skills/cdf-debugging/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-debugging\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-debugging payload.\n"
+      },
+      ".agents/skills/cdf-documentation/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-documentation\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-documentation payload.\n"
+      },
+      ".agents/skills/cdf-explain/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-explain\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-explain payload.\n"
+      },
+      ".agents/skills/cdf-frontend/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-frontend\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-frontend payload.\n"
+      },
+      ".agents/skills/cdf-implementation/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-implementation\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-implementation payload.\n"
+      },
+      ".agents/skills/cdf-implementation/references/legacy.md": {
+        "mode": 420,
+        "text": "Frozen reference for cdf-implementation.\n"
+      },
+      ".agents/skills/cdf-model-calibration/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-model-calibration\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-model-calibration payload.\n"
+      },
+      ".agents/skills/cdf-orchestration/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-orchestration\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-orchestration payload.\n"
+      },
+      ".agents/skills/cdf-orchestration/references/legacy.md": {
+        "mode": 420,
+        "text": "Frozen reference for cdf-orchestration.\n"
+      },
+      ".agents/skills/cdf-planning/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-planning\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-planning payload.\n"
+      },
+      ".agents/skills/cdf-planning/references/legacy.md": {
+        "mode": 420,
+        "text": "Frozen reference for cdf-planning.\n"
+      },
+      ".agents/skills/cdf-requirements/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-requirements\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-requirements payload.\n"
+      },
+      ".agents/skills/cdf-teach/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-teach\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-teach payload.\n"
+      },
+      ".agents/skills/cdf-ui-design/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-ui-design\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-ui-design payload.\n"
+      },
+      ".agents/skills/cdf-verification/SKILL.md": {
+        "mode": 420,
+        "text": "---\nname: cdf-verification\ndescription: Frozen synthetic legacy skill.\n---\nLegacy cdf-verification payload.\n"
+      },
+      ".codex/.gitignore": {
+        "mode": 420,
+        "text": "# BEGIN CDF private state\n/cdf.lock/\n/cdf-cleanup.json\n/cdf/manifest.json\n/cdf/backups/\n/cdf/transaction/\n# END CDF private state\n"
+      },
+      ".codex/agents/cdf_diagnostician.toml": {
+        "mode": 420,
+        "text": "name = \"cdf_diagnostician\"\ndescription = \"Synthetic legacy role\"\ndeveloper_instructions = \"Read-only review\"\n"
+      },
+      ".codex/agents/cdf_reviewer.toml": {
+        "mode": 420,
+        "text": "name = \"cdf_reviewer\"\ndescription = \"Synthetic legacy role\"\ndeveloper_instructions = \"Read-only review\"\n"
+      },
+      ".codex/cdf/backups/AGENTS.original": {
+        "mode": 384,
+        "text": "User policy before legacy block.\r\n"
+      },
+      ".codex/cdf/manifest.json": {
+        "mode": 384,
+        "text": "{\n  \"created_directories\": [\n    \".agents\",\n    \".agents/skills\",\n    \".agents/skills/cdf-backend\",\n    \".agents/skills/cdf-code-review\",\n    \".agents/skills/cdf-codebase-research\",\n    \".agents/skills/cdf-debugging\",\n    \".agents/skills/cdf-documentation\",\n    \".agents/skills/cdf-explain\",\n    \".agents/skills/cdf-frontend\",\n    \".agents/skills/cdf-implementation\",\n    \".agents/skills/cdf-implementation/references\",\n    \".agents/skills/cdf-model-calibration\",\n    \".agents/skills/cdf-orchestration\",\n    \".agents/skills/cdf-orchestration/references\",\n    \".agents/skills/cdf-planning\",\n    \".agents/skills/cdf-planning/references\",\n    \".agents/skills/cdf-requirements\",\n    \".agents/skills/cdf-teach\",\n    \".agents/skills/cdf-ui-design\",\n    \".agents/skills/cdf-verification\",\n    \".codex/agents\",\n    \".codex/cdf\",\n    \".codex/cdf/backups\"\n  ],\n  \"framework_version\": \"1.1.0\",\n  \"managed_blocks\": {\n    \"AGENTS.md\": {\n      \"end_marker\": \"<!-- END CDF 2.0 MANAGED: core -->\",\n      \"sha256\": \"d6ad15f2526b0e88bf6a3de4fb04811f058f9444c218cfaf0cd5b011b42bc9ef\",\n      \"start_marker\": \"<!-- BEGIN CDF 2.0 MANAGED: core -->\"\n    }\n  },\n  \"owned_files\": {\n    \".agents/skills/cdf-backend/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"df70bbb75d283a588e1301ac3cfd9b4f3cec108e4df3447de45340b0f3ddd361\"\n    },\n    \".agents/skills/cdf-code-review/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"3bec634073933e8cc1ab2fccc44926850fec6d3896eb27cde3928049efa1b1c0\"\n    },\n    \".agents/skills/cdf-codebase-research/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"d3d415e2e68f3f9e5985deadf007c90d43ec264e733f98c37bd47db1acada789\"\n    },\n    \".agents/skills/cdf-debugging/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"3181dac05e4a6760850536669cd5e3f72123b9c6f8b4110282279bda0d8162ce\"\n    },\n    \".agents/skills/cdf-documentation/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"185cc1af2a2f679ad1fca3b485c37210d5ae591ac9229bbd84b707b109da897d\"\n    },\n    \".agents/skills/cdf-explain/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"92760548a3ff8542a0422f44290b4a24c782b88eb9514bb893a676b7c02dcb5e\"\n    },\n    \".agents/skills/cdf-frontend/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"3deae3cccaf33fa5fb72d5061b3d13ba1bef059381b681243547eee6ab92c167\"\n    },\n    \".agents/skills/cdf-implementation/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"733d14ba459e9128b0bf5057bbfd33d7a8fbc9aeff0cb0a159b9133bd15b6e57\"\n    },\n    \".agents/skills/cdf-implementation/references/legacy.md\": {\n      \"mode\": 420,\n      \"sha256\": \"c03b3aa0447dbe5cdee08056b8a781631343700f26e9d6608fd998f6047e28a7\"\n    },\n    \".agents/skills/cdf-model-calibration/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"1466e6ea63fd37379268b6aa31aca167a41de6a7a6769665465bf166e6c640af\"\n    },\n    \".agents/skills/cdf-orchestration/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"fd0a0b45587c84f4b99e4900686acf5d6842e7fb413be09ca08fb11ade2d777f\"\n    },\n    \".agents/skills/cdf-orchestration/references/legacy.md\": {\n      \"mode\": 420,\n      \"sha256\": \"d0bab086ac815760bac344b1cdd52030b20ffddb22688b92f2e2b6eb9d8b90a7\"\n    },\n    \".agents/skills/cdf-planning/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"da7d0e4883ff0638a73242f837774bfbfefbfe4db37de13602897f28f673903c\"\n    },\n    \".agents/skills/cdf-planning/references/legacy.md\": {\n      \"mode\": 420,\n      \"sha256\": \"38b99da7adac9da72a5832966123093d454e9291ce045d3d361ea9032d433b52\"\n    },\n    \".agents/skills/cdf-requirements/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"1b75900d92c559d709f1d4af861e7cf173e6db5813db06fa12af81252c859a96\"\n    },\n    \".agents/skills/cdf-teach/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"e1f375313c448ebbe30a983dfd6c7cf77410c3d9c7827b32272028fa52753109\"\n    },\n    \".agents/skills/cdf-ui-design/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"12adbc0e4d24d6631a947ddbff44e2362686f5bb0e210bdb83a813a361b8d6fb\"\n    },\n    \".agents/skills/cdf-verification/SKILL.md\": {\n      \"mode\": 420,\n      \"sha256\": \"9fc658bca3dd275c6b942039b7bf2d0b09d5475c0a8d7ad04ae15b11b1ea8402\"\n    },\n    \".codex/agents/cdf_diagnostician.toml\": {\n      \"mode\": 420,\n      \"sha256\": \"d151ce86105f91061b36b726ed77a8d6e9102df683f9672b56671053c819faa3\"\n    },\n    \".codex/agents/cdf_reviewer.toml\": {\n      \"mode\": 420,\n      \"sha256\": \"7d9a98b3ea99c97ea24c1d5c742ad44f23b4953f00f9836e9b816da2760bbbc3\"\n    },\n    \".codex/cdf/backups/AGENTS.original\": {\n      \"mode\": 384,\n      \"sha256\": \"4f0da1bf36062ffe9d54e89c7fc6db0c36ee4331eb1b620a86389ecf9315ed28\"\n    },\n    \".codex/cdf/subskills.catalog.json\": {\n      \"mode\": 420,\n      \"sha256\": \"d4763f5779116ed0bbeae8142c37725ba80f4aa54158955d1860e44cc357c2f6\"\n    }\n  },\n  \"preserved_preimages\": {\n    \"AGENTS.md\": {\n      \"backup\": \".codex/cdf/backups/AGENTS.original\",\n      \"sha256\": \"4f0da1bf36062ffe9d54e89c7fc6db0c36ee4331eb1b620a86389ecf9315ed28\"\n    }\n  },\n  \"schema\": 2,\n  \"scope\": \"project\",\n  \"selected_extras\": [\n    \"learning\",\n    \"operator\"\n  ],\n  \"source_revision\": \"sha256:7f387afa2ebb4e8ef758726aacc70715e14ddbe496fed12b08d6d3088d71c5c0\",\n  \"state\": \"installed\",\n  \"transaction\": null\n}\n"
+      },
+      ".codex/cdf/subskills.catalog.json": {
+        "mode": 420,
+        "text": "{\"candidates\": {}}\n"
+      },
+      "AGENTS.md": {
+        "mode": 420,
+        "text": "User policy before legacy block.\r\n<!-- BEGIN CDF 2.0 MANAGED: core -->\n# Synthetic legacy delivery policy\nPreserve user decisions and verify changes.\n<!-- END CDF 2.0 MANAGED: core -->\nUser policy after legacy block.\r\n"
+      },
+      "user-data.txt": {
+        "mode": 420,
+        "text": "Preserve this unowned file.\n"
+      }
+    }
+  }
+}

@@ -59,6 +59,11 @@ class CDFEvaluationTests(unittest.TestCase):
                     self.assertFalse((run/'turns/2.feedback.stdin.txt').exists())
                 else:
                     self.assertFalse((run/'turns/1.feedback.stdin.txt').exists())
+                feedback = json.loads((run/'feedback.json').read_text())
+                expected = {'repair': 'RESOLVED_EARLY', 'resolved': 'NOT_REQUIRED', 'exception': 'ORACLE_ERROR'}
+                self.assertEqual(feedback['status'], expected[mode])
+                sequence = next(check for check in record['acceptance_checks'] if check['name'] == 'feedback_sequence_observed')
+                self.assertEqual(sequence['status'], 'NOT_OBSERVED' if mode == 'exception' else 'PASS')
                 if mode == 'exception': self.assertEqual(record['result'], 'RUNNER_ERROR')
                 from evals.evidence import verify_manifest
                 verify_manifest(run)
@@ -70,7 +75,7 @@ class CDFEvaluationTests(unittest.TestCase):
         turn = {'message': 'Still wrong.', 'check': 'checks/G28.py'}
         observation = ('completed', 42, b'', b'', 0)
         resumed = ('completed', 0, b'fixed', b'', 0)
-        with mock.patch.object(runner, '_process', side_effect=[observation, resumed]) as process:
+        with mock.patch.object(runner, '_process', side_effect=[observation, resumed, ('completed', 0, b'', b'', 0)]) as process:
             result, outputs = runner._native_feedback(Path('/adapter'), workspace, {}, folder, initial, [turn], 10, None, None, {})
         self.assertEqual(result[0], 'completed')
         self.assertEqual(process.call_args_list[1].args[0][3], '9f227fe2-04a5-4d45-b073-49666d4745ae')
@@ -430,7 +435,8 @@ print(json.dumps({'type':'turn.completed','usage':{'input_tokens':10,'output_tok
     def test_activation_cases_are_selectable_positive_negative_pairs(self):
         cases=json.loads((ROOT/'evals/activation-cases.json').read_text())['executable_cases']
         self.assertEqual(len(cases),24)
-        for name in runner.CORE:
+        from cdf_registry import LEGACY_CORE_11
+        for name in LEGACY_CORE_11:
             pos=[c for c in cases if name in c['skill_triggers']['positive']]
             neg=[c for c in cases if name in c['skill_triggers']['negative']]
             self.assertEqual((len(pos),len(neg)),(1,1),name)

@@ -444,6 +444,30 @@
       "used_for": "Verified explicit-only invocation metadata and discovery guidance.",
       "installation": "research only",
       "verification": "Page fetched during implementation, not just a search snippet."
+    },
+    {
+      "id": "openai-hooks-feasibility",
+      "url": "https://learn.chatgpt.com/docs/hooks",
+      "revision": "Web page inspected 2026-11-09; no immutable page revision exposed",
+      "license": "Documentation reference; no text or executable content reused",
+      "used_for": "Optional hooks feasibility and explicit NOT_SHIPPED decision; no hooks installed",
+      "installation": "research only"
+    },
+    {
+      "id": "engineering-partner-final-pack",
+      "url": "user-supplied: CDF_Engineering_Partner_FINAL_Implementation_Pack_RU.zip",
+      "revision": "SHA-256 7b5a6694e4d91c4f926a1a40e46649d1093608587fcb486d958b9fefa2dcef1b",
+      "license": "User-supplied project specification; original implementation, no upstream skill text copied",
+      "used_for": "G0–G7 product contract, kernel consolidation, migration safety and evaluation cases",
+      "installation": "project specification; no embedded commands executed as authority"
+    },
+    {
+      "id": "cdf-legacy-11-repository-baseline",
+      "url": "https://github.com/churakovra/code-delivery-framework/tree/cf87b9fac0c94caa27cb2f5f45b1da2b11785f00",
+      "revision": "cf87b9fac0c94caa27cb2f5f45b1da2b11785f00; fetched from origin/master and inspected for this branch",
+      "license": "Project-owned repository snapshot; original notices retained; no new third-party skill text reused",
+      "used_for": "Pinned 1.1.0 guidance baseline and installed project/global lifecycle regression fixtures",
+      "installation": "Evaluation and compatibility data only; not part of the current skill installation"
     }
   ]
 }

@@ -1,0 +1,375 @@
+{
+  "schema": 1,
+  "cases": {
+    "G01": {
+      "must": [],
+      "must_not": [
+        "activate:cdf-requirements",
+        "activate:cdf-codebase-research",
+        "activate:cdf"
+      ],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G02": {
+      "must": [
+        "activate:cdf-requirements"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G03": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G04": {
+      "must": [
+        "activate:cdf"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G05": {
+      "must": [
+        "activate:cdf-backend",
+        "activate:cdf-verification"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G06": {
+      "must": [
+        "activate:cdf-debugging",
+        "activate:cdf-backend",
+        "activate:cdf-verification"
+      ],
+      "must_not": [
+        "activate:cdf-ui-design"
+      ],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G07": {
+      "must": [
+        "activate:cdf-frontend"
+      ],
+      "must_not": [
+        "activate:cdf-backend"
+      ],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G08": {
+      "must": [
+        "activate:cdf-frontend",
+        "activate:cdf-backend"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G09": {
+      "must": [
+        "activate:cdf",
+        "activate:cdf-verification"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G10": {
+      "must": [
+        "activate:cdf-verification"
+      ],
+      "must_not": [
+        "activate:cdf"
+      ],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G11": {
+      "must": [
+        "activate:cdf-debugging"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G12": {
+      "must": [
+        "activate:cdf-codebase-research"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G13": {
+      "must": [
+        "activate:cdf",
+        "activate:cdf-verification"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G14": {
+      "must": [
+        "activate:cdf",
+        "activate:cdf-debugging"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G15": {
+      "must": [
+        "activate:cdf-code-review"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G16": {
+      "must": [
+        "activate:cdf"
+      ],
+      "must_not": [
+        "activate:cdf-requirements"
+      ],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G17": {
+      "must": [
+        "activate:cdf-code-review"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G18": {
+      "must": [
+        "activate:cdf-documentation"
+      ],
+      "must_not": [
+        "activate:cdf-backend",
+        "activate:cdf"
+      ],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G19": {
+      "must": [
+        "activate:cdf-requirements",
+        "activate:cdf"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G20": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G21": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G22": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G23": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G24": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G25": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G26": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G27": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G28": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G29": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G30": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "G31": {
+      "must": [],
+      "must_not": [
+        "activate:cdf"
+      ],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A01P": {
+      "must": [
+        "activate:cdf-backend"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A01N": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A02P": {
+      "must": [
+        "activate:cdf-code-review"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A02N": {
+      "must": [],
+      "must_not": [
+        "activate:cdf"
+      ],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A03P": {
+      "must": [
+        "activate:cdf-codebase-research"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A03N": {
+      "must": [],
+      "must_not": [
+        "activate:cdf"
+      ],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A04P": {
+      "must": [
+        "activate:cdf-debugging"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A04N": {
+      "must": [],
+      "must_not": [
+        "activate:cdf"
+      ],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A05P": {
+      "must": [
+        "activate:cdf-documentation"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A05N": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A06P": {
+      "must": [
+        "activate:cdf-frontend"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A06N": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A07P": {
+      "must": [],
+      "must_not": [
+        "activate:cdf"
+      ],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A07N": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A08P": {
+      "must": [
+        "activate:cdf"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A08N": {
+      "must": [],
+      "must_not": [
+        "activate:cdf"
+      ],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A09P": {
+      "must": [
+        "activate:cdf"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A09N": {
+      "must": [],
+      "must_not": [
+        "activate:cdf"
+      ],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A10P": {
+      "must": [
+        "activate:cdf-requirements"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A10N": {
+      "must": [],
+      "must_not": [
+        "activate:cdf"
+      ],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A11P": {
+      "must": [
+        "activate:cdf-ui-design"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A11N": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A12P": {
+      "must": [
+        "activate:cdf-verification"
+      ],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    },
+    "A12N": {
+      "must": [],
+      "must_not": [],
+      "rationale": "Candidate ownership; historical behavior and activation rubrics stay frozen."
+    }
+  }
+}

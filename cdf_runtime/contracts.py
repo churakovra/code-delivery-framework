@@ -105,8 +105,8 @@ def validate_record(name, value):
             raise ContractError('Activation PASS requires passing observed checks')
         if status == 'NOT_APPLICABLE' and checks:
             raise ContractError('Activation cannot be not applicable with checks')
-        if value['condition'] != 'CDF_20' and status not in ('NOT_APPLICABLE', 'RUNNER_ERROR'):
-            raise ContractError('CDF2 activation is not applicable to baseline conditions')
+        if value['condition'] == 'BASE' and status not in ('NOT_APPLICABLE', 'RUNNER_ERROR'):
+            raise ContractError('CDF activation is not applicable to the bare baseline')
         if value['result'] == 'RUNNER_ERROR' and status != 'RUNNER_ERROR':
             raise ContractError('Runner failure cannot have a successful activation result')
     return value

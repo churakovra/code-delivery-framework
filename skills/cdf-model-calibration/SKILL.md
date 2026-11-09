@@ -11,6 +11,8 @@ description: Evaluate and propose role- and task-specific Codex model/effort pol
 5. Do not claim quantitative savings from word counts, unrelated benchmarks or unrun tests. Mark unknown measurement access explicitly.
 6. Write a proposed policy delta and evaluation protocol; do not edit Codex/global config without explicit approval. Existing master model cannot be changed merely by editing a file in its current session.
 
+Record available, requested and observed-active model/effort separately. Compare resources per accepted outcome, including retries, checks, review and worker overhead; an available candidate or proposed policy is not an active assignment. Routine development must not activate this skill or alter model configuration.
+
 ## Optional subskills
 Resolve a candidate ID only when needed through `.codex/cdf/subskills.catalog.json` in the installation target or configured home. Confirm native discovery and use the local fallback when absent; never install automatically.
 

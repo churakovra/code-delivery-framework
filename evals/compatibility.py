@@ -16,6 +16,10 @@ def inspect_case(case, kind, *, platform_name=None, find_executable=None):
     if platform_name != 'posix':
         missing.append('POSIX process and filesystem APIs')
     required = ('git',) + CASE_PREREQUISITES.get(case['id'], ())
+    # New scenarios can reuse a deterministic oracle without reusing its case
+    # ID. Check prerequisites at that actual executable boundary as well.
+    if case.get('deterministic_check') in ('checks/G07.py', 'checks/G08.py') and 'node' not in required:
+        required += ('node',)
     missing.extend(name for name in required if find_executable(name) is None)
     controls = sorted(case.get('runtime_controls', {}))
     return {

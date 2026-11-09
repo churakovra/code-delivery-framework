@@ -6,12 +6,28 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 import unittest
 from unittest.mock import patch
 
 from cdf_installer import core
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def isolated_cli(home, *arguments):
+    """Run the real CLI with a disposable home, including duplicate discovery."""
+    runner = (
+        'import runpy, sys; from pathlib import Path; from unittest.mock import patch; '
+        'home = Path(sys.argv.pop(1)); script = sys.argv.pop(1); '
+        'sys.argv[0] = script; '
+        'with_home = patch.object(Path, "home", return_value=home); '
+        'with_home.start(); runpy.run_path(script, run_name="__main__")'
+    )
+    return subprocess.run(
+        [sys.executable, '-c', runner, str(home), str(ROOT / 'scripts/cdf.py'), *arguments],
+        text=True, capture_output=True, timeout=30,
+    )
 
 
 def fake_bundle(root):
@@ -170,7 +186,7 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(plan['state'], 'ready')
         self.assertEqual(before, {p.relative_to(self.target): p.read_bytes() for p in self.target.rglob('*') if p.is_file()})
         self.assertEqual(self.action('install')['state'], 'installed')
-        self.assertEqual(len(list((self.target / '.agents/skills').glob('*/SKILL.md'))), 12)
+        self.assertEqual(len(list((self.target / '.agents/skills').glob('*/SKILL.md'))), 10)
         self.assertEqual(core.status(self.target, 'project')['files'], 'clean')
         self.assertEqual(core.status(self.target, 'project')['skills_discovery'], 'unverified')
         self.assertEqual(self.action('uninstall')['state'], 'absent')
@@ -261,9 +277,9 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(self.action('upgrade')['state'], 'installed')
         self.assertEqual(core.manifest_read(self.target, 'project')['framework_version'], '1.0.0')
 
-    def test_current_release_installs_and_upgrades_as_one_point_zero(self):
+    def test_synthetic_one_point_zero_installs_and_upgrades(self):
         (self.src / 'pyproject.toml').write_text('[project]\nversion = "1.0.0"\n')
-        self.assertEqual(core._version(ROOT), '1.0.0')
+        self.assertEqual(core._version(self.src), '1.0.0')
         self.action('install')
         manifest = core.manifest_read(self.target, 'project')
         self.assertEqual(manifest['framework_version'], '1.0.0')
@@ -271,12 +287,29 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(self.action('upgrade')['state'], 'installed')
         self.assertEqual(self.action('uninstall')['state'], 'absent')
 
+    def test_current_source_version_installs_and_upgrades(self):
+        expected = tomllib.loads((ROOT / 'pyproject.toml').read_text())['project']['version']
+        self.assertEqual(core._version(ROOT), expected)
+        for action in ('install', 'upgrade'):
+            with self.subTest(action=action):
+                self.assertEqual(core.perform(self.target, 'project', action, src=ROOT)['state'], 'installed')
+                self.assertEqual(core.manifest_read(self.target, 'project')['framework_version'], expected)
+        self.assertEqual(core.perform(self.target, 'project', 'uninstall')['state'], 'absent')
+
+    def test_source_toml_version_change_is_used_by_install_and_upgrade(self):
+        for action, version in (('install', '1.7.3.dev2'), ('upgrade', '1.7.3')):
+            with self.subTest(action=action, version=version):
+                (self.src / 'pyproject.toml').write_text(f'[project]\nversion = "{version}"\n')
+                self.assertEqual(core._version(self.src), version)
+                self.assertEqual(self.action(action)['state'], 'installed')
+                self.assertEqual(core.manifest_read(self.target, 'project')['framework_version'], version)
+
     def test_upgrade_extras_preserves_and_removes_owned_skills(self):
         self.action('install', enable=['learning'])
         self.action('upgrade', enable=['operator'])
-        self.assertEqual(len(list((self.target / '.agents/skills').glob('*/SKILL.md'))), 15)
-        self.action('upgrade', disable=['learning'])
         self.assertEqual(len(list((self.target / '.agents/skills').glob('*/SKILL.md'))), 13)
+        self.action('upgrade', disable=['learning'])
+        self.assertEqual(len(list((self.target / '.agents/skills').glob('*/SKILL.md'))), 11)
         self.assertFalse((self.target / '.agents/skills/cdf-explain/SKILL.md').exists())
         self.assertEqual(core.manifest_read(self.target, 'project')['selected_extras'], ['operator'])
 
@@ -673,9 +706,7 @@ class InstallerTests(unittest.TestCase):
 
     def test_subprocess_cannot_install_while_another_process_holds_lock(self):
         with core.Lock(self.target):
-            p = subprocess.run([sys.executable, str(ROOT / 'scripts/cdf.py'), 'install',
-                                '--target', str(self.target), '--json'],
-                               text=True, capture_output=True, timeout=30)
+            p = isolated_cli(self.fake_home, 'install', '--target', str(self.target), '--json')
             self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
             self.assertEqual(json.loads(p.stdout)['code'], 'CONCURRENT_MUTATION')
             self.assertFalse((self.target / core.MANIFEST).exists())
@@ -751,9 +782,7 @@ class CliTests(unittest.TestCase):
             agent.parent.mkdir(parents=True)
             agent.write_text('user-owned')
             before = agent.read_bytes()
-            p = subprocess.run([sys.executable, str(ROOT / 'scripts/cdf.py'), 'install',
-                                '--target', str(target), '--dry-run', '--json'],
-                               text=True, capture_output=True, timeout=30)
+            p = isolated_cli(Path(self.temp_codex.name), 'install', '--target', str(target), '--dry-run', '--json')
             self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
             result = json.loads(p.stdout)
             self.assertEqual(set(result), {'schema', 'action', 'state', 'scope', 'target',

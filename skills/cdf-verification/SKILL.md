@@ -12,6 +12,8 @@ description: Verify an implementation or claim using fresh project-authoritative
 6. Report implementation, passed technical checks, observed outcome and remaining human judgment distinctly without a mandatory status template. Unavailable tools leave a precise evidence gap; continue independent checks.
 7. Do not modify product code in a read-only verification assignment. Return failures to the implementer with a reproducible minimal report.
 
+For nontrivial work, inspect the acceptance map: AC → behavior path → tested boundary → raw observed result → limitation. Include the original user complaint and preserved behavior. Classify an unavailable capability as optional (fallback), required for the claim (narrow it and report PARTIAL), or required for safe action (block dependent work). Do not count an unobserved integration or required review as passed.
+
 ## Reference
 - `references/test-selection.md` for selecting unit/integration/contract/E2E layers.
 

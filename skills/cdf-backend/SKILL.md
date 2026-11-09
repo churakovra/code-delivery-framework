@@ -11,6 +11,8 @@ description: Implement or review server APIs, domain/application logic, persiste
 5. For async/concurrency: establish ownership of tasks, cancellation, deadlines, resource cleanup, blocking operations and backpressure. Use retries only for safe/recoverable operations with bounded policies.
 6. Reuse established libraries and patterns. Write focused regression evidence; include integration/contract checks for schema, DB or external integration changes. Read only the relevant local reference when deeper decisions arise.
 
+For a critical invariant identify its enforcing owner (handler, domain rule, constraint, transaction or consumer) and other write paths. Check concurrent calls and rollback where relevant. DB uniqueness needs real constraint/integration evidence, not just mocks; one-to-one wrappers do not justify a new layer. Match async syntax and lifecycle handling to the installed runtime.
+
 ## References on demand
 - `references/architecture.md` — dependency direction, ports and abstractions.
 - `references/contracts.md` — APIs, persistence, events and compatibility.

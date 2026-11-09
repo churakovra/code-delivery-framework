@@ -51,7 +51,7 @@
       "license_note": "MIT",
       "activation": "Large approved specification needing executable, path-specific steps",
       "cdf_skills": [
-        "cdf-planning"
+        "cdf"
       ],
       "cost_risk": "Medium",
       "adoption": "optional; install separately after review; do not vendor or auto-install",
@@ -67,8 +67,7 @@
       "license_note": "MIT",
       "activation": "Several parallel independent workstreams requiring dependency scheduling",
       "cdf_skills": [
-        "cdf-planning",
-        "cdf-orchestration"
+        "cdf"
       ],
       "cost_risk": "Medium",
       "adoption": "optional; install separately after review; do not vendor or auto-install",
@@ -116,7 +115,6 @@
       "license_note": "MIT",
       "activation": "Complex behavior change with deterministic failing regression to guide implementation",
       "cdf_skills": [
-        "cdf-implementation",
         "cdf-verification"
       ],
       "cost_risk": "Medium",
@@ -133,7 +131,7 @@
       "license_note": "no license established at inspected historical revision; reference only",
       "activation": "Focused refactor with domain modeling and small verifiable steps",
       "cdf_skills": [
-        "cdf-implementation"
+        "cdf"
       ],
       "cost_risk": "Medium",
       "adoption": "research reference only until licence verified; do not install or vendor automatically",
@@ -149,7 +147,7 @@
       "license_note": "MIT",
       "activation": "Complex, unclear or contradictory code review suggestions",
       "cdf_skills": [
-        "cdf-implementation"
+        "cdf"
       ],
       "cost_risk": "Low",
       "adoption": "optional; install separately after review; do not vendor or auto-install",
@@ -438,7 +436,7 @@
       "license_note": "MIT",
       "activation": "Large dependent task handled in one context with check-pointed stages",
       "cdf_skills": [
-        "cdf-orchestration"
+        "cdf"
       ],
       "cost_risk": "Medium",
       "adoption": "optional; install separately after review; do not vendor or auto-install",
@@ -454,7 +452,7 @@
       "license_note": "MIT",
       "activation": "At least two independent workstreams and non-overlapping ownership",
       "cdf_skills": [
-        "cdf-orchestration"
+        "cdf"
       ],
       "cost_risk": "High",
       "adoption": "optional; install separately after review; do not vendor or auto-install",

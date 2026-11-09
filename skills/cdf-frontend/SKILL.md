@@ -11,6 +11,8 @@ description: Implement existing-product UI behavior, client state and frontend c
 5. Maintain clear component APIs and ownership. Avoid abstraction by default; component composition helps only when it reduces actual duplication or boolean-flag proliferation.
 6. Run relevant test/type/lint/build checks. For visually consequential work, inspect the rendered interface and interaction where tools permit. For persistent source/runtime disagreement, inspect the active route, version and configuration before more tuning. Technical checks do not establish perceived usability or game feel. Report browser or visual verification gaps without asserting they passed.
 
+Trace the changed flow from action → handler → state → request/data → rendered feedback → error/retry. Check stale async results and double-submit where they affect that flow. Use the existing harness and components; do not add a browser framework or UI kit merely for a checklist. Static text does not need every interactive state.
+
 ## References
 - `references/accessibility-and-states.md` only for interactive or accessibility-sensitive UI.
 

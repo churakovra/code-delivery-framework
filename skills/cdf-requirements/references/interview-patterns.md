@@ -22,3 +22,5 @@ status: READY | BLOCKED | EXPLORATORY
 ```
 
 Never silently convert a recommendation into approval. Reuse answers already in context or project docs. If the user explicitly delegates a business decision, document that delegation and its boundaries.
+
+Ask the independent frontier only after code and prior answers establish prerequisites. State gap, consequence, alternatives and an unapproved recommendation. Record the decision source/scope; reconcile affected acceptance after a user or revision change.

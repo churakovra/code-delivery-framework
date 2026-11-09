@@ -11,6 +11,8 @@ description: Create or update only documentation that users, maintainers or oper
 5. Check commands, links, examples and paths against current repository; avoid external-network checks unless permitted.
 6. Report changed documentation and explicitly flag unknown behavior rather than guessing.
 
+Choose how-to, reference, explanation or tutorial for the reader’s actual task without reorganizing unrelated documentation. For consequential setup/upgrade/runbooks include prerequisites, commands, expected state and recovery. Run a fresh-reader check: can someone without hidden chat context reproduce it on a disposable target? Mark commands that were not executed.
+
 ## Optional subskills
 Resolve a candidate ID only when needed through `.codex/cdf/subskills.catalog.json` in the installation target or configured home. Confirm native discovery and use the local fallback when absent; never install automatically.
 

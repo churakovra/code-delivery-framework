@@ -1,4 +1,4 @@
-"""CDF 2.0 installation, ownership and crash recovery.
+"""CDF installation, ownership and crash recovery.
 
 The installer owns its manifest-listed payload and a persistent private-state
 ignore block. It never touches Codex's configuration, third-party dependencies,
@@ -18,7 +18,7 @@ import tomllib
 import uuid
 
 from cdf_runtime.contracts import validate_record
-from cdf_registry import CORE, EXTRAS
+from cdf_registry import CORE, EXTRAS, LEGACY_CORE_11
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = '.codex/cdf/manifest.json'
@@ -97,7 +97,8 @@ def allowed(path, agents):
     return (path == agents or path == '.codex/cdf/subskills.catalog.json'
             or path in ('.codex/agents/cdf_reviewer.toml', '.codex/agents/cdf_diagnostician.toml')
             or path in ('.codex/cdf/backups/AGENTS.original', '.codex/cdf/backups/AGENTS.absent')
-            or (len(parts) >= 4 and parts[:2] == ('.agents', 'skills') and parts[2] in set(CORE) | set(sum(EXTRAS.values(), ()))) )
+            or (len(parts) >= 4 and parts[:2] == ('.agents', 'skills')
+                and parts[2] in set(CORE) | set(LEGACY_CORE_11) | set(sum(EXTRAS.values(), ()))))
 
 
 def valid_created_directory(value):
@@ -107,7 +108,9 @@ def valid_created_directory(value):
     if value in ('.agents', '.agents/skills', '.codex', '.codex/agents',
                  '.codex/cdf', '.codex/cdf/backups'):
         return True
-    names = set(CORE) | set(sum(EXTRAS.values(), ()))
+    # An upgrade retains historical directory claims until uninstall. Only
+    # recorded empty directories are removed; never broaden this to arbitrary skills.
+    names = set(CORE) | set(LEGACY_CORE_11) | set(sum(EXTRAS.values(), ()))
     return (len(parts) >= 3 and parts[:2] == ('.agents', 'skills')
             and parts[2] in names)
 
@@ -370,22 +373,25 @@ def manifest_read(root, scope):
         if bool(m['managed_blocks']) != bool(m['preserved_preimages']):
             raise ValueError('incomplete managed block records')
         validate_directories(root, m.get('created_directories', []))
+        present_skills = {p.split('/')[2] for p in m['owned_files']
+                          if p.startswith('.agents/skills/')}
+        optional = {name for extra in m['selected_extras'] for name in EXTRAS[extra]}
+        inventories = [set(names) | optional for names in (CORE, LEGACY_CORE_11)]
+        # Recognize a complete known generation, not a union that could silently
+        # legitimize mixed old/new ownership or undeclared optional skills.
         if m['state'] == 'installed':
-            required_files = {f'.agents/skills/{name}/SKILL.md' for name in CORE}
-            for extra in m['selected_extras']:
-                required_files.update(f'.agents/skills/{name}/SKILL.md' for name in EXTRAS[extra])
+            if present_skills not in inventories:
+                raise ValueError('installed manifest has an unknown skill inventory')
+            required_files = {f'.agents/skills/{name}/SKILL.md' for name in present_skills}
             required_files.update({'.codex/agents/cdf_reviewer.toml',
                                    '.codex/agents/cdf_diagnostician.toml',
                                    '.codex/cdf/subskills.catalog.json'})
-            present_skills = {p.split('/')[2] for p in m['owned_files']
-                              if p.startswith('.agents/skills/')}
-            declared_skills = set(CORE)
-            for extra in m['selected_extras']:
-                declared_skills.update(EXTRAS[extra])
-            if (not required_files.issubset(m['owned_files']) or present_skills != declared_skills
+            if (not required_files.issubset(m['owned_files'])
                     or set(m['managed_blocks']) != {agents}
                     or set(m['preserved_preimages']) != {agents}):
                 raise ValueError('installed manifest lacks required files, extras or managed block')
+        elif not any(present_skills <= names for names in inventories):
+            raise ValueError('partial manifest has an unknown skill inventory')
         return m
     except (TypeError, ValueError, KeyError, AttributeError, json.JSONDecodeError) as exc:
         raise CDFError('MANIFEST_UNSUPPORTED', f'Invalid or unsupported manifest: {exc}', [MANIFEST]) from exc

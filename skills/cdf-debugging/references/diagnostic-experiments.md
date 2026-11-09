@@ -14,3 +14,5 @@ If an experiment fails to support a hypothesis, update it rather than stacking s
 A fix is not validated until the original symptom and a relevant regression path are checked on the revised source. Environmental blockers are reported distinctly.
 
 User feedback is evidence: when the same outcome is rejected again, compare it with the prior prediction even if technical checks passed. Carry failed attempts across turns. Distinguish a changed requirement from a failed repair. For source/runtime disagreement, a useful experiment verifies the active version, configuration and data before changing another parameter. Keep this checkpoint in context unless continuity needs a file.
+
+For each competing cause predict a different observable result before the experiment. Compare active route/version/configuration and real data with the edited source. Preserve failed predictions; do not reinterpret a green unit check as proof of the original outcome.

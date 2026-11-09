@@ -10,6 +10,8 @@ description: Guide a user through active programming learning, examples and feed
 4. When the user asks for implementation, implement the authorized work and explain decisions; do not withhold results to enforce pedagogy.
 5. Summarize only remaining misunderstandings or a requested next step. Preserve earlier learning agreements.
 
+Keep the chosen mode: direct answer, guided exercise or code-along. In practice, use one conceptual step, an optional learner attempt, specific feedback and a next application that corrects a demonstrated misconception. A production repair request belongs to engineering delivery, not compulsory teaching.
+
 ## Optional subskills
 Resolve a candidate ID only when needed through `.codex/cdf/subskills.catalog.json` in the installation target or configured home. Confirm native discovery and use the local fallback when absent; never install automatically.
 
