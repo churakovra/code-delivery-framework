@@ -6,7 +6,7 @@
 
 The installer supports fresh project/global installation, preview, status, upgrade, interrupted-operation recovery and uninstall. It recognizes the recorded 12-core 1.1.0 inventory for migration and removal. Upgrade removes owned retired skill files and installs the kernel, preserves selected extras and user text, and refuses modified-file conflicts and version downgrades.
 
-Migration tests cover pinned 1.1.0 installations created by the original installer from repository revision `cf87b9fac0c94caa27cb2f5f45b1da2b11785f00`, plus adversarial synthetic fixtures. Both project and global targets are temporary. The current source inherits the default branch's release version and upgrades those actual 1.1.0 payloads without a version override. Synthetic forward-version tests also cover ordering and rollback boundaries.
+Migration tests cover pinned 1.1.0 installations created by the original installer from repository revision `cf87b9fac0c94caa27cb2f5f45b1da2b11785f00`, plus adversarial synthetic fixtures. Both project and global targets are temporary. The current source upgrades those actual 1.1.0 payloads without a version override. Synthetic forward-version tests also cover ordering and rollback boundaries.
 
 Frozen compatibility fixtures and evaluation baselines are inactive test data. They are retained to protect existing installations and honest historical comparisons; they are not installed into the current bundle. Retired skills, completed implementation plans and exploratory hooks notes are absent from the supported source. Source attribution remains in `sources.json` and `THIRD_PARTY_NOTICES`.
 

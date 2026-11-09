@@ -459,7 +459,7 @@ class PinnedLegacyMigrationTests(RealBundleMigrationTests):
 
     def setUp(self):
         super().setUp()
-        # Test the source that will be merged, including its inherited release
+        # Test the source that will be merged, including its release
         # version, rather than the synthetic forward-version source.
         shutil.copyfile(ROOT / 'pyproject.toml', self.source / 'pyproject.toml')
 
