@@ -1,6 +1,6 @@
 # Code Delivery Framework
 
-CDF 1.0.0 provides focused delivery skills for Codex. The root agent resolves material requirements, reuses project code, works directly by default, and delegates bounded work when independent review or another concrete benefit warrants it.
+CDF provides focused delivery skills for Codex. The root agent resolves material requirements, reuses project code, works directly by default, and delegates bounded work when independent review or another concrete benefit warrants it.
 
 ## Installation
 
