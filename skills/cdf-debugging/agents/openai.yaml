@@ -1,0 +1,6 @@
+interface:
+  display_name: "CDF Debugging"
+  short_description: "Find root causes and verify targeted bug fixes"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#C2410C"

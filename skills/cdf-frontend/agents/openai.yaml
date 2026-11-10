@@ -1,0 +1,6 @@
+interface:
+  display_name: "CDF Frontend"
+  short_description: "Build accessible interfaces and verify interactions"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#2563EB"

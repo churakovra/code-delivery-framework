@@ -31,3 +31,5 @@ entry. Existing historical attribution and dependency notices above remain.
 The Engineering Partner iteration follows the user-supplied FINAL implementation pack identified by archive SHA-256 in sources.json. Kernel guidance and new evaluation fixtures are original project content. Official OpenAI hooks documentation informed an optional NOT_SHIPPED assessment; no hook, documentation excerpt or third-party executable is bundled. Historical baseline guidance is frozen from this repository, with its existing research notices retained.
 
 The pinned 1.1.0 compatibility fixtures and evaluation guidance baseline come from this repository at cf87b9fac0c94caa27cb2f5f45b1da2b11785f00. They preserve existing project guidance and research notices as inactive test data; they do not install retired skills into the current bundle.
+
+OpenAI plugin packaging and skill-interface documentation (URLs and inspection date in sources.json) informed the presentation metadata. No documentation prose, example code, or artwork is reused. The CDF SVG icon is original project artwork.

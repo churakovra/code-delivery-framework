@@ -468,6 +468,22 @@
       "license": "Project-owned repository snapshot; original notices retained; no new third-party skill text reused",
       "used_for": "Pinned 1.1.0 guidance baseline and installed project/global lifecycle regression fixtures",
       "installation": "Evaluation and compatibility data only; not part of the current skill installation"
+    },
+    {
+      "id": "openai-plugin-packaging",
+      "url": "https://developers.openai.com/plugins/build/plugins",
+      "revision": "Unversioned official documentation inspected 2026-11-10; no immutable revision supplied by site",
+      "license": "Documentation reference only; no prose, code, or artwork reused",
+      "used_for": "Portable skills-only plugin layout and OpenAI presentation metadata.",
+      "installation": "research only"
+    },
+    {
+      "id": "openai-skill-interface",
+      "url": "https://developers.openai.com/plugins/deploy/submission-errors",
+      "revision": "Unversioned official documentation inspected 2026-11-10; no immutable revision supplied by site",
+      "license": "Documentation reference only; no prose, code, or artwork reused",
+      "used_for": "Skill interface field names and asset path validation.",
+      "installation": "research only"
     }
   ]
 }

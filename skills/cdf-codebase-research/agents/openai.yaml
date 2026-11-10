@@ -1,0 +1,6 @@
+interface:
+  display_name: "CDF Codebase Research"
+  short_description: "Trace code behavior, dependencies, and change impact"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#0369A1"

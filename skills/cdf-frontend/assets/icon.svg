@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Frontend interface">
+  <title>Frontend interface</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#2563EB"/>
+  <g fill="none" stroke="white" color="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="14" width="44" height="36" rx="4"/><path d="M10 24h44M18 19h1m5 0h1M25 24v26M32 32h14M32 40h9"/></g>
+</svg>

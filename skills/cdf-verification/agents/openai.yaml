@@ -1,0 +1,6 @@
+interface:
+  display_name: "CDF Verification"
+  short_description: "Verify changes with fresh tests and behavior evidence"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#15803D"

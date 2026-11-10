@@ -1,0 +1,6 @@
+interface:
+  display_name: "CDF Backend"
+  short_description: "Build APIs, services, persistence, and integrations"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#0F766E"

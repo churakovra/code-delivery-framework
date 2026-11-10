@@ -1,0 +1,6 @@
+interface:
+  display_name: "CDF Requirements"
+  short_description: "Resolve scope, behavior, and acceptance decisions"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#0F766E"

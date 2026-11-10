@@ -1,0 +1,6 @@
+interface:
+  display_name: "CDF Teach"
+  short_description: "Teach engineering concepts through practical examples"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#B45309"

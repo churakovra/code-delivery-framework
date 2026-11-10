@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Documentation">
+  <title>Documentation</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#475569"/>
+  <g fill="none" stroke="white" color="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11h20l10 10v32H18zM38 11v12h10M25 32h16M25 40h16M25 48h10"/></g>
+</svg>

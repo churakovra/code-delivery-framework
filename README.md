@@ -19,6 +19,14 @@ Installation makes no network or model calls. It installs 10 core skills (`cdf` 
 
 Global installation uses `--scope global` with the intended home as `--target`. `--home` selects an explicit alternative home for isolated testing; it must match the target. Project scope manages `<target>/AGENTS.md`; global scope manages `<home>/.codex/AGENTS.md`. Development and tests use temporary targets, never the developer's live configuration.
 
+## Codex skill appearance and plugin packaging
+
+Each skill includes `agents/openai.yaml` with a display name, short picker description, and an original CDF icon. These display fields are separate from the model-facing routing description in `SKILL.md`. Model calibration retains explicit-only invocation.
+
+The offline installer copies skills into local folders, so Codex can still label them **Local file**. A source label such as **From Code Delivery Framework** belongs to a plugin installation; skill metadata cannot override provenance. The root `plugin.json` packages CDF as a skills-only plugin with a named interface. Install that package through a host-supported local/repository marketplace to test plugin discovery. See the [official packaging instructions](https://developers.openai.com/plugins/build/plugins) for marketplace setup; availability varies by host.
+
+The plugin includes all 13 skills, including learning and explicit model calibration. It does not apply the managed AGENTS block, install native agent templates, or install the optional-subskill catalog. Use the offline installer when those integrations or selective extras are needed. Avoid enabling both copies of the same skills in one session. Plugin installation, exact source-label wording, and icon rendering have not been verified in the desktop picker. No live global configuration is changed by repository validation.
+
 ## Lifecycle
 
 ```sh

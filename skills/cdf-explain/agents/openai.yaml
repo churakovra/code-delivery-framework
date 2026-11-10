@@ -1,0 +1,6 @@
+interface:
+  display_name: "CDF Explain"
+  short_description: "Explain code and engineering decisions with evidence"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#0369A1"

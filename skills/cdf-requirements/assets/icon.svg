@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Requirements checklist">
+  <title>Requirements checklist</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#0F766E"/>
+  <g fill="none" stroke="white" color="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="14" width="34" height="40" rx="4"/><rect x="25" y="10" width="16" height="8" rx="2"/><path d="m22 29 3 3 5-6m5 4h8m-21 13 3 3 5-6m5 4h8"/></g>
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Verification shield">
+  <title>Verification shield</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#15803D"/>
+  <g fill="none" stroke="white" color="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m32 10 19 8v14c0 11-9 18-19 23-10-5-19-12-19-23V18zM22 32l7 7 14-15"/></g>
+</svg>
