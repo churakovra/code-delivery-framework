@@ -10,13 +10,13 @@ import tomllib
 import unittest
 import xml.etree.ElementTree as ET
 
-from cdf_registry import CORE, EXTRAS
+from scripts.package_cdf_plugin import build_plugin
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class SkillPresentationTests(unittest.TestCase):
-    def test_local_install_preserves_interfaces_icons_and_operator_policy(self):
+    def test_local_install_preserves_kernel_presentation_and_explicit_operator_routing(self):
         with tempfile.TemporaryDirectory() as folder:
             target = Path(folder).resolve()
             result = subprocess.run(
@@ -46,11 +46,20 @@ class SkillPresentationTests(unittest.TestCase):
                     else:
                         self.assertEqual(icon.read_bytes()[:8], b'\x89PNG\r\n\x1a\n')
                         self.assertEqual(struct.unpack('>II', icon.read_bytes()[16:24]), (256, 256))
-            operator = ROOT / 'skills/cdf-model-calibration/agents/openai.yaml'
-            self.assertIn('policy:\n  allow_implicit_invocation: false\n', operator.read_text())
+            self.assertFalse(list((installed / 'modules').rglob('openai.yaml')))
+            self.assertFalse(list((installed / 'modules').rglob('icon.*')))
+            self.assertIn('Read it only when the user explicitly requests it.',
+                          (installed / 'modules/index.md').read_text())
+            self.assertIn('Read this module only for an explicit user request',
+                          (installed / 'modules/cdf-model-calibration/GUIDE.md').read_text())
 
     def test_plugin_identity_version_and_assets(self):
-        manifest = json.loads((ROOT / 'templates/cdf-plugin.json').read_text())
+        self.assertNotIn('version', json.loads((ROOT / 'templates/cdf-plugin.json').read_text()))
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / 'plugin'
+            build_plugin(output)
+            manifest = json.loads((output / 'plugin.json').read_text())
+            packaged_icon = (output / 'assets/icon.png').read_bytes()
         version = tomllib.loads((ROOT / 'pyproject.toml').read_text())['project']['version']
         self.assertEqual(manifest['version'], version)
         self.assertEqual(manifest['name'], 'code-delivery-framework')
@@ -59,7 +68,8 @@ class SkillPresentationTests(unittest.TestCase):
         self.assertLessEqual(len(interface['shortDescription']), 30)
         for key in ('composerIcon', 'logo'):
             self.assertTrue(interface[key].startswith('./assets/'))
-            self.assertEqual((ROOT / interface[key]).read_bytes()[:8], b'\x89PNG\r\n\x1a\n')
+            self.assertEqual(packaged_icon[:8], b'\x89PNG\r\n\x1a\n')
+            self.assertEqual(packaged_icon, (ROOT / 'skills/cdf/assets/icon.png').read_bytes())
         # No unexpected tool connections or hooks in the skills-only package.
         self.assertEqual(set(manifest['extensions']['com.openai']), {'interface'})
 

@@ -15,7 +15,7 @@ python3 scripts/cdf.py install --target /path/to/project --json
 python3 scripts/cdf.py status --target /path/to/project --json
 ```
 
-Installation makes no network or model calls. It installs one discoverable skill at `.agents/skills/cdf/`: the CDF entrypoint, nine core specialist modules and their references. The installer also supplies two native agent templates, an optional-subskill catalog, and one managed AGENTS block. `--with-learning` adds explain and teach modules; `--with-operator` adds explicit model calibration. Extras do not add visible skill entries. Source modules remain separate under `skills/` in this repository. See the [bundle inventory](docs/bundle-inventory.md).
+Installation makes no network or model calls. It installs one discoverable skill at `.agents/skills/cdf/`: the CDF entrypoint, nine core specialist modules and their references. The installer also supplies two native agent templates, an optional-subskill catalog, and one managed AGENTS block. `--with-learning` adds explain and teach modules; `--with-operator` adds explicit model calibration. Extras do not add visible skill entries. Source modules remain separate under `skills/` in this repository. The canonical inventory is `cdf_registry.py`.
 
 Global installation uses `--scope global` with the intended home as `--target`. `--home` selects an explicit alternative home for isolated testing; it must match the target. Project scope manages `<target>/AGENTS.md`; global scope manages `<home>/.codex/AGENTS.md`. Development and tests use temporary targets, never the developer's live configuration.
 
@@ -30,7 +30,7 @@ python3 scripts/package_cdf_plugin.py --output /path/to/new-cdf-plugin
 # Optional: --with-learning --with-operator
 ```
 
-The output parent must exist; an existing output directory is refused. The generated package contains `plugin.json`, the plugin icon, and `skills/cdf/` with its module index, guides, references and optional-subskill catalog. The manifest template is `templates/cdf-plugin.json`; do not install the repository root as a plugin, because its `skills/` folders are the separate authoring sources. Register the generated directory through a host-supported local/repository marketplace using the [official packaging instructions](https://developers.openai.com/plugins/build/plugins). The packaging command does not register, install, publish or modify global configuration. Host installation and exact source-label wording remain unverified.
+The output parent must exist; an existing output directory is refused. The generated package contains `plugin.json`, the plugin icon, and `skills/cdf/` with its module index, guides, references and optional-subskill catalog. The version-free manifest template is `templates/cdf-plugin.json`; packaging reads the release version from `pyproject.toml` and reuses the kernel icon; do not install the repository root as a plugin, because its `skills/` folders are the separate authoring sources. Register the generated directory through a host-supported local/repository marketplace using the [official packaging instructions](https://developers.openai.com/plugins/build/plugins). The packaging command does not register, install, publish or modify global configuration. Host installation and exact source-label wording remain unverified.
 
 A plugin improves distribution, identity and host-managed installation. It uses the same methods and does not establish higher reasoning quality. This skills-only plugin does not apply the AGENTS policy block or install native agent templates; the offline installer provides that fuller integration. Avoid enabling both copies of CDF in one session. Plugins and local installations now expose the same one skill; module names such as `cdf-debugging` are resolved through its index. Ask `$cdf` to debug or review rather than invoking a separate `$cdf-debugging` entry. Model calibration still requires an explicit request.
 
@@ -73,8 +73,12 @@ python3 scripts/check_cdf_discovery.py --codex /path/to/codex
 
 This installs all modules in a temporary home/project and calls app-server `skills/list`. It checks one enabled CDF entry and valid icon paths. It does not test desktop rendering or specialist selection by a model.
 
-See the [architecture guide](docs/architecture.md), [current acceptance limits](docs/status.md), and [evaluation protocol](evals/README.md). Static checks and fake adapters test mechanics, not model compliance. Live evaluations require explicit execution flags and trusted code. No verified OS sandbox provider, live behavioral acceptance, or subscription savings measurement is claimed.
+See the [architecture guide](docs/architecture.md) and [evaluation protocol](evals/README.md). Static checks and fake adapters test mechanics, not model compliance. Live evaluations require explicit execution flags and trusted code. No verified OS sandbox provider, live behavioral acceptance, or subscription savings measurement is claimed.
+
+CDF checks the requested artifact or operation, with separate semantic, functional and visual evidence where applicable. Supported native progress reports meaningful checkpoints; skills cannot guarantee a particular host status line. No custom status runtime is installed. Prefer compatible installed visual specialists for new visual direction; absence uses the local fallback without downloads. Discovery, reading a guide, applying its method and observing an outcome are separate claims.
 
 Completion reports distinguish COMPLETE (required acceptance and review observed), PARTIAL (named evidence or acceptance gaps), and BLOCKED (a missing decision, permission or capability prevents safe dependent work). Optional task-state schema enums remain internal. Hooks are not bundled or required.
 
 Release, publishing and deployment require separate authorization. [sources.json](sources.json) and [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES) preserve research provenance and licensing information.
+
+The single-entry layout is retained by user decision, with model routing and behavioral impact unverified. Older installers reject the single-layout manifest field; use the current installer for recovery and removal. Offline tests establish mechanics only. Live matched comparisons, host progress rendering and human visual acceptance remain required before claiming improved experience.

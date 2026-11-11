@@ -32,3 +32,27 @@ class OutcomeFixtureTests(unittest.TestCase):
         case = next(case for case in cases if case['id'] == 'G30')
         self.assertTrue(case['no_fixture_edits'])
         self.assertIsNone(case['deterministic_check'])
+
+    def test_explorer_oracle_rejects_summary_missing_and_invented_edges(self):
+        with tempfile.TemporaryDirectory() as temp:
+            workspace = Path(temp)
+            shutil.copytree(ROOT / 'evals/fixtures/E19', workspace, dirs_exist_ok=True)
+            command = [sys.executable, '-I', str(ROOT / 'evals/checks/E19.py')]
+            def passes():
+                return subprocess.run(command, cwd=workspace, capture_output=True, timeout=10).returncode == 0
+            (workspace / 'summary.md').write_text('Explorer complete; all tests pass.')
+            self.assertFalse(passes())
+            artifact = workspace / 'explorer.html'
+            nodes = ''.join(f'<button data-process="{name}">{name}</button>'
+                            for name in ('receive', 'validate', 'fulfil'))
+            edges = '<p data-from="receive" data-to="validate">Receive → Validate</p><p data-from="validate" data-to="fulfil">Validate → Fulfil</p>'
+            artifact.write_text(nodes)
+            self.assertFalse(passes())
+            artifact.write_text(nodes + edges)
+            self.assertTrue(passes())  # Static floor only; no browser or visual claim.
+            artifact.write_text(nodes + edges + '<p data-from="fulfil" data-to="receive">Invented</p>')
+            self.assertFalse(passes())
+            artifact.write_text(nodes + edges)
+            source = workspace / 'processes.json'
+            source.write_text(source.read_text().replace('fulfil', 'invented'))
+            self.assertFalse(passes())

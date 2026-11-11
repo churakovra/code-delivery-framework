@@ -23,3 +23,5 @@ Resolve a candidate ID only when needed through `.codex/cdf/subskills.catalog.js
 - `vercel-composition`: reusable React component API or boolean-prop complexity.
 - `vercel-web-guidelines`: explicit UI/UX/accessibility audit, with reviewed source and network permissions.
 Fallback: framework docs, real components and focused checks; no React specialist for non-React projects.
+
+Frontend owns interactions, state/data lifetimes, requests and accessibility. A visual specialist supports requested art direction; loading it does not verify functionality. Exercise the actual production route and inspect host capabilities before inferring behavior from generated assets. For source-backed diagrams, verify transitions against source separately from navigation and visual hierarchy.

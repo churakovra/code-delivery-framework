@@ -109,10 +109,14 @@ def _trace_metrics(stdout, kind):
     if kind != 'codex': return None
     try: events = [json.loads(line) for line in stdout.decode('utf-8').splitlines() if line.strip()]
     except (UnicodeDecodeError, ValueError): return None
-    if not any(isinstance(e, dict) and e.get('type') == 'turn.completed' for e in events): return None
+    if not events or any(not isinstance(e, dict) or not isinstance(e.get('type'), str) for e in events): return None
+    if events[-1]['type'] != 'turn.completed': return None
+    if any(e['type'] == 'item.completed' and
+           (not isinstance(e.get('item'), dict) or not isinstance(e['item'].get('type'), str)
+            or not e['item']['type']) for e in events): return None
     observed = [e for e in events if isinstance(e, dict) and e.get('type') == 'item.completed'
                 and isinstance(e.get('item'), dict) and e['item'].get('type') == 'command_execution']
-    return len(observed) if observed else None
+    return len(observed)
 
 
 def _snapshot(directory: Path, *, skip_git=False):

@@ -26,3 +26,5 @@ Resolve a candidate ID only when needed through `.codex/cdf/subskills.catalog.js
 - `superpowers-requesting-review`: coordinating a significant independent review handoff.
 - `wsh-multi-reviewer`: exceptional complex reviews where independent perspectives warrant extra cost.
 Fallback: the targeted diff/contract/failure-path review above.
+
+Report EVIDENCE_GAP when a claimed user-facing outcome has only proxy checks: for example, host icon rendering inferred from YAML or an explorer inferred from a summary. Name the missing runtime observation. Keep visual preference separate from correctness and security findings.
