@@ -15,17 +15,24 @@ python3 scripts/cdf.py install --target /path/to/project --json
 python3 scripts/cdf.py status --target /path/to/project --json
 ```
 
-Installation makes no network or model calls. It installs 10 core skills (`cdf` and nine specialists), their references, two native agent templates, an optional-subskill catalog, and one managed AGENTS block. `--with-learning` adds explain and teach; `--with-operator` adds explicit model calibration. See the [bundle inventory](docs/bundle-inventory.md).
+Installation makes no network or model calls. It installs one discoverable skill at `.agents/skills/cdf/`: the CDF entrypoint, nine core specialist modules and their references. The installer also supplies two native agent templates, an optional-subskill catalog, and one managed AGENTS block. `--with-learning` adds explain and teach modules; `--with-operator` adds explicit model calibration. Extras do not add visible skill entries. Source modules remain separate under `skills/` in this repository. See the [bundle inventory](docs/bundle-inventory.md).
 
 Global installation uses `--scope global` with the intended home as `--target`. `--home` selects an explicit alternative home for isolated testing; it must match the target. Project scope manages `<target>/AGENTS.md`; global scope manages `<home>/.codex/AGENTS.md`. Development and tests use temporary targets, never the developer's live configuration.
 
 ## Codex skill appearance and plugin packaging
 
-Each skill includes `agents/openai.yaml` with a display name, short picker description, and an original CDF icon. These display fields are separate from the model-facing routing description in `SKILL.md`. Model calibration retains explicit-only invocation.
+CDF has a display name, short description, a transparent small SVG for monochrome rendering, and a separate colored large PNG for the installed-skills card. These fields are separate from the model-facing routing description in `SKILL.md`. Desktop mention-picker inspection on 2026-11-10 found that skill-row icons come from artifact-template categories; that picker can still use a generic icon. A temporary-home app-server probe observed exactly one enabled CDF entry with resolved SVG/PNG paths. The settings-card rendering still needs verification after a real upgrade; discovery does not establish desktop rendering.
 
-The offline installer copies skills into local folders, so Codex can still label them **Local file**. A source label such as **From Code Delivery Framework** belongs to a plugin installation; skill metadata cannot override provenance. The root `plugin.json` packages CDF as a skills-only plugin with a named interface. Install that package through a host-supported local/repository marketplace to test plugin discovery. See the [official packaging instructions](https://developers.openai.com/plugins/build/plugins) for marketplace setup; availability varies by host.
+The offline installer can still appear as **Local file**. A named plugin source requires a plugin installation. Build a skills-only plugin from the same single-entry payload:
 
-The plugin includes all 13 skills, including learning and explicit model calibration. It does not apply the managed AGENTS block, install native agent templates, or install the optional-subskill catalog. Use the offline installer when those integrations or selective extras are needed. Avoid enabling both copies of the same skills in one session. Plugin installation, exact source-label wording, and icon rendering have not been verified in the desktop picker. No live global configuration is changed by repository validation.
+```sh
+python3 scripts/package_cdf_plugin.py --output /path/to/new-cdf-plugin
+# Optional: --with-learning --with-operator
+```
+
+The output parent must exist; an existing output directory is refused. The generated package contains `plugin.json`, the plugin icon, and `skills/cdf/` with its module index, guides, references and optional-subskill catalog. The manifest template is `templates/cdf-plugin.json`; do not install the repository root as a plugin, because its `skills/` folders are the separate authoring sources. Register the generated directory through a host-supported local/repository marketplace using the [official packaging instructions](https://developers.openai.com/plugins/build/plugins). The packaging command does not register, install, publish or modify global configuration. Host installation and exact source-label wording remain unverified.
+
+A plugin improves distribution, identity and host-managed installation. It uses the same methods and does not establish higher reasoning quality. This skills-only plugin does not apply the AGENTS policy block or install native agent templates; the offline installer provides that fuller integration. Avoid enabling both copies of CDF in one session. Plugins and local installations now expose the same one skill; module names such as `cdf-debugging` are resolved through its index. Ask `$cdf` to debug or review rather than invoking a separate `$cdf-debugging` entry. Model calibration still requires an explicit request.
 
 ## Lifecycle
 
@@ -38,7 +45,7 @@ python3 scripts/cdf.py doctor --target /path/to/project --json
 
 Inspect previews before omitting `--dry-run`. Upgrade retains extras unless explicitly disabled with `--without-learning` or `--without-operator`. Edited managed files block upgrades and are preserved on uninstall. `uninstall --release-modified-skills` preserves each modified skill and releases ownership. The installer preserves bytes outside its AGENTS block, unrelated configuration, and directories containing user files.
 
-Legacy schema-2 installations with the frozen 12-core inventory remain readable and removable. A forward upgrade removes owned orchestration/planning/implementation files and installs the kernel; edited legacy files cause a conflict. The source version must be at least the recorded installed version. Upgrading a 1.1.0 installation changes the core inventory while retaining ownership safeguards. Newer-version downgrade attempts remain blocked. Inspect `status`, preview `upgrade`, resolve modified-file conflicts, and use `recover --dry-run` after interruption.
+Existing schema-2 installations with the 10-core 1.2.x or frozen 12-core 1.1.0 inventory remain readable and removable. Upgrade migrates owned standalone skills into the single CDF folder, retains extras, and removes their old discoverable entrypoints. User files are preserved and modified managed files block migration. In the single layout, `--release-modified-skills` releases the whole CDF folder when any module is modified. A forward upgrade removes owned orchestration/planning/implementation files and installs the kernel; edited legacy files cause a conflict. The source version must be at least the recorded installed version. Upgrading a 1.1.0 installation changes the core inventory while retaining ownership safeguards. Newer-version downgrade attempts remain blocked. Inspect `status`, preview `upgrade`, resolve modified-file conflicts, and use `recover --dry-run` after interruption.
 
 Private manifests, backups, transaction journals and cleanup intents are excluded by an additive managed block in `.codex/.gitignore`. That ignore policy persists after uninstall and recovery. Interrupted operations require recovery. Stale locks require manual inspection before removal. The installer does not untrack existing files or change the Git index; inspect already tracked sensitive files separately.
 
@@ -57,6 +64,14 @@ python3 scripts/validate_cdf.py
 python3 scripts/cdf.py validate --offline --json
 python3 -m unittest discover -s tests
 ```
+
+To check discovery without a model call or live configuration changes, run:
+
+```sh
+python3 scripts/check_cdf_discovery.py --codex /path/to/codex
+```
+
+This installs all modules in a temporary home/project and calls app-server `skills/list`. It checks one enabled CDF entry and valid icon paths. It does not test desktop rendering or specialist selection by a model.
 
 See the [architecture guide](docs/architecture.md), [current acceptance limits](docs/status.md), and [evaluation protocol](evals/README.md). Static checks and fake adapters test mechanics, not model compliance. Live evaluations require explicit execution flags and trusted code. No verified OS sandbox provider, live behavioral acceptance, or subscription savings measurement is claimed.
 

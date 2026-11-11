@@ -1,5 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Codebase research">
   <title>Codebase research</title>
-  <rect x="2" y="2" width="60" height="60" rx="14" fill="#0369A1"/>
   <g fill="none" stroke="white" color="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M16 29V17h22M16 29v18h14"/><rect x="10" y="11" width="12" height="12" rx="2"/><circle cx="41" cy="30" r="10"/><path d="m48 37 7 7"/><rect x="10" y="41" width="12" height="12" rx="2"/></g>
 </svg>

@@ -2,5 +2,5 @@ interface:
   display_name: "CDF Code Review"
   short_description: "Review changes for bugs, risks, and regressions"
   icon_small: "./assets/icon.svg"
-  icon_large: "./assets/icon.svg"
+  icon_large: "./assets/icon.png"
   brand_color: "#7C3AED"

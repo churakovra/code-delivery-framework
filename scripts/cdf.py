@@ -56,14 +56,14 @@ def parser():
 
 def run(args):
     if args.action == 'validate':
-        core.bundle(extras=('learning', 'operator'))
+        files, _ = core.bundle(extras=('learning', 'operator'))
         try:
             from scripts.validate_cdf import validate_source
             validated = validate_source()
         except (OSError, ValueError, KeyError, ImportError) as exc:
             raise core.CDFError('INVALID_BUNDLE', f'Source contract validation failed: {exc}') from exc
         version = core._version(core.ROOT)
-        result = {'schema': 1, 'state': 'valid', 'version': version, 'skills': validated['core_skills'] + validated['optional_skills'], 'network': 'not_used', 'runtime': 'unverified', 'source_contracts': validated}
+        result = {'schema': 1, 'state': 'valid', 'version': version, 'skills': sum(path.endswith('/SKILL.md') for path in files), 'layout': core.bundle_layout(core.ROOT), 'source_modules': validated['core_skills'] + validated['optional_skills'], 'network': 'not_used', 'runtime': 'unverified', 'source_contracts': validated}
         if args.runtime:
             executable = shutil.which('codex')
             if not executable:

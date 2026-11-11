@@ -2,5 +2,5 @@ interface:
   display_name: "CDF"
   short_description: "Deliver engineering changes with verified results"
   icon_small: "./assets/icon.svg"
-  icon_large: "./assets/icon.svg"
+  icon_large: "./assets/icon.png"
   brand_color: "#2563EB"

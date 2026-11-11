@@ -124,3 +124,7 @@ independently and collect enough repeated observations before asserting an
 improvement. No independent held-out evaluation set or live comparison has been completed.
 No live model superiority, discovery, subscription saving or
 statistical significance is established by this repository's local test results.
+
+## Single-entry CDF candidate
+
+The current installer exposes one `cdf` skill and packages specialists as guides under `cdf/modules/`. For current `CANDIDATE_CDF` traces, a specialist `activate:cdf-debugging`-style rubric label requires observed reading/application of the corresponding guide after loading CDF; it does not require a separately discoverable skill. Absence of an unrelated specialist means its guide was not loaded. Frozen historical baselines retain their original independent-skill meaning. Routing assertions and packaged files do not count as live behavioral evidence; positive/negative module routing and explicit-only calibration still require model traces.

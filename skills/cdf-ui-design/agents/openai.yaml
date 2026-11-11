@@ -2,5 +2,5 @@ interface:
   display_name: "CDF UI Design"
   short_description: "Design interfaces around users, tasks, and product identity"
   icon_small: "./assets/icon.svg"
-  icon_large: "./assets/icon.svg"
+  icon_large: "./assets/icon.png"
   brand_color: "#BE185D"

@@ -159,8 +159,20 @@ class MigrationTests(unittest.TestCase):
                 manifest = core.manifest_read(target, scope)
                 self.assertEqual(manifest['selected_extras'], ['learning', 'operator'])
                 names = {p.split('/')[2] for p in manifest['owned_files'] if p.startswith('.agents/skills/')}
-                self.assertEqual(names, set(FUTURE_CORE) | set(sum(EXTRAS.values(), ())))
-                self.assertEqual(len(names), 13)
+                if core.bundle_layout(self.source) == 'single':
+                    self.assertEqual(names, {'cdf'})
+                    self.assertEqual(manifest['layout'], 'single')
+                    modules = set(FUTURE_CORE) - {'cdf'} | set(sum(EXTRAS.values(), ()))
+                    actual = {p.split('/')[4] for p in manifest['owned_files']
+                              if p.startswith('.agents/skills/cdf/modules/') and p.endswith('/GUIDE.md')}
+                    self.assertEqual(actual, modules)
+                    self.assertEqual(len(actual), 12)
+                    for name in modules:
+                        self.assertFalse((target / f'.agents/skills/{name}/SKILL.md').exists())
+                        self.assertTrue((target / f'.agents/skills/cdf/modules/{name}/GUIDE.md').is_file())
+                else:
+                    self.assertEqual(names, set(FUTURE_CORE) | set(sum(EXTRAS.values(), ())))
+                    self.assertEqual(len(names), 13)
                 self.assertEqual(core.status(target, scope)['files'], 'clean')
                 for name in RETIRED:
                     self.assertFalse((target / f'.agents/skills/{name}/SKILL.md').exists())
@@ -180,7 +192,12 @@ class MigrationTests(unittest.TestCase):
         self.action(target, 'project', 'upgrade', disable=('learning',))
         self.assertEqual(core.manifest_read(target, 'project')['selected_extras'], ['operator'])
         self.assertFalse((target / '.agents/skills/cdf-explain/SKILL.md').exists())
-        self.assertTrue((target / '.agents/skills/cdf-model-calibration/SKILL.md').exists())
+        if core.bundle_layout(self.source) == 'single':
+            self.assertFalse((target / '.agents/skills/cdf/modules/cdf-explain/GUIDE.md').exists())
+            self.assertFalse((target / '.agents/skills/cdf/modules/cdf-teach/GUIDE.md').exists())
+            self.assertTrue((target / '.agents/skills/cdf/modules/cdf-model-calibration/GUIDE.md').is_file())
+        else:
+            self.assertTrue((target / '.agents/skills/cdf-model-calibration/SKILL.md').exists())
 
     def test_m06_modified_retired_skill_bytes_or_mode_block_upgrade(self):
         for name in RETIRED:

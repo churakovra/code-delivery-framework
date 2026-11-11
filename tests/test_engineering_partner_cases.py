@@ -32,6 +32,19 @@ class EngineeringPartnerCaseTests(unittest.TestCase):
                 self.assertNotIn('activate:', case['prompt'])
                 self.assertNotIn('$cdf', case['prompt'])
 
+    def test_current_specialist_rubrics_require_the_single_entrypoint(self):
+        from evals import runner
+        for case in self.cases.values():
+            rubric = runner.candidate_rubric(case)
+            if any(name.startswith('activate:cdf-') for name in rubric['must']):
+                self.assertIn('activate:cdf', rubric['must'])
+                self.assertNotIn('activate:cdf', rubric['must_not'])
+        overlay = json.loads((EVALS / 'candidate-activation.json').read_text())['cases']
+        for entry in overlay.values():
+            if any(name.startswith('activate:cdf-') for name in entry['must']):
+                self.assertIn('activate:cdf', entry['must'])
+                self.assertNotIn('activate:cdf', entry['must_not'])
+
     def test_candidate_overlays_cover_frozen_cases_without_retired_skills(self):
         from cdf_registry import CORE, EXTRAS
         overlay = json.loads((EVALS / 'candidate-activation.json').read_text())['cases']

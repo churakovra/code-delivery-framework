@@ -2,6 +2,7 @@
 import json
 from pathlib import Path
 import re
+import struct
 import subprocess
 import sys
 import tempfile
@@ -24,7 +25,7 @@ class SkillPresentationTests(unittest.TestCase):
                 capture_output=True, text=True,
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            for name in (*CORE, *EXTRAS['learning'], *EXTRAS['operator']):
+            for name in ('cdf',):
                 source = ROOT / 'skills' / name
                 installed = target / '.agents/skills' / name
                 metadata = installed / 'agents/openai.yaml'
@@ -39,12 +40,17 @@ class SkillPresentationTests(unittest.TestCase):
                     self.assertNotIn('..', relative.parts)
                     icon = installed / relative
                     self.assertEqual(icon.read_bytes(), (source / relative).read_bytes())
-                    self.assertEqual(ET.parse(icon).getroot().tag, '{http://www.w3.org/2000/svg}svg')
-            operator = target / '.agents/skills/cdf-model-calibration/agents/openai.yaml'
+                    if icon.suffix == '.svg':
+                        self.assertEqual(ET.parse(icon).getroot().tag, '{http://www.w3.org/2000/svg}svg')
+                        self.assertNotIn('rx="14"', icon.read_text())
+                    else:
+                        self.assertEqual(icon.read_bytes()[:8], b'\x89PNG\r\n\x1a\n')
+                        self.assertEqual(struct.unpack('>II', icon.read_bytes()[16:24]), (256, 256))
+            operator = ROOT / 'skills/cdf-model-calibration/agents/openai.yaml'
             self.assertIn('policy:\n  allow_implicit_invocation: false\n', operator.read_text())
 
     def test_plugin_identity_version_and_assets(self):
-        manifest = json.loads((ROOT / 'plugin.json').read_text())
+        manifest = json.loads((ROOT / 'templates/cdf-plugin.json').read_text())
         version = tomllib.loads((ROOT / 'pyproject.toml').read_text())['project']['version']
         self.assertEqual(manifest['version'], version)
         self.assertEqual(manifest['name'], 'code-delivery-framework')
@@ -53,7 +59,7 @@ class SkillPresentationTests(unittest.TestCase):
         self.assertLessEqual(len(interface['shortDescription']), 30)
         for key in ('composerIcon', 'logo'):
             self.assertTrue(interface[key].startswith('./assets/'))
-            ET.parse(ROOT / interface[key])
+            self.assertEqual((ROOT / interface[key]).read_bytes()[:8], b'\x89PNG\r\n\x1a\n')
         # No unexpected tool connections or hooks in the skills-only package.
         self.assertEqual(set(manifest['extensions']['com.openai']), {'interface'})
 

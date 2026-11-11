@@ -235,12 +235,17 @@ def candidate_rubric(case):
     if item is None:
         if case['id'].startswith(('G', 'A')):
             raise ValueError('Missing candidate activation rubric')
-        return {key: [name for name in case[key] if name.startswith('activate:')]
+        item = {key: [name for name in case[key] if name.startswith('activate:')]
                 for key in ('must', 'must_not')}
     if (not isinstance(item, dict) or any(not isinstance(item.get(key), list) or
             any(not isinstance(name, str) or not name.startswith('activate:') for name in item[key])
             for key in ('must', 'must_not'))):
         raise ValueError('Invalid candidate activation assertions')
+    if any(name.startswith('activate:cdf-') for name in item['must']):
+        if 'activate:cdf' in item['must_not']:
+            raise ValueError('Specialist activation cannot forbid the CDF entrypoint')
+        if 'activate:cdf' not in item['must']:
+            item = dict(item, must=['activate:cdf', *item['must']])
     return item
 
 

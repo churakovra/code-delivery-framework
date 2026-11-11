@@ -28,5 +28,5 @@ def inventory_markdown():
              '| Core | ' + ', '.join(f'`{name}`' for name in CORE) + ' |']
     lines.extend('| ' + extra + ' | ' + ', '.join(f'`{name}`' for name in names) + ' |'
                  for extra, names in sorted(EXTRAS.items()))
-    lines.extend(['', 'Native agents: ' + ', '.join(f'`{name}`' for name in NATIVE_AGENTS) + '.', ''])
+    lines.extend(['', 'Installation exposes one `cdf` skill. Specialists above are source modules packaged as guides inside that folder; extras add guides, not entries.', '', 'Native agents: ' + ', '.join(f'`{name}`' for name in NATIVE_AGENTS) + '.', ''])
     return '\n'.join(lines)

@@ -1,6 +1,6 @@
 ---
 name: cdf
-description: Deliver nontrivial engineering changes with established authority, existing contracts and observed verification. Use for multi-component, ambiguous, consequential or coordinated work; skip known local edits, short explanations and simple read-only lookups.
+description: Coordinate engineering delivery, requirements, codebase research, backend and frontend implementation, UI design, debugging, review, documentation and verification. Use the relevant specialist methods for the task; handle explanation and teaching requests when learning guides are installed. Model calibration requires an explicit request.
 ---
 # Engineering delivery
 

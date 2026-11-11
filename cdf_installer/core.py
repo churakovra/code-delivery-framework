@@ -19,6 +19,7 @@ import uuid
 
 from cdf_runtime.contracts import validate_record
 from cdf_registry import CORE, EXTRAS, LEGACY_CORE_11
+from cdf_installer.packaging import compact_skills
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = '.codex/cdf/manifest.json'
@@ -285,6 +286,18 @@ def parse_skill(path, name):
             raise CDFError('INVALID_BUNDLE', 'Missing skill reference.', [str(path.parent / rp)])
 
 
+def bundle_layout(root):
+    """Undeclared layout belongs to historical flat bundles and test fixtures."""
+    try:
+        config = tomllib.loads((root / 'pyproject.toml').read_text())
+        layout = config.get('tool', {}).get('cdf', {}).get('layout', 'flat')
+        if layout not in ('flat', 'single'):
+            raise ValueError('unknown bundle layout')
+        return layout
+    except (OSError, ValueError, TypeError, AttributeError) as exc:
+        raise CDFError('INVALID_BUNDLE', f'Invalid bundle layout: {exc}') from exc
+
+
 def bundle(root=ROOT, extras=()):
     result = {}
     selected = list(CORE)
@@ -320,6 +333,8 @@ def bundle(root=ROOT, extras=()):
         if block.count(START) != 1 or block.count(END) != 1 or not block.startswith(START) or not block.rstrip(b'\r\n').endswith(END):
             raise CDFError('INVALID_BUNDLE', 'Invalid managed block template.')
         block = block.rstrip(b'\r\n') + b'\n'
+        if bundle_layout(root) == 'single':
+            result = compact_skills(result, selected)
         return result, block
     except (OSError, UnicodeError, ValueError, tomllib.TOMLDecodeError) as exc:
         raise CDFError('INVALID_BUNDLE', f'Cannot read bundle: {exc}') from exc
@@ -345,7 +360,7 @@ def manifest_read(root, scope):
     try:
         m = json.loads(raw)
         required = {'schema', 'framework_version', 'scope', 'source_revision', 'selected_extras', 'state', 'owned_files', 'managed_blocks', 'preserved_preimages', 'transaction'}
-        if not isinstance(m, dict) or not required.issubset(m) or set(m) - required - {'created_directories'} or m['schema'] != 2 or m['scope'] != scope or not re.fullmatch(r'[12]\.\d+\.\d+(?:\.dev\d+|[-+][A-Za-z0-9.-]+)?', m['framework_version']) or not isinstance(m['source_revision'], str) or not m['source_revision']:
+        if not isinstance(m, dict) or not required.issubset(m) or set(m) - required - {'created_directories', 'layout'} or m['schema'] != 2 or m['scope'] != scope or not re.fullmatch(r'[12]\.\d+\.\d+(?:\.dev\d+|[-+][A-Za-z0-9.-]+)?', m['framework_version']) or not isinstance(m['source_revision'], str) or not m['source_revision']:
             raise ValueError('unsupported manifest fields or scope')
         if m['state'] not in ('installed', 'partial', 'recovery-required', 'conflict') or not isinstance(m['selected_extras'], list) or len(set(m['selected_extras'])) != len(m['selected_extras']) or not set(m['selected_extras']) <= set(EXTRAS):
             raise ValueError('invalid state or extras')
@@ -373,16 +388,33 @@ def manifest_read(root, scope):
         if bool(m['managed_blocks']) != bool(m['preserved_preimages']):
             raise ValueError('incomplete managed block records')
         validate_directories(root, m.get('created_directories', []))
+        layout = m.get('layout', 'flat')
+        if layout not in ('flat', 'single'):
+            raise ValueError('unknown layout')
         present_skills = {p.split('/')[2] for p in m['owned_files']
                           if p.startswith('.agents/skills/')}
         optional = {name for extra in m['selected_extras'] for name in EXTRAS[extra]}
-        inventories = [set(names) | optional for names in (CORE, LEGACY_CORE_11)]
+        inventories = ([{'cdf'}] if layout == 'single' else
+                       [set(names) | optional for names in (CORE, LEGACY_CORE_11)])
+        if layout == 'single':
+            modules = set(CORE) - {'cdf'} | optional
+            actual_modules = {p.split('/')[4] for p in m['owned_files']
+                              if p.startswith('.agents/skills/cdf/modules/') and len(p.split('/')) > 5}
+            if not actual_modules <= modules:
+                raise ValueError('unknown or undeclared CDF module')
+            if any(p.endswith('/SKILL.md') and p != '.agents/skills/cdf/SKILL.md'
+                   for p in m['owned_files']):
+                raise ValueError('single layout contains nested skills')
         # Recognize a complete known generation, not a union that could silently
         # legitimize mixed old/new ownership or undeclared optional skills.
         if m['state'] == 'installed':
             if present_skills not in inventories:
                 raise ValueError('installed manifest has an unknown skill inventory')
             required_files = {f'.agents/skills/{name}/SKILL.md' for name in present_skills}
+            if layout == 'single':
+                required_files.update(f'.agents/skills/cdf/modules/{name}/GUIDE.md' for name in modules)
+                required_files.update({'.agents/skills/cdf/modules/index.md',
+                                       '.agents/skills/cdf/subskills.catalog.json'})
             required_files.update({'.codex/agents/cdf_reviewer.toml',
                                    '.codex/agents/cdf_diagnostician.toml',
                                    '.codex/cdf/subskills.catalog.json'})
@@ -566,6 +598,7 @@ def changes_plan(root, scope, action, extras=(), src=ROOT, release_modified_skil
             owned = {op['path']: {'sha256': op['after_sha256'], 'mode': op['_new_mode']} for op in operations if op['path'] != agents and op['_after'] is not None}
             new_manifest = {'schema': 2, 'framework_version': _version(src), 'scope': scope,
                             'source_revision': source_identity, 'selected_extras': sorted(extras),
+                            'layout': bundle_layout(src),
                             'state': 'installed', 'owned_files': owned,
                             'managed_blocks': {agents: {'start_marker': START.decode(), 'end_marker': END.decode(), 'sha256': digest(block)}},
                             'preserved_preimages': preimages, 'transaction': None}

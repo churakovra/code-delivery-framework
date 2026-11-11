@@ -8,4 +8,6 @@ Generated from `cdf_registry.py`; regenerate with `python3 scripts/validate_cdf.
 | learning | `cdf-explain`, `cdf-teach` |
 | operator | `cdf-model-calibration` |
 
+Installation exposes one `cdf` skill. Specialists above are source modules packaged as guides inside that folder; extras add guides, not entries.
+
 Native agents: `cdf_reviewer`, `cdf_diagnostician`.

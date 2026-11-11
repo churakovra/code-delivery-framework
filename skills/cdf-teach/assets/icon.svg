@@ -1,5 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Teaching and learning">
   <title>Teaching and learning</title>
-  <rect x="2" y="2" width="60" height="60" rx="14" fill="#B45309"/>
   <g fill="none" stroke="white" color="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m8 24 24-12 24 12-24 12zM18 30v15c8 7 20 7 28 0V30M56 24v23"/></g>
 </svg>

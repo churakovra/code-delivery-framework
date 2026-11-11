@@ -484,6 +484,22 @@
       "license": "Documentation reference only; no prose, code, or artwork reused",
       "used_for": "Skill interface field names and asset path validation.",
       "installation": "research only"
+    },
+    {
+      "id": "openai-bundled-skill-icon-pair",
+      "url": "https://github.com/openai/skills/blob/main/skills/.curated/openai-docs/agents/openai.yaml",
+      "revision": "Installed Skill Creator agents/openai.yaml inspected 2026-11-10; SHA-256 d07d21b93fcf3d4dc8d9a3399c05fc226a49a333a96d3e1c68b451b8dd9eade6",
+      "license": "Metadata structure reference only; no artwork or instructions reused",
+      "used_for": "Separate transparent small SVG and original colored large PNG presentation assets.",
+      "installation": "research only"
+    },
+    {
+      "id": "openai-app-server-discovery",
+      "url": "https://learn.chatgpt.com/docs/app-server",
+      "revision": "Unversioned documentation inspected 2026-11-10; probe executed with bundled Codex 0.167.0-alpha.3.2",
+      "license": "Protocol reference only; original probe implementation, no documentation prose reused",
+      "used_for": "Isolated initialize and skills/list discovery check without model execution or live configuration mutation.",
+      "installation": "research only"
     }
   ]
 }
