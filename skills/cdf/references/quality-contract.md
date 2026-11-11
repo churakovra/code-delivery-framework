@@ -21,3 +21,16 @@ Review actual changed code and callers against both original accepted outcome an
 An unavailable required reviewer permits patch preparation and checks but blocks fully reviewed readiness. It does not make self-review independent. Do not impose a browser check on documentation or a DB check on unrelated code.
 
 COMPLETE means all acceptance required for the stated result and required review are observed, with no material decision unresolved. PARTIAL names unmet acceptance/evidence and its practical risk. BLOCKED names the missing decision, permission or capability needed to proceed safely; independent work can continue. These are user-facing guidance, not replacements for optional task-state schema enums. No mandatory JSON artifact for a tiny change.
+
+## Outcome evidence
+
+Check the requested artifact or operation itself before reporting completion. For applicable claims, distinguish semantic/product correctness, functional/runtime behavior and visual/experience quality. Each can be OBSERVED_PASS, OBSERVED_FAIL, NOT_OBSERVED or NOT_APPLICABLE; evidence in one layer does not establish another.
+
+| Claim | Credible boundary | Insufficient proxy |
+| --- | --- | --- |
+| Interactive process explorer | Source-backed transitions, drilldown and Back in the opened artifact | Summary, card count or invented arrows |
+| Usable visual direction | Rendered representative viewports, concrete critique and applicable user feedback | DOM counts, screenshot existence or design skill name |
+| Host displays an icon | Requested surface in the actual host version | Valid SVG/YAML or discovery path |
+| Original defect repaired | Original reproduction on the active route/version plus regressions | Unrelated green unit tests |
+
+Return the artifact path when an artifact is requested. Missing required runtime or visual evidence leaves PARTIAL; do not require subjective visual acceptance for a nonvisual change. A safe implementation can be ready mechanically while behavioral improvement remains unproven.

@@ -274,13 +274,13 @@
       "path": "skills/frontend-design/SKILL.md",
       "source_url": "https://github.com/anthropics/skills/blob/ca45fc496a3436251f191354091d557da31c15b5/skills/frontend-design/SKILL.md",
       "license_note": "individual skill license; verify before redistribution",
-      "activation": "Greenfield branded design or substantial redesign needing visual direction",
+      "activation": "New UI visual direction or substantive visual redesign; not a retry bug or documentation correction",
       "cdf_skills": [
         "cdf-ui-design"
       ],
       "cost_risk": "Medium",
       "adoption": "optional; install separately after review; do not vendor or auto-install",
-      "notes": "Individual Apache-2.0 license located; respect terms if reusing text.",
+      "notes": "Prefer when installed, permitted and compatible for visual direction. Read the actual skill; separate discovery, body read, applied method and observed outcome. Native design plus cdf-ui-design is the fallback. No automatic installation.",
       "native_skill_name": "frontend-design",
       "kind": "skill"
     },

@@ -29,3 +29,5 @@ Resolve a candidate ID only when needed through `.codex/cdf/subskills.catalog.js
 - `matt-grilling`: multilevel dependent business decisions; use rounds, not compulsory relentless questioning.
 - `superpowers-brainstorming`: uncertain product direction or large design alternatives; adapt its approval step to user authority and task size.
 Fallback: the decision-graph method above. Load neither for small, well-specified edits. Never auto-install subskills.
+
+For an ARTIFACT request, identify the deliverable and how the user opens or uses it. For VISUAL_EXPERIENCE, distinguish source semantics, working interactions and visual acceptance. Choose routine layout details directly; ask only about material unknown direction. A README typo needs neither classification paperwork nor a browser.

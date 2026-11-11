@@ -17,16 +17,3 @@ EXTRAS = {
     'learning': ('cdf-explain', 'cdf-teach'),
 }
 NATIVE_AGENTS = ('cdf_reviewer', 'cdf_diagnostician')
-
-
-def inventory_markdown():
-    """Render the checked documentation inventory without inspecting a runtime."""
-    lines = ['# Bundle inventory', '',
-             'Generated from `cdf_registry.py`; regenerate with '
-             '`python3 scripts/validate_cdf.py --write-inventory`.', '',
-             '| Selection | Skills |', '| --- | --- |',
-             '| Core | ' + ', '.join(f'`{name}`' for name in CORE) + ' |']
-    lines.extend('| ' + extra + ' | ' + ', '.join(f'`{name}`' for name in names) + ' |'
-                 for extra, names in sorted(EXTRAS.items()))
-    lines.extend(['', 'Installation exposes one `cdf` skill. Specialists above are source modules packaged as guides inside that folder; extras add guides, not entries.', '', 'Native agents: ' + ', '.join(f'`{name}`' for name in NATIVE_AGENTS) + '.', ''])
-    return '\n'.join(lines)

@@ -24,3 +24,5 @@ Resolve a candidate ID only when needed through `.codex/cdf/subskills.catalog.js
 - `wsh-python-testing`: Python/pytest fixture, isolation or async test design.
 - `superpowers-tdd`: when a reliable regression needs red/green evidence.
 Fallback: test-to-claim mapping and fresh command evidence above.
+
+For UI work, exercise one main journey and a relevant failure path on the active route; inspect representative desktop/mobile views when the claim requires them. Evaluate source-backed semantics, functional interaction and visual readability separately. Metadata validation does not prove a host renders an icon. A screenshot alone does not prove usability, and a unit test does not prove visual quality. If the boundary is unavailable, report NOT_OBSERVED and narrow readiness to PARTIAL rather than asserting success.

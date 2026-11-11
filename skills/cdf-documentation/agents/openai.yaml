@@ -1,6 +1,0 @@
-interface:
-  display_name: "CDF Documentation"
-  short_description: "Write documentation grounded in delivered behavior"
-  icon_small: "./assets/icon.svg"
-  icon_large: "./assets/icon.png"
-  brand_color: "#475569"

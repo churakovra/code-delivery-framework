@@ -35,7 +35,7 @@ def build_plugin(output, extras=(), root=ROOT):
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_bytes(contents)
         (stage / 'assets').mkdir()
-        shutil.copyfile(root / 'assets/icon.png', stage / 'assets/icon.png')
+        shutil.copyfile(root / 'skills/cdf/assets/icon.png', stage / 'assets/icon.png')
         (stage / 'plugin.json').write_text(json.dumps(manifest, indent=2) + '\n')
         # copytree refuses an existing output, including one created after preflight.
         shutil.copytree(stage, output)

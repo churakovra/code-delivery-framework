@@ -1,7 +1,6 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "code-delivery-framework",
-  "version": "1.3.0",
   "description": "Focused engineering delivery skills with evidence-based verification.",
   "extensions": {
     "com.openai": {

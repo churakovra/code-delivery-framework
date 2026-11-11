@@ -13,7 +13,7 @@ from evals.conditions import (CANDIDATE_CONDITIONS, HISTORICAL_SHA256, read_snap
                              selected_snapshot, install_snapshot)
 from cdf_runtime.contracts import validate_record
 from scripts.compare_eval_runs import (analyze, CANDIDATE_CRITICAL, group_parity,
-                                      paired_statistics, read_run)
+                                      paired_statistics, read_run, improvement_assessment)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -233,6 +233,23 @@ class EngineeringPartnerEvaluations(unittest.TestCase):
         self.assertEqual(analyze(rows, evidence)[4], 'FAIL')
         rows.remove(critical)
         self.assertEqual(analyze(rows, evidence)[4], 'BLOCKED')
+
+    def test_improvement_uses_attested_observations_from_actual_runner_shape(self):
+        rows, evidence = self.rows()
+        for row in rows:
+            row['environment'].update(adapter_kind='codex', runtime_version='unverified',
+                                      model_observed=None, effort_observed=None)
+            row['record']['resource_measurement'] = {'basis': 'observed_runtime'}
+            if row['record']['condition'] != 'CANDIDATE_CDF' and row['record']['case_id'] in ('G01', 'G02'):
+                row['record']['result'] = 'FAIL'
+        summaries, _, _, _, gate = analyze(rows, evidence)
+        self.assertEqual(gate, 'PASS')
+        self.assertEqual(improvement_assessment(summaries, gate)['overall'], 'PROMISING')
+        for row in rows:
+            if row['record']['condition'] == 'CANDIDATE_CDF' and row['record']['case_id'] == 'E12':
+                row['record']['result'] = 'FAIL'
+        summaries, _, _, _, gate = analyze(rows, evidence)
+        self.assertEqual(improvement_assessment(summaries, gate)['overall'], 'NEGATIVE')
 
     def test_policy_attestation_fields_roundtrip_through_hash_bound_evidence(self):
         from scripts.compare_eval_runs import attestations

@@ -1,9 +1,0 @@
-interface:
-  display_name: "CDF Model Calibration"
-  short_description: "Calibrate model choices using observed task results"
-  icon_small: "./assets/icon.svg"
-  icon_large: "./assets/icon.png"
-  brand_color: "#7C3AED"
-
-policy:
-  allow_implicit_invocation: false

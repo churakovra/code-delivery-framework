@@ -1,0 +1,1 @@
+Build explorer.html as an interactive process map from processes.json. Show source-backed transitions and process explanations. Selecting a process opens its details; Back returns to the overview. Preserve processes.json. The file must open locally. Do not replace the artifact with a summary. Browser interaction and visual quality require separate observed evidence.

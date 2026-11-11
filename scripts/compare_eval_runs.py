@@ -18,7 +18,7 @@ CONDITIONS = ('BASE', 'CDF_20')
 CRITICAL = ('G01', 'G02', 'G09', 'G13')
 CANDIDATE_CRITICAL = ('G01', 'G02', 'G05', 'G07', 'G08', 'G09', 'G13', 'G14',
                       'G19', 'G28', 'G29', 'G30', 'G31', 'E03', 'E07', 'E09',
-                      'E10', 'E12', 'E16')
+                      'E10', 'E12', 'E16', 'E19', 'E20', 'E21', 'E23')
 
 
 def comparison_conditions(group):
@@ -174,7 +174,9 @@ def analyze(entries, evidence, regime='standardized'):
             base=group['BASE'][0]['record']['result']; new=group[candidate_condition(group)][0]['record']['result']
             if base in ('PASS','FAIL') and new in ('PASS','FAIL'):
                 wins += new=='PASS' and base=='FAIL'; losses += new=='FAIL' and base=='PASS'; ties += new==base
-        summaries.append({'case_id':key[0],'seed':key[1],'parity':parity,'reason':why,'group':group})
+        summaries.append({'case_id':key[0],'seed':key[1],'parity':parity,'reason':why,'group':group,
+                          'runtime_attestations': {name: evidence.get(str(rows[0]['folder'].resolve()), {})
+                                                   for name, rows in group.items() if len(rows) == 1}})
     needed = set(CANDIDATE_CRITICAL if is_candidate else CRITICAL)
     bycase=defaultdict(list)
     for summary in summaries: bycase[summary['case_id']].append(summary)
@@ -239,6 +241,73 @@ def paired_statistics(summaries):
     return results
 
 
+def improvement_assessment(summaries, quality_gate):
+    """Conservative descriptive signal, separate from the historical quality gate.
+
+    Requires five distinct fully observed cases and at least two winning cases
+    per baseline. This is a pilot threshold, not statistical or causal proof.
+    Fake/unobserved adapters and incomplete comparisons cannot establish gains.
+    """
+    baselines = ('BASE', 'LEGACY_CDF_11') if any(
+        'CANDIDATE_CDF' in row['group'] for row in summaries) else ('BASE',)
+    verdicts = {}
+    for baseline in baselines:
+        wins, losses, cases = set(), set(), set()
+        complete = bool(summaries)
+        for summary in summaries:
+            group = summary['group']
+            required = (baseline, candidate_condition(group))
+            if summary['parity'] != 'MATCHED_ATTESTED' or any(
+                    len(group.get(name, [])) != 1 for name in required):
+                complete = False
+                continue
+            rows = [group[name][0] for name in required]
+            observed = []
+            for name, row in zip(required, rows):
+                attested = summary.get('runtime_attestations', {}).get(name, {})
+                values = []
+                for field, fallback in (('runtime_version', 'runtime'), ('model_observed', 'model'),
+                                        ('effort_observed', 'effort')):
+                    value = row['environment'].get(field)
+                    values.append(attested.get(fallback) if value in (None, '', 'unverified') else value)
+                observed.append(values)
+            if any(row['record']['result'] not in ('PASS', 'FAIL') or
+                   row['record'].get('resource_measurement', {}).get('basis') != 'observed_runtime' or
+                   row['environment'].get('adapter_kind') not in ('codex', 'external') or
+                   any(value in (None, '', 'unverified') for value in values)
+                   for row, values in zip(rows, observed)):
+                complete = False
+                continue
+            old, new = [row['record']['result'] for row in rows]
+            case = summary['case_id']
+            cases.add(case)
+            if old == 'FAIL' and new == 'PASS': wins.add(case)
+            if old == 'PASS' and new == 'FAIL': losses.add(case)
+        verdicts[baseline] = ('NEGATIVE' if losses else
+                              'PROMISING' if quality_gate == 'PASS' and complete and
+                              len(cases) >= 5 and len(wins) >= 2 else 'NOT_PROVEN')
+    overall = ('NEGATIVE' if 'NEGATIVE' in verdicts.values() else
+               'PROMISING' if all(v == 'PROMISING' for v in verdicts.values()) else 'NOT_PROVEN')
+    return {'overall': overall, 'against': verdicts}
+
+
+def progress_observations(record):
+    """Report evidence-backed reviewer annotations, never infer UI from activity."""
+    checks = {check['name']: check for check in record.get('acceptance_checks', [])}
+    def observed(name):
+        check = checks.get(name, {})
+        if not check.get('evidence_refs') or check.get('status') not in ('PASS', 'FAIL'):
+            return None
+        return check['status'] == 'PASS'
+    chatter_absent = observed('status_chatter_count_zero')
+    false_success_absent = observed('status_false_success_absent')
+    return {'progress_update_emitted': observed('progress_update_emitted'),
+            'progress_update_rendered': observed('progress_update_rendered'),
+            'progress_statement_supported': observed('progress_statement_supported'),
+            'status_chatter_count': 0 if chatter_absent is True else None,
+            'status_false_success': None if false_success_absent is None else not false_success_absent}
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('runs',nargs='+',type=Path,help='Directories containing results.json')
@@ -268,6 +337,8 @@ def main():
     for item in entries:
         r=item['record']; n=sum(c['status'] in ('NOT_OBSERVED','SKIPPED') for c in r['acceptance_checks'])
         print(f'| {r["case_id"]} | {r["condition"]} | {r["result"]} | {r["activation_result"]} | {n} |')
+    for item in entries:
+        print(f'{item["record"]["case_id"]} {item["record"]["condition"]} reviewer-assessed progress: {json.dumps(progress_observations(item["record"]), sort_keys=True)}')
     for row in summaries: print(f'{row["case_id"]} seed={row["seed"]} parity={row["parity"]}: {row["reason"]}')
     label = 'CANDIDATE_CDF' if any('CANDIDATE_CDF' in row['group'] for row in summaries) else 'CDF_20'
     for baseline,strata in paired_statistics(summaries).items():
@@ -279,6 +350,8 @@ def main():
             if values['measured_pairs']:
                 print(f'Observed trace resource: {label} {values["candidate_passes"]} passes / {values["candidate_tokens"]} tokens; {baseline} {values["baseline_passes"]} passes / {values["baseline_tokens"]} tokens, pairs={values["measured_pairs"]}. Not subscription allowance.')
             else: print('Resource-normalized outcomes unavailable: no matched observed token measurements.')
+    impact = improvement_assessment(summaries, gate)
+    print(f'Quality gate: {gate}; improvement assessment: {impact["overall"]}; against baselines: {json.dumps(impact["against"], sort_keys=True)}. Descriptive pilot signal, not causal proof.')
     print(f'Evaluation release gate: {gate}; this gate does not replace installer, security, or release review gates.')
     if args.csv:
         with args.csv.open('x',newline='') as f:
