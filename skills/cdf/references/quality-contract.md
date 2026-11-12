@@ -24,6 +24,16 @@ COMPLETE means all acceptance required for the stated result and required review
 
 ## Outcome evidence
 
+Activity evidence records what the agent did; outcome evidence establishes what the user actually received. A successful intermediate experiment does not establish completion of the full accepted scope.
+
+| Activity evidence | Outcome evidence |
+| --- | --- |
+| Endpoint written | Real request performs the required action |
+| Unit test passed | Original defect repaired on the active execution path |
+| HTML created | Requested user flow works in the opened interface |
+| Components written | Required functionality is available to the user |
+| Plan executed | All required outcomes are achieved |
+
 Check the requested artifact or operation itself before reporting completion. For applicable claims, distinguish semantic/product correctness, functional/runtime behavior and visual/experience quality. Each can be OBSERVED_PASS, OBSERVED_FAIL, NOT_OBSERVED or NOT_APPLICABLE; evidence in one layer does not establish another.
 
 | Claim | Credible boundary | Insufficient proxy |

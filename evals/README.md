@@ -142,3 +142,24 @@ For a controlled A/B/C/D pilot, keep the brief, immutable source fixture, protec
 Progress cases E25–E29 cover supported milestone updates, honest capability gaps, incompatible providers and trivial-task chatter. The comparison reports reviewer-assessed `progress_update_emitted`, `progress_update_rendered`, `progress_statement_supported`, `status_chatter_count` and `status_false_success`. Missing evidence is null, never a default pass. Zero chatter is reported only after an evidence-backed `status_chatter_count_zero` PASS; a failure does not invent a numeric count. `progress_update_rendered` needs a separately evidence-bound, real host observation; emitted commentary or a model's claim cannot establish rendering. The existing grader verifies references and hashes, while the reviewer remains responsible for interpreting them. No new runtime telemetry is installed.
 
 `tests/test_pinned_release_migration.py` executes the original installers from the pinned 1.2.1 commit and the user-approved local 1.3.0 baseline, then upgrades and removes both in temporary project/global targets. It uses local Git history only and explicitly skips when those commits are absent; fetch full history to reproduce. These are repository-source checks, not signed release verification.
+
+## Adaptive delivery pilot (1.5.0)
+
+This is a planned evaluation, not a result. Reuse the existing runner, fixtures and trace grading. The current frozen legacy condition is 1.1.0, so it cannot establish a comparison against 1.4.0. A pinned 1.4.0 guidance snapshot and explicit condition support remain necessary before claiming the requested BASE / 1.4.0 / 1.5.0 comparison. Do not relabel the historical condition.
+
+Use these existing cases as the pilot starting points, with equal criteria across conditions:
+
+| Scenario | Existing case | Additional trace review focus |
+| --- | --- | --- |
+| T01 Simple edit | E01 | Focused edit/check, no unnecessary plan or question |
+| T02 Bugfix | E23 | Active reproduction, discriminating experiment after failed repairs |
+| T03 API integration | E06 | Real request path early, then errors and authorization where applicable |
+| T04 Frontend/UI | E24 | Core interaction first; functional and visual evidence separate |
+| T05 Refactoring | Not yet covered by a dedicated prompt | Add a behavior-preserving refactor prompt before this trial; review contracts, incremental changes and unnecessary abstraction |
+| T06 High-risk persistence | E10, E26 | Invariants and recovery; unavailable DB evidence remains explicit |
+| T07 Multi-stage delivery | E06, E19 | Early working slice followed by all requested integration/navigation requirements |
+| T08 Read-only research | E02 | Grounded answer, preserved workspace, proportional research |
+
+Inspect each prompt before selecting it: these existing fixtures do not yet constitute a dedicated large multi-feature or schema-migration benchmark. Those live coverage gaps remain open. Review time to first credible result, completion time, unnecessary actions/questions, repair iterations, premature stopping, repeated broad checks, and accepted outcome quality separately from safety. Use retained timestamps, tool events and token usage only where available; leave unavailable measures unobserved. Record discovery, entrypoint read, reference loads and observed method separately. Guidance text and passing packaging tests establish none of these behaviors.
+
+Run a small pilot, blind outcome review where possible, and repeat ambiguous cases. Equal quality at greater cost is a negative signal; one successful run does not establish an advantage. No live adaptive-delivery pilot, host rendering observation or efficiency improvement is claimed.

@@ -40,6 +40,14 @@ class SingleSkillTests(unittest.TestCase):
         self.assertEqual({p.parent.name for p in skills.rglob('GUIDE.md')}, modules)
         kernel = skills / 'cdf/SKILL.md'
         self.assertIn('modules/index.md', kernel.read_text())
+        # Verify shipped guidance bytes, not whether a model follows them.
+        for name in ('delivery-workflow.md', 'quality-contract.md'):
+            self.assertEqual((kernel.parent / 'references' / name).read_bytes(),
+                             (ROOT / 'skills/cdf/references' / name).read_bytes())
+        source_kernel = (ROOT / 'skills/cdf/SKILL.md').read_text()
+        prefix, optional = source_kernel.split('## Optional subskills', 1)
+        self.assertTrue(kernel.read_text().startswith(prefix))
+        self.assertTrue(kernel.read_text().endswith('## Optional subskills' + optional))
         index = skills / 'cdf/modules/index.md'
         self.assertEqual(set(re.findall(r'\]\(([^)]+)\)', index.read_text())),
                          {f'{name}/GUIDE.md' for name in modules})

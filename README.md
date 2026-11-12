@@ -2,6 +2,8 @@
 
 CDF provides focused delivery skills for Codex. The root agent resolves material requirements, reuses project code, works directly by default, and delegates bounded work when independent review or another concrete benefit warrants it. The package version is defined in `[project].version` in `pyproject.toml`.
 
+Adaptive delivery selects the next action from the accepted outcome, main uncertainty and risk. New functionality can start with a working vertical slice, then continue through the remaining scope. See [delivery strategy](skills/cdf/references/delivery-workflow.md). Version 1.5.0 changes guidance, not the runtime or installation layout. Mechanical checks do not establish behavioral improvement; live comparisons remain unverified.
+
 Ask naturally, for example: “Add order export using the existing access rules.” The agent inspects the current path, asks about material decisions the code and prior answers do not settle, implements a bounded change, and reports observed checks and gaps. The managed policy supplies short always-on safeguards; the `cdf` kernel handles nontrivial delivery on demand. Known local edits can proceed directly. No mandatory plan file, JSON checkpoint, subagent or external skill installation is required.
 
 ## Installation
