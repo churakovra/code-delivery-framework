@@ -17,7 +17,7 @@ Record the active revision, route, configuration and relevant data when they cou
 - `references/diagnostic-experiments.md` for multiple competing hypotheses or nondeterministic behavior.
 
 ## Optional subskills
-Resolve candidates through the bundled catalog only when needed. A portable plugin keeps it at `skills/cdf/subskills.catalog.json`; the legacy installer places it at `.codex/cdf/subskills.catalog.json`. Confirm native discovery and use the local fallback when absent; never install automatically.
+Resolve candidates through the bundled catalog only when needed. The Codex plugin keeps it at `skills/cdf/subskills.catalog.json`. Confirm native discovery and use the local fallback when absent; never install automatically.
 
 - `superpowers-systematic-debugging`: non-obvious root causes, repeated failed fixes, concurrency or multi-component failures.
 - `wsh-parallel-debugging`: multiple independent hypotheses where parallel exploration can actually shorten investigation and delegation is available.

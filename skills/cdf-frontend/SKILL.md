@@ -17,7 +17,7 @@ Trace the changed flow from action → handler → state → request/data → re
 - `references/accessibility-and-states.md` only for interactive or accessibility-sensitive UI.
 
 ## Optional subskills
-Resolve candidates through the bundled catalog only when needed. A portable plugin keeps it at `skills/cdf/subskills.catalog.json`; the legacy installer places it at `.codex/cdf/subskills.catalog.json`. Confirm native discovery and use the local fallback when absent; never install automatically.
+Resolve candidates through the bundled catalog only when needed. The Codex plugin keeps it at `skills/cdf/subskills.catalog.json`. Confirm native discovery and use the local fallback when absent; never install automatically.
 
 - `vercel-react`: React/Next.js performance, fetching or rendering tradeoffs.
 - `vercel-composition`: reusable React component API or boolean-prop complexity.

@@ -1,6 +1,6 @@
 ---
 name: cdf-model-calibration
-description: Evaluate and propose role- and task-specific Codex model/effort policies under subscription usage constraints. Use only for explicit calibration or model-policy review, never in routine coding tasks or during ordinary installation.
+description: Evaluate and propose role- and task-specific Codex model/effort policies under subscription usage constraints. Use only for explicit calibration or model-policy review, never in routine coding tasks.
 ---
 # Model and effort calibration (optional operator skill)
 
@@ -14,7 +14,7 @@ description: Evaluate and propose role- and task-specific Codex model/effort pol
 Record available, requested and observed-active model/effort separately. Compare resources per accepted outcome, including retries, checks, review and worker overhead; an available candidate or proposed policy is not an active assignment. Routine development must not activate this skill or alter model configuration.
 
 ## Optional subskills
-Resolve candidates through the bundled catalog only when needed. A portable plugin keeps it at `skills/cdf/subskills.catalog.json`; the legacy installer places it at `.codex/cdf/subskills.catalog.json`. Confirm native discovery and use the local fallback when absent; never install automatically.
+Resolve candidates through the bundled catalog only when needed. The Codex plugin keeps it at `skills/cdf/subskills.catalog.json`. Confirm native discovery and use the local fallback when absent; never install automatically.
 
 - `openai-docs`: official model, Codex and usage documentation lookup when installed (avoid deprecated upstream packages; prefer current first-party capability).
-Fallback: direct current official documentation and explicit unknowns. No LLM research during normal installation.
+Fallback: direct current official documentation and explicit unknowns. Do not conduct LLM research for routine calibration requests.

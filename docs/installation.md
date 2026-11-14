@@ -1,134 +1,88 @@
-# Installation, migration and removal
+# Installation and removal
 
-CDF 2.0.0 is the source/package version. It is prepared for user acceptance; bounded runtime evidence is not a claim that all host behavior is verified. Use Python >=3.11 on POSIX.
-Skills and hooks do not provide a security boundary. Model availability and
-host integration must be checked on the intended account/client.
+CDF is installed in Codex as a native plugin. The portable profile is the standard choice: eleven standalone skills, no hooks, no native roles, and no managed `AGENTS.md`. The optional desktop-controlled profile packages the same skills with metadata observation hooks. Do not enable both profiles together.
 
-## Choose one installation
+Skills and hooks do not provide a security boundary. Check model availability and host integration in the intended Codex client. Use Python 3.11 or newer on POSIX to build the package.
 
-The **portable plugin is recommended for most users**: eleven standalone skills, no hooks, no native roles, and no managed AGENTS.md. Choose **desktop-controlled** only when optional metadata hooks are needed; roles remain separately configured. Choose **legacy** only when you need its compatible one-entry installer, managed AGENTS block and lifecycle. Do not enable two modes
-in the same project/HOME. Inspect both project and global legacy copies first.
+## Build and install
 
-For native plugins, using the intended Codex executable and HOME:
+Choose a marketplace directory, build the portable plugin into it, and copy the example catalog:
 
 ```sh
-codex plugin marketplace add /absolute/path/to/marketplace --json
+mkdir -p /path/to/marketplace/build /path/to/marketplace/.agents/plugins
+python3 scripts/package_cdf_plugin.py --profile portable --output /path/to/marketplace/build/cdf-plugin-portable
+cp templates/cdf-marketplace.example.json /path/to/marketplace/.agents/plugins/marketplace.json
+```
+
+The example catalog points to `./build/cdf-plugin-portable`. Keep that path or update the catalog to match the selected package. Register the local marketplace and add the plugin using the intended Codex executable and HOME:
+
+```sh
+codex plugin marketplace add /path/to/marketplace --json
 codex plugin add code-delivery-framework@cdf-local --json
 codex plugin list --json
 ```
 
-For controlled mode, choose `code-delivery-framework-desktop@cdf-local`
-instead of the portable plugin. Restart Codex. Review the three individual hooks
-in native `/hooks`; trust them manually only if you accept their commands.
-Untrusted/disabled hooks remain degraded; CDF never grants trust. Hook execution
-requires Python 3 on the host PATH. Portable has no hooks or native role setup.
-Use `$cdf` to explicitly invoke the kernel. Without a mention, Codex may select a relevant discovered specialist based on the request; portable plugin installation does not force global CDF activation. Try an explicit `$cdf` request and a separate ordinary request. Discovery and guide reads do not prove that the method improved the decision.
+Restart Codex. Use `$cdf` to invoke the kernel explicitly. Without a mention, Codex may select a relevant discovered specialist based on the request; installing the plugin does not force global CDF activation. The package script builds only; Codex performs registration and installation. These commands change the selected Codex home's plugin settings.
 
-For the legacy installer, from the source checkout:
+The package contains root `plugin.json`, assets, and eleven `skills/<name>/SKILL.md` entries. `--with-learning` adds two standalone skills; `--with-operator` adds explicit model calibration. Disabled extras are absent. The kernel includes the optional-subskill catalog. Plugin installation does not install native roles or third-party integrations.
 
-```sh
-python3 scripts/cdf.py install --target /absolute/path/to/project --dry-run --json
-python3 scripts/cdf.py install --target /absolute/path/to/project --json
-python3 scripts/cdf.py status --target /absolute/path/to/project --json
-```
+## Optional native roles
 
-This retains the compact layout, managed AGENTS block, ownership manifest and
-existing recovery engine. It does not install a standalone plugin. Optional `--with-learning` / `--with-operator` select extras. For native plugins,
-select extras explicitly when building the package.
-
-## Migrate from 1.5.0 and roll back
-
-Preserve the exact old distribution and a backup of the target before mutation.
-For the compatible legacy path, run current `status`, `upgrade --dry-run`, then
-`upgrade` against the old target. Use `--scope global --home /selected/home` only
-for an intentionally selected home matching `--target`. The installer preserves
-user text outside managed blocks and refuses edited owned files during upgrade.
-After interruption, inspect `recover --dry-run`, then `recover`; do not delete
-journals or force through conflicts. Pinned 1.5 tests cover both scopes and
-recovery after an actual first write, including file bytes and modes.
-
-For legacy-to-plugin migration, preview `uninstall --dry-run`, resolve modified
-files, uninstall the owned legacy setup, then enable one native plugin. Inspect
-native discovery to ensure no bare `cdf` or duplicate plugin remains. For
-rollback, remove the plugin first, then reinstall the preserved 1.5 distribution
-into the clean target. Direct version downgrade through `upgrade` is refused.
-Uninstall keeps modified files; `--release-modified-skills` explicitly releases
-the modified skill folder rather than deleting it. Preserve it outside discovery
-before enabling a replacement. CDF never silently merges conflicting guidance.
-
-Native roles use a separate existing CLI workflow from the CDF source checkout:
+`policies/native-agents.example.toml` contains editable candidates for the three standard Codex roles: `cdf_explorer`, `cdf_reviewer`, and `cdf_diagnostician`. Role setup is separate from plugin installation.
 
 ```sh
-python3 scripts/cdf.py profile --target /absolute/project --policy policies/native-agents.example.toml --profile balanced --dry-run --json
-python3 scripts/cdf.py profile --target /absolute/project --policy policies/native-agents.example.toml --profile balanced --check --codex /absolute/codex --json
-python3 scripts/cdf.py profile --target /absolute/project --policy policies/native-agents.example.toml --profile balanced --apply --codex /absolute/codex --json
+python3 scripts/cdf.py profile --target /path/to/project --policy policies/native-agents.example.toml --dry-run --json
+python3 scripts/cdf.py profile --target /path/to/project --policy policies/native-agents.example.toml --check --json
+python3 scripts/cdf.py profile --target /path/to/project --policy policies/native-agents.example.toml --apply --json
+python3 scripts/cdf.py profile --target /path/to/project --rollback --dry-run --json
 ```
 
-The check is advertised availability, apply is CONFIGURED, and actual child
-execution is a separate observation. Unavailable model/effort pairs block apply;
-edit the candidate policy explicitly rather than accept silent fallback.
-Role instructions inherit parent permissions; read-only text is not a sandbox.
-Project roles require native project trust; CDF does not grant it. Profile
-rollback removes only CDF-created role setup, not a history of successful profiles.
-Conflicting or edited roles are preserved and require reconciliation.
+Preview is offline. Check queries advertised model and effort support; this does not prove a role loaded or ran. Apply checks capabilities again and reports `configured` with `runtime_routing: NOT_OBSERVED`. Unknown model/effort pairs block setup; there is no silent fallback. Role instructions inherit parent permissions and do not create a sandbox. Project roles require native project trust; CDF does not grant trust or change `config.toml`. Edited owned roles block updates/removal, and unowned conflicting role files are preserved. Rollback removes only role files created by this setup and its receipt; it does not restore an earlier profile.
 
-## Build the selected plugin
-
-The standard installation commands above assume you have built a local package and marketplace catalog with the desired name. The build command here shows that preparation.
+If role setup is interrupted, inspect and apply transaction recovery against the same target:
 
 ```sh
-mkdir -p /absolute/path/to/marketplace/build
-python3 scripts/package_cdf_plugin.py --profile portable --output /absolute/path/to/marketplace/build/cdf-plugin-portable
+python3 scripts/cdf.py recover --target /path/to/project --dry-run --json
+python3 scripts/cdf.py recover --target /path/to/project --json
 ```
 
-Copy `templates/cdf-marketplace.example.json` into
-`/absolute/path/to/marketplace/.agents/plugins/marketplace.json`.
-The catalog's local path must point to the selected package. For desktop, build
-with `--profile desktop-controlled`, then change the catalog name to
-`code-delivery-framework-desktop` and its source path to that package.
-The builder refuses an existing output; it never registers or installs it.
-Do not enable portable and desktop variants together.
+Global roles require explicit `--scope global --target /selected/home --home /selected/home`. Use this only for an intentionally selected home. Development and checks use disposable homes and project targets.
 
-## Observe and diagnose desktop hooks
+## Optional desktop observation
 
-SessionStart returns compact bundle/profile metadata. Role-file detection is not
-availability, routing or skill application. Subagent events record only supplied
-IDs/model; effort stays unknown. No source/transcript or command content is logged.
+The `desktop-controlled` plugin profile adds three metadata-only hooks: SessionStart and CDF SubagentStart/Stop. Build it with:
 
 ```sh
-python3 scripts/cdf.py doctor --target /absolute/project --runtime --codex /absolute/codex --json
-python3 scripts/cdf.py doctor --target /absolute/project --runtime --codex /absolute/codex --plugin-data /explicit/native/plugin/data --session-id ID --json
+python3 scripts/package_cdf_plugin.py --profile desktop-controlled --output /path/to/marketplace/build/cdf-plugin-desktop
 ```
 
-Native discovery distinguishes enabled/trusted configuration from actual events.
-Missing/untrusted/disabled/error/full-log states are degraded. Historical events
-do not establish current execution. Validate SessionStart context and overhead on
-your host; there is no full-host latency or enforcement guarantee.
+Use the `code-delivery-framework-desktop` catalog name and point its source to the desktop package. Building does not register the plugin or grant hook trust. Review the individual hooks through Codex's native `/hooks` flow; trust them only if you accept their commands. Hook execution requires Python 3 on the host PATH. The hooks record allowlisted IDs, role, model, event, and timestamp to native plugin data. They do not read source, transcripts, commands, tool output, or assistant messages. A full log is preserved and reported as degraded. Runtime behavior, warnings, and overhead still require acceptance on the intended host.
 
-## Disable and remove
+Use the diagnostic command to inspect native hook discovery and event records:
 
-Disable hooks through native `/hooks`; remove the selected plugin with
-`codex plugin remove NAME@cdf-local --json`. Remove an unused marketplace through
-native management commands/UI. Preview `profile --rollback --dry-run`, then
-`profile --rollback` in the same scope; use existing `recover` if interrupted.
-Legacy installations use `uninstall --dry-run` then `uninstall`.
+```sh
+python3 scripts/cdf.py doctor --target /path/to/project --runtime --codex /path/to/codex --json
+python3 scripts/cdf.py doctor --target /path/to/project --runtime --codex /path/to/codex --plugin-data /explicit/native/plugin/data --session-id ID --json
+```
 
-Events stay in native `PLUGIN_DATA/events.jsonl`, capped at about 1 MiB with
-mode 0600. A full log is preserved and degraded, never deleted automatically.
-Explicitly archive/remove it to resume observation. Use disposable homes/targets
-for development; do not change the normal HOME without authorization.
+Discovery distinguishes enabled/trusted configuration from actual events. Historical records establish past observations only, not current execution or skill application.
+
+## Remove
+
+Remove the selected plugin through Codex and remove an unused marketplace through Codex's native management commands or UI:
+
+```sh
+codex plugin remove code-delivery-framework@cdf-local --json
+```
+
+For desktop-controlled, remove `code-delivery-framework-desktop@cdf-local`. Roll back optional native role setup with `profile --rollback --dry-run`, then `profile --rollback` in the same scope. Event logs are retained in native plugin data; archive or remove them explicitly if desired. Use disposable homes and targets for development; do not change the normal HOME during development.
 
 ## Evaluation tooling and license
 
-The optional evaluation runner and synthetic fixtures are kept on local branch
-`codex/cdf-2-evaluation-tooling` at commit
-`ec6c789d0724558eda6402f1bedf8a8567ad640e`. Obtain it with:
+The optional evaluation runner and synthetic fixtures are maintained separately on local branch `codex/cdf-2-evaluation-tooling` at commit `ec6c789d0724558eda6402f1bedf8a8567ad640e`. Obtain it with:
 
 ```sh
 git worktree add /path/to/cdf-evaluation-tooling codex/cdf-2-evaluation-tooling
 ```
 
-The installer and plugins do not depend on it. This repository has no selected
-root license. Before public distribution, the copyright owner must choose and
-add licensing terms. MIT is a common option for an open-source Python/skills
-project, but no license is assumed here.
+The plugin does not depend on it. This repository has no selected root license. Before public distribution, the copyright owner must choose and add licensing terms. MIT is a common option for an open-source Python/skills project, but no license is assumed here.

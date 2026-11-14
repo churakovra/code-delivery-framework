@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Install and maintain CDF. Legacy lifecycle stays offline; explicit profile checks query native capabilities, never a model.
-
-For global scope, --target must equal the current home directory. Supply
---home with --target to select a different, explicitly named home (for example,
-a disposable home in tests). Project scope cannot target the current home.
-"""
+"""Validate CDF and manage optional native roles; plugins are installed by Codex itself."""
 from __future__ import annotations
 
 import argparse
@@ -30,26 +25,21 @@ def parser():
     validate.add_argument('--offline', action='store_true')
     validate.add_argument('--runtime', action='store_true')
     validate.add_argument('--json', action='store_true')
-    for action in ('install', 'upgrade', 'status', 'uninstall', 'recover', 'doctor'):
-        q = sub.add_parser(action)
-        q.add_argument('--target', required=True)
-        q.add_argument('--scope', choices=('project', 'global'), default='project')
-        q.add_argument('--home', help='Selected home for an isolated global installation')
-        q.add_argument('--json', action='store_true')
-        if action in ('install', 'upgrade', 'uninstall', 'recover'):
-            q.add_argument('--dry-run', action='store_true')
-        if action == 'doctor':
-            q.add_argument('--runtime', action='store_true', help='Read native hook discovery; never enable or trust hooks')
-            q.add_argument('--codex', type=Path)
-            q.add_argument('--plugin-data', type=Path, help='Explicit desktop plugin data directory; only events.jsonl is read')
-            q.add_argument('--session-id', help='Filter selected historical hook records')
-        if action == 'uninstall':
-            q.add_argument('--release-modified-skills', action='store_true', help='Preserve modified skill files and release their ownership')
-        if action in ('install', 'upgrade'):
-            for extra in ('learning', 'operator'):
-                g = q.add_mutually_exclusive_group()
-                g.add_argument('--with-' + extra, action='store_true')
-                if action == 'upgrade': g.add_argument('--without-' + extra, action='store_true')
+    q = sub.add_parser('doctor')
+    q.add_argument('--target', required=True)
+    q.add_argument('--scope', choices=('project', 'global'), default='project')
+    q.add_argument('--home', help='Selected home for an isolated global inspection')
+    q.add_argument('--json', action='store_true')
+    q.add_argument('--runtime', action='store_true', help='Read native hook discovery; never enable or trust hooks')
+    q.add_argument('--codex', type=Path)
+    q.add_argument('--plugin-data', type=Path, help='Explicit desktop plugin data directory; only events.jsonl is read')
+    q.add_argument('--session-id', help='Filter selected historical hook records')
+    q = sub.add_parser('recover')
+    q.add_argument('--target', required=True)
+    q.add_argument('--scope', choices=('project', 'global'), default='project')
+    q.add_argument('--home', help='Selected home for an isolated recovery target')
+    q.add_argument('--dry-run', action='store_true')
+    q.add_argument('--json', action='store_true')
     q = sub.add_parser('profile')
     q.add_argument('--target', required=True)
     q.add_argument('--scope', choices=('project', 'global'), default='project')
@@ -74,7 +64,7 @@ def parser():
 
 def run(args):
     if args.action == 'validate':
-        files, _ = core.bundle(extras=('learning', 'operator'))
+        files, _ = core.bundle(extras=('learning', 'operator'), standalone=True)
         try:
             from scripts.validate_cdf import validate_source
             validated = validate_source()
@@ -98,10 +88,10 @@ def run(args):
         if args.id != 'codebase-memory-mcp': raise core.CDFError('INVALID_REQUEST', 'Unknown integration.', [args.id])
         entry = catalog['candidates'][args.id]
         return {'schema': 1, 'state': 'informational', 'id': args.id, 'source_url': entry['source_url'], 'revision': entry['revision'], 'license_note': entry['license_note'], 'next_action': 'Review source, license, runtime compatibility and installation permissions; no installation was performed.'}
-    if args.home and args.scope != 'global':
-        raise core.CDFError('INVALID_REQUEST', '--home is only valid with global scope.')
-    root = core.target_root(args.target, args.scope, args.home)
     if args.action == 'profile':
+        if args.home and args.scope != 'global':
+            raise core.CDFError('INVALID_REQUEST', '--home is only valid with global scope.')
+        root = core.target_root(args.target, args.scope, args.home)
         from cdf_installer.agents import perform_profile
         from cdf_runtime.policy import native_profile_plan
         from cdf_runtime.codex import model_capabilities
@@ -133,12 +123,13 @@ def run(args):
                         capabilities=capabilities, runtime_routing='NOT_OBSERVED')
             return plan
         return perform_profile(root, args.scope, rendered, dry=not args.apply or args.dry_run)
-    if args.action == 'status': return core.status(root, args.scope)
     if args.action == 'doctor':
-        result = core.status(root, args.scope)
+        if args.home and args.scope != 'global':
+            raise core.CDFError('INVALID_REQUEST', '--home is only valid with global scope.')
+        root = core.target_root(args.target, args.scope, args.home)
         executable = args.codex or shutil.which('codex')
-        result['binary_available'] = bool(executable)
-        result['version_observed'] = None
+        result = {'schema': 1, 'state': 'checked', 'target': str(root),
+                  'binary_available': bool(executable), 'version_observed': None}
         if executable:
             try:
                 observed = subprocess.run([executable, '--version'], text=True, capture_output=True, timeout=10, check=True)
@@ -152,9 +143,12 @@ def run(args):
             runtime_env = dict(os.environ, HOME=str(root), CODEX_HOME=str(root / '.codex')) if args.scope == 'global' and args.home else None
             result['runtime'] = runtime_status(args.codex or executable or 'codex', cwd=root, env=runtime_env, plugin_data=args.plugin_data, session_id=args.session_id)
         return result
-    enabled = [n for n in ('learning', 'operator') if getattr(args, 'with_' + n, False)]
-    disabled = [n for n in ('learning', 'operator') if getattr(args, 'without_' + n, False)]
-    return core.perform(root, args.scope, args.action, dry=args.dry_run, enable=enabled, disable=disabled, release_modified_skills=getattr(args, 'release_modified_skills', False))
+    if args.action == 'recover':
+        if args.home and args.scope != 'global':
+            raise core.CDFError('INVALID_REQUEST', '--home is only valid with global scope.')
+        root = core.target_root(args.target, args.scope, args.home)
+        return core.perform(root, args.scope, 'recover', dry=args.dry_run)
+    raise core.CDFError('INVALID_REQUEST', 'Unknown command.')
 
 
 def main(argv=None):
@@ -165,17 +159,16 @@ def main(argv=None):
         print(json.dumps(result, indent=2, sort_keys=True))
         return 4 if args.action == 'profile' and args.check and result.get('state') == 'unavailable' else 0
     except core.CDFError as exc:
-        conflicts = {'PATH_COLLISION', 'MANAGED_FILE_MODIFIED', 'MANAGED_BLOCK_MODIFIED',
-                     'MANIFEST_UNSUPPORTED', 'RECOVERY_REQUIRED',
-                     'CONCURRENT_MUTATION'}
         if (args is not None and getattr(args, 'dry_run', False)
-                and args.action in ('install', 'upgrade', 'uninstall', 'recover')
-                and exc.code in conflicts):
-            print(json.dumps({'schema': 1, 'action': args.action, 'state': 'conflict',
+                and args.action == 'recover'
+                and exc.code in {'PATH_COLLISION', 'MANAGED_FILE_MODIFIED',
+                                 'MANAGED_BLOCK_MODIFIED', 'MANIFEST_UNSUPPORTED',
+                                 'RECOVERY_REQUIRED', 'CONCURRENT_MUTATION'}):
+            print(json.dumps({'schema': 1, 'action': 'recover', 'state': 'conflict',
                               'scope': args.scope, 'target': str(Path(args.target).expanduser().absolute()),
                               'planned_actions': [], 'conflicts': exc.paths or [str(exc)],
                               'warnings': [f'{exc.code}: {exc}']}, sort_keys=True))
-            return 3 if args.action == 'recover' and exc.exit_code == 3 else 2
+            return 3 if exc.exit_code == 3 else 2
         print(json.dumps({'schema': 1, 'state': 'error', 'code': exc.code, 'message': str(exc), 'affected_paths': exc.paths, 'next_action': 'Inspect the reported paths and resolve the condition before retrying.'}, sort_keys=True))
         return exc.exit_code
     except (OSError, ValueError, KeyError) as exc:

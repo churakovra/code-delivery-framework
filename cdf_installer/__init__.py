@@ -1,1 +1,1 @@
-"""Offline, conflict-aware CDF installation lifecycle."""
+"""Internal bundle validation and filesystem transaction helpers."""

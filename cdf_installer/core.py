@@ -1,8 +1,8 @@
-"""CDF installation, ownership and crash recovery.
+"""Bundle validation and safe filesystem transactions.
 
-The installer owns its manifest-listed payload and a persistent private-state
-ignore block. It never touches Codex's configuration, third-party dependencies,
-or anything outside the selected root.
+New CDF installations use Codex's native plugin manager. These internal helpers
+also support package validation, optional native-role setup, and historical
+ownership/recovery fixtures.
 """
 from __future__ import annotations
 

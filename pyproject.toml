@@ -1,8 +1,8 @@
 [project]
 name = "code-delivery-framework"
-version = "2.0.0"
+version = "2.0.1"
 requires-python = ">=3.11"
-description = "Offline skill-first Code Delivery Framework with recoverable installation"
+description = "Codex plugin with focused Code Delivery Framework skills"
 
 [tool.unittest]
 start-directory = "tests"
