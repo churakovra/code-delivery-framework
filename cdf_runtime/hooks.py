@@ -19,9 +19,16 @@ def runtime_status(binary, *, cwd, env=None, plugin_data=None, session_id=None):
         result['client'] = initialized.get('userAgent')
         result['configured'] = 'NOT_OBSERVED'
         unhealthy = False
+        external_warnings = []
         for entry in entries:
-            unhealthy |= bool(entry.get('errors') or entry.get('warnings'))
-            for hook in entry['hooks']:
+            entry_hooks = entry.get('hooks', [])
+            owns_cdf_hook = any((hook.get('pluginId') or '').split('@')[0] == 'code-delivery-framework-desktop'
+                                for hook in entry_hooks)
+            if owns_cdf_hook:
+                unhealthy |= bool(entry.get('errors') or entry.get('warnings'))
+            elif entry.get('warnings'):
+                external_warnings.extend(entry['warnings'])
+            for hook in entry_hooks:
                 if (hook.get('pluginId') or '').split('@')[0] != 'code-delivery-framework-desktop':
                     continue
                 result['hooks'].append({k: hook.get(k) for k in ('eventName', 'enabled', 'trustStatus', 'source')})
@@ -29,6 +36,8 @@ def runtime_status(binary, *, cwd, env=None, plugin_data=None, session_id=None):
         if found:
             result['discovered'] = 'DETECTED'
             result['configured'] = 'DETECTED'
+        if external_warnings:
+            result['external_warnings'] = external_warnings
         ready = EXPECTED <= found and all(h['enabled'] and h['trustStatus'] in ('trusted', 'managed') for h in result['hooks'])
         result['native_ready'] = ready and not unhealthy
     except (OSError, ValueError, KeyError, TypeError):

@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0-rc1 — unreleased review candidate
+## 2.0.0 — stable source version
 
 - Add decision-before-code reasoning, minimality critique and architecture method.
 - Build eleven standalone portable skills while retaining legacy single-entry
@@ -13,7 +13,7 @@
 - Add compact SessionStart version/profile detection without inferring routing.
 - Document installation, migration, recovery, trust and removal.
 
-This candidate is not published. Bounded native routing and Desktop observation
-have evidence; final portable/controlled behavioral acceptance and comparative
-benefit remain open. No claim of improved quality, lower subscription usage or
-full 2.0 readiness is made. See docs/installation.md.
+This source version is prepared for local installation and user acceptance. Native
+routing and Desktop observation have bounded evidence; broader host acceptance
+and comparative benefit remain unestablished. No quality or usage-saving claim
+is made. See docs/installation.md.

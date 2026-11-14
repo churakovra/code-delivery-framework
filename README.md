@@ -2,11 +2,13 @@
 
 CDF provides focused delivery skills for Codex. The root agent resolves material requirements, reuses project code, works directly by default, and delegates bounded work when independent review or another concrete benefit warrants it. The package version is defined in `[project].version` in `pyproject.toml`.
 
-Adaptive delivery selects the next action from the accepted outcome, main uncertainty and risk. New functionality can start with a working vertical slice, then continue through the remaining scope. See [delivery strategy](skills/cdf/references/delivery-workflow.md). The current source is the unreleased `2.0.0-rc1` review candidate. It is experimental: final native behavioral acceptance and comparative value are not yet established.
+Adaptive delivery selects the next action from the accepted outcome, main uncertainty and risk. New functionality can start with a working vertical slice, then continue through the remaining scope. See [delivery strategy](skills/cdf/references/delivery-workflow.md). The current source is `2.0.0`. It is ready for installation and user acceptance; final native behavioral acceptance and comparative value are not established.
 
-Ask naturally, for example: “Add order export using the existing access rules.” The agent inspects the current path, asks about material decisions the code and prior answers do not settle, implements a bounded change, and reports observed checks and gaps. The managed policy supplies short always-on safeguards; the `cdf` kernel handles nontrivial delivery on demand. Known local edits can proceed directly. No mandatory plan file, JSON checkpoint, subagent or external skill installation is required.
+Ask naturally, for example: “Add order export using the existing access rules.” The agent inspects the current path, asks about material decisions the code and prior answers do not settle, implements a bounded change, and reports observed checks and gaps. In the legacy installation, managed project policy supplies short always-on safeguards; with the portable plugin, the `cdf` kernel handles nontrivial delivery on demand. Known local edits can proceed directly. No mandatory plan file, JSON checkpoint, subagent or external skill installation is required.
 
-## Installation
+## Legacy single-entry installation
+
+Use this path only when you need the legacy installer's managed project guidance and recovery lifecycle. For most users, the recommended path is the portable plugin below.
 
 Use Python 3.11 or newer on a POSIX system. From this checkout:
 
@@ -17,11 +19,13 @@ python3 scripts/cdf.py install --target /path/to/project --json
 python3 scripts/cdf.py status --target /path/to/project --json
 ```
 
-Installation makes no network or model calls. It installs one discoverable skill at `.agents/skills/cdf/`: the CDF entrypoint, ten core specialist modules and their references. The installer also supplies two native agent templates, an optional-subskill catalog, and one managed AGENTS block. `--with-learning` adds explain and teach modules; `--with-operator` adds explicit model calibration. Extras do not add visible skill entries. Source modules remain separate under `skills/` in this repository. The canonical inventory is `cdf_registry.py`.
+Installation makes no network or model calls. It installs one discoverable skill at `.agents/skills/cdf/`: the CDF entrypoint, ten specialist modules and their references. The installer also supplies two native agent templates, an optional-subskill catalog, and one managed AGENTS block. `--with-learning` adds explain and teach modules; `--with-operator` adds explicit model calibration. Extras do not add visible skill entries. Source modules remain separate under `skills/` in this repository. The canonical inventory is `cdf_registry.py`.
 
 Global installation uses `--scope global` with the intended home as `--target`. `--home` selects an explicit alternative home for isolated testing; it must match the target. Project scope manages `<target>/AGENTS.md`; global scope manages `<home>/.codex/AGENTS.md`. Development and automated tests use disposable targets.
 
-## Codex skill appearance and plugin packaging
+## Portable plugin (recommended) and desktop packaging
+
+For most users, install the **portable plugin** below. It provides eleven standalone skills without hooks, native roles, or a managed `AGENTS.md`. Use the legacy installer only when you specifically need its managed project guidance and lifecycle. Choose desktop-controlled only when you want optional native observation hooks.
 
 CDF includes display metadata and SVG/PNG assets. Host rendering varies;
 resolved asset paths alone do not prove the appearance of a skill-picker row.
@@ -148,6 +152,8 @@ rendering and full-host overhead require runtime acceptance. See
 
 ## Verification and development
 
+The optional evaluation runner and synthetic fixtures are maintained separately on local branch `codex/cdf-2-evaluation-tooling` at commit `ec6c789d0724558eda6402f1bedf8a8567ad640e`. To inspect it, use `git worktree add /path/to/cdf-evaluation-tooling codex/cdf-2-evaluation-tooling`. Installation and runtime do not depend on that branch.
+
 ```sh
 python3 scripts/validate_cdf.py
 python3 scripts/cdf.py validate --offline --json
@@ -168,20 +174,21 @@ CDF checks the requested artifact or operation, with separate semantic, function
 
 Completion reports distinguish COMPLETE (required acceptance and review observed), PARTIAL (named evidence or acceptance gaps), and BLOCKED (a missing decision, permission or capability prevents safe dependent work). Optional task-state schema enums remain internal. Hooks are not required; only the experimental desktop profile bundles them.
 
+No root `LICENSE` is selected for this repository. Resolve licensing with the copyright owner before public distribution; MIT is a common option for an open-source Python/skills project, but must not be applied without that decision.
+
 Release, publishing and deployment require separate authorization. [sources.json](sources.json) and [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES) preserve research provenance and licensing information.
 
 The legacy single-entry layout remains available. Native profile routing has narrow runtime evidence; broad behavioral impact remains unverified. Older installers reject the single-layout manifest field; use the current installer for recovery and removal. Offline tests establish mechanics only. Live matched comparisons, host progress rendering and human visual acceptance remain required before claiming improved experience.
 
-## Review candidate and supported scope
+## Version and supported scope
 
-`2.0.0-rc1` is a prerelease candidate, not a published release or a claim
-that all 2.0 gates passed. The tested native client is
+`2.0.0` is the source/package version. It does not claim that all behavioral acceptance gates passed. The tested native client is
 `codex-cli 0.167.0-alpha.4.1`. CLI/app-server plugin discovery, named-role routing
 and optional Desktop event capture have separate bounded evidence. Other client
 versions, Windows and full Desktop error-warning rendering are not established.
 Skills guide the model; neither skills nor hooks provide a security boundary.
 
-Try `$cdf` for a nontrivial delivery task, or ask naturally: “Inspect the existing
+Invoke `$cdf` explicitly for the Engineering Partner kernel, or ask naturally: “Inspect the existing
 publisher integration and recommend the smallest supported migration before
 editing.” Standalone specialists may apply without first reading the root skill.
 Use the explicit `profile --dry-run/--check/--apply` and `doctor --runtime`

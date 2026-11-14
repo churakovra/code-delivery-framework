@@ -1,6 +1,6 @@
 [project]
 name = "code-delivery-framework"
-version = "2.0.0-rc1"
+version = "2.0.0"
 requires-python = ">=3.11"
 description = "Offline skill-first Code Delivery Framework with recoverable installation"
 

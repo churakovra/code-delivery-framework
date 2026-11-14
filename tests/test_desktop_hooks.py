@@ -107,6 +107,38 @@ class DesktopHooks(unittest.TestCase):
         self.assertEqual(report['discovered'], 'NOT_OBSERVED')
         self.assertEqual(report['state'], 'DEGRADED')
 
+    def test_other_plugin_warning_does_not_degrade_ready_cdf(self):
+        @contextmanager
+        def server(*a, **kw):
+            yield lambda *args: {'data': [
+                {'hooks': [{'pluginId': 'code-delivery-framework-desktop@local',
+                            'eventName': event, 'enabled': True,
+                            'trustStatus': 'trusted', 'source': 'plugin'}
+                           for event in ('sessionStart', 'subagentStart', 'subagentStop')],
+                 'warnings': [], 'errors': []},
+                {'hooks': [{'pluginId': 'neighbor@local', 'eventName': 'SessionStart',
+                            'enabled': True, 'trustStatus': 'trusted', 'source': 'plugin'}],
+                 'warnings': ['neighbor hook warning'], 'errors': []}]}, {}
+        with patch('cdf_runtime.hooks.app_server', server):
+            report = runtime_status('fake', cwd=self.base)
+        self.assertTrue(report['native_ready'])
+        self.assertEqual(report['state'], 'READY_NOT_EXECUTION_PROOF')
+        self.assertEqual(report['external_warnings'], ['neighbor hook warning'])
+
+    def test_cdf_hook_warning_keeps_readiness_degraded(self):
+        @contextmanager
+        def server(*a, **kw):
+            yield lambda *args: {'data': [{'hooks': [
+                {'pluginId': 'code-delivery-framework-desktop@local',
+                 'eventName': event, 'enabled': True,
+                 'trustStatus': 'trusted', 'source': 'plugin'}
+                for event in ('sessionStart', 'subagentStart', 'subagentStop')],
+                'warnings': ['cdf hook warning'], 'errors': []}]}, {}
+        with patch('cdf_runtime.hooks.app_server', server):
+            report = runtime_status('fake', cwd=self.base)
+        self.assertFalse(report['native_ready'])
+        self.assertEqual(report['state'], 'DEGRADED')
+
     def test_desktop_is_separate_opt_in_portable_stays_hook_free(self):
         portable = self.base / 'portable'; desktop = self.base / 'desktop'
         build_plugin(portable)
@@ -123,14 +155,14 @@ class DesktopHooks(unittest.TestCase):
     def test_session_context_is_compact_detected_metadata_not_runtime_routing(self):
         from hooks.observe import session_context
         root = self.base / 'plugin'; (root / '.codex-plugin').mkdir(parents=True)
-        (root / '.codex-plugin/plugin.json').write_text('{"version":"2.0.0-rc1"}')
+        (root / '.codex-plugin/plugin.json').write_text('{"version":"2.0.0"}')
         project = self.base / 'project'
         (project / '.codex/cdf/backups').mkdir(parents=True)
         (project / '.codex/cdf/backups/native-agents.json').write_text(
             '{"schema":1,"profile":"balanced","other":"SECRET"}')
         with patch('hooks.observe.__file__', str(root / 'hooks/observe.py')):
             context = session_context({'cwd': str(project), 'transcript_path': '/SECRET'})
-        self.assertEqual(context['bundle_version_detected'], '2.0.0-rc1')
+        self.assertEqual(context['bundle_version_detected'], '2.0.0')
         self.assertEqual(context['profile_configured'], 'balanced')
         self.assertEqual(context['role_files'], 'incomplete')
         self.assertEqual(context['routing'], 'NOT_OBSERVED')

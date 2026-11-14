@@ -18,7 +18,7 @@ For nontrivial work, inspect the acceptance map: AC → behavior path → tested
 - `references/test-selection.md` for selecting unit/integration/contract/E2E layers.
 
 ## Optional subskills
-Resolve a candidate ID only when needed through `.codex/cdf/subskills.catalog.json` in the installation target or configured home. Confirm native discovery and use the local fallback when absent; never install automatically.
+Resolve candidates through the bundled catalog only when needed. A portable plugin keeps it at `skills/cdf/subskills.catalog.json`; the legacy installer places it at `.codex/cdf/subskills.catalog.json`. Confirm native discovery and use the local fallback when absent; never install automatically.
 
 - `superpowers-verification-before-completion`: consequential completion claims with multiple checks or suspicious reports.
 - `wsh-python-testing`: Python/pytest fixture, isolation or async test design.

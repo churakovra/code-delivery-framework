@@ -1,14 +1,12 @@
 # Installation, migration and removal
 
-CDF 2.0.0-rc1 is a prerelease candidate. Use Python >=3.11 on POSIX.
+CDF 2.0.0 is the source/package version. It is prepared for user acceptance; bounded runtime evidence is not a claim that all host behavior is verified. Use Python >=3.11 on POSIX.
 Skills and hooks do not provide a security boundary. Model availability and
 host integration must be checked on the intended account/client.
 
 ## Choose one installation
 
-Choose **portable** for eleven standalone skills, **desktop-controlled** for the
-same skills plus optional metadata hooks and separately installed native roles,
-or **legacy** for the compatible one-entry installer. Do not enable two modes
+The **portable plugin is recommended for most users**: eleven standalone skills, no hooks, no native roles, and no managed AGENTS.md. Choose **desktop-controlled** only when optional metadata hooks are needed; roles remain separately configured. Choose **legacy** only when you need its compatible one-entry installer, managed AGENTS block and lifecycle. Do not enable two modes
 in the same project/HOME. Inspect both project and global legacy copies first.
 
 For native plugins, using the intended Codex executable and HOME:
@@ -24,8 +22,7 @@ instead of the portable plugin. Restart Codex. Review the three individual hooks
 in native `/hooks`; trust them manually only if you accept their commands.
 Untrusted/disabled hooks remain degraded; CDF never grants trust. Hook execution
 requires Python 3 on the host PATH. Portable has no hooks or native role setup.
-Try `$cdf`, a named specialist, and an ordinary request without mentioning CDF.
-Discovery and guide reads do not prove that the method improved the decision.
+Use `$cdf` to explicitly invoke the kernel. Without a mention, Codex may select a relevant discovered specialist based on the request; portable plugin installation does not force global CDF activation. Try an explicit `$cdf` request and a separate ordinary request. Discovery and guide reads do not prove that the method improved the decision.
 
 For the legacy installer, from the source checkout:
 
@@ -59,7 +56,7 @@ Uninstall keeps modified files; `--release-modified-skills` explicitly releases
 the modified skill folder rather than deleting it. Preserve it outside discovery
 before enabling a replacement. CDF never silently merges conflicting guidance.
 
-Native roles use a separate existing CLI workflow:
+Native roles use a separate existing CLI workflow from the CDF source checkout:
 
 ```sh
 python3 scripts/cdf.py profile --target /absolute/project --policy policies/native-agents.example.toml --profile balanced --dry-run --json
@@ -76,6 +73,8 @@ rollback removes only CDF-created role setup, not a history of successful profil
 Conflicting or edited roles are preserved and require reconciliation.
 
 ## Build the selected plugin
+
+The standard installation commands above assume you have built a local package and marketplace catalog with the desired name. The build command here shows that preparation.
 
 ```sh
 mkdir -p /absolute/path/to/marketplace/build
@@ -118,3 +117,18 @@ Events stay in native `PLUGIN_DATA/events.jsonl`, capped at about 1 MiB with
 mode 0600. A full log is preserved and degraded, never deleted automatically.
 Explicitly archive/remove it to resume observation. Use disposable homes/targets
 for development; do not change the normal HOME without authorization.
+
+## Evaluation tooling and license
+
+The optional evaluation runner and synthetic fixtures are kept on local branch
+`codex/cdf-2-evaluation-tooling` at commit
+`ec6c789d0724558eda6402f1bedf8a8567ad640e`. Obtain it with:
+
+```sh
+git worktree add /path/to/cdf-evaluation-tooling codex/cdf-2-evaluation-tooling
+```
+
+The installer and plugins do not depend on it. This repository has no selected
+root license. Before public distribution, the copyright owner must choose and
+add licensing terms. MIT is a common option for an open-source Python/skills
+project, but no license is assumed here.

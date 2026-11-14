@@ -19,7 +19,7 @@ For a critical invariant identify its enforcing owner (handler, domain rule, con
 - `references/async-and-failures.md` — cancellation, retries, idempotency and recovery.
 
 ## Optional subskills
-Resolve a candidate ID only when needed through `.codex/cdf/subskills.catalog.json` in the installation target or configured home. Confirm native discovery and use the local fallback when absent; never install automatically.
+Resolve candidates through the bundled catalog only when needed. A portable plugin keeps it at `skills/cdf/subskills.catalog.json`; the legacy installer places it at `.codex/cdf/subskills.catalog.json`. Confirm native discovery and use the local fallback when absent; never install automatically.
 
 - `wsh-architecture`: genuine new architectural boundary/DDD/hexagonal design.
 - `wsh-api-design`: consequential REST/GraphQL interface design.

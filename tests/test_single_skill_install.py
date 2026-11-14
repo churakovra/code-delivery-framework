@@ -175,6 +175,23 @@ class SingleSkillTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'nested'):
                 build_plugin(self.base / 'bad-plugin')
         self.assertFalse((self.base / 'bad-plugin').exists())
+
+    def test_portable_skill_catalog_and_declared_local_references_exist(self):
+        import re
+        output = self.base / 'portable-links'
+        build_plugin(output)
+        catalog = output / 'skills/cdf/subskills.catalog.json'
+        self.assertTrue(catalog.is_file())
+        for skill in (output / 'skills').glob('*/SKILL.md'):
+            text = skill.read_text()
+            if 'Resolve candidates through the bundled catalog' in text:
+                self.assertIn('skills/cdf/subskills.catalog.json', text)
+                self.assertTrue(catalog.is_file(), skill)
+            for relative in re.findall(r'\]\(([^)#]+\.md)\)', text):
+                if relative.startswith(('http:', 'https:')):
+                    continue
+                self.assertTrue((skill.parent / relative).resolve().is_file(),
+                                f'{skill.relative_to(output)} -> {relative}')
         with self.assertRaisesRegex(ValueError, 'portable'):
             build_plugin(self.base / 'unknown-profile', profile='desktop')
 
