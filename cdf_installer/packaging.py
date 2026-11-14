@@ -1,4 +1,4 @@
-"""Build one discoverable CDF skill from separately maintained source skills."""
+"""Legacy installer compaction; native plugins retain standalone source skills."""
 from __future__ import annotations
 
 from pathlib import PurePosixPath

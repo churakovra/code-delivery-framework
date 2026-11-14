@@ -1,6 +1,12 @@
 """Declarative offline bundle inventory shared by packaging and evaluation."""
 
 CORE = (
+    'cdf', 'cdf-architecture', 'cdf-backend', 'cdf-code-review', 'cdf-codebase-research', 'cdf-debugging',
+    'cdf-documentation', 'cdf-frontend', 'cdf-requirements', 'cdf-ui-design',
+    'cdf-verification',
+)
+# Frozen 1.2–1.5 inventory, shared by flat and compact historical installs.
+LEGACY_CORE_15 = (
     'cdf', 'cdf-backend', 'cdf-code-review', 'cdf-codebase-research', 'cdf-debugging',
     'cdf-documentation', 'cdf-frontend', 'cdf-requirements', 'cdf-ui-design',
     'cdf-verification',
@@ -17,3 +23,6 @@ EXTRAS = {
     'learning': ('cdf-explain', 'cdf-teach'),
 }
 NATIVE_AGENTS = ('cdf_reviewer', 'cdf_diagnostician')
+
+# Explicit profile setup; legacy installation retains the original two roles.
+PROFILE_AGENTS = ('cdf_explorer', *NATIVE_AGENTS)

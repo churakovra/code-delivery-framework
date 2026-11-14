@@ -26,7 +26,7 @@ class ContractTests(unittest.TestCase):
             kernel = target / 'skills/cdf/SKILL.md'
             text = kernel.read_text().split('## Optional subskills', 1)[0] + 'Fallback: local delivery methods.\n'
             kernel.write_text(text)
-            self.assertEqual(validate_source(target)['core_skills'], 10)
+            self.assertEqual(validate_source(target)['core_skills'], 11)
             parse_skill(kernel, 'cdf')
             reference = target / 'skills/cdf/references/quality-contract.md'
             reference.unlink()
@@ -38,7 +38,7 @@ class ContractTests(unittest.TestCase):
 
     def test_source_contains_only_registered_skills(self):
         from scripts.validate_cdf import validate_source
-        self.assertEqual(validate_source()['core_skills'], 10)
+        self.assertEqual(validate_source()['core_skills'], 11)
         from cdf_registry import CORE, EXTRAS
         expected = set(CORE).union(*EXTRAS.values())
         self.assertEqual({p.name for p in (ROOT / 'skills').iterdir()}, expected)

@@ -186,7 +186,7 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(plan['state'], 'ready')
         self.assertEqual(before, {p.relative_to(self.target): p.read_bytes() for p in self.target.rglob('*') if p.is_file()})
         self.assertEqual(self.action('install')['state'], 'installed')
-        self.assertEqual(len(list((self.target / '.agents/skills').glob('*/SKILL.md'))), 10)
+        self.assertEqual(len(list((self.target / '.agents/skills').glob('*/SKILL.md'))), 11)
         self.assertEqual(core.status(self.target, 'project')['files'], 'clean')
         self.assertEqual(core.status(self.target, 'project')['skills_discovery'], 'unverified')
         self.assertEqual(self.action('uninstall')['state'], 'absent')
@@ -307,9 +307,9 @@ class InstallerTests(unittest.TestCase):
     def test_upgrade_extras_preserves_and_removes_owned_skills(self):
         self.action('install', enable=['learning'])
         self.action('upgrade', enable=['operator'])
-        self.assertEqual(len(list((self.target / '.agents/skills').glob('*/SKILL.md'))), 13)
+        self.assertEqual(len(list((self.target / '.agents/skills').glob('*/SKILL.md'))), 14)
         self.action('upgrade', disable=['learning'])
-        self.assertEqual(len(list((self.target / '.agents/skills').glob('*/SKILL.md'))), 11)
+        self.assertEqual(len(list((self.target / '.agents/skills').glob('*/SKILL.md'))), 12)
         self.assertFalse((self.target / '.agents/skills/cdf-explain/SKILL.md').exists())
         self.assertEqual(core.manifest_read(self.target, 'project')['selected_extras'], ['operator'])
 

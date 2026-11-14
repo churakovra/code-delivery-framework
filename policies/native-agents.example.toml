@@ -1,0 +1,19 @@
+# Editable candidates, not an active Codex configuration or measured cost ranking.
+schema = 1
+selected_profile = "balanced"
+fallback = "block"
+
+[profiles.budget]
+cdf_explorer = "gpt-6-luna:high"
+cdf_reviewer = "gpt-6-luna:high"
+cdf_diagnostician = "gpt-6-luna:high"
+
+[profiles.balanced]
+cdf_explorer = "gpt-6-luna:high"
+cdf_reviewer = "gpt-6.1-sol:medium"
+cdf_diagnostician = "gpt-6.1-sol:medium"
+
+[profiles.quality]
+cdf_explorer = "gpt-6-luna:high"
+cdf_reviewer = "gpt-6.1-sol:high"
+cdf_diagnostician = "gpt-6.1-sol:high"

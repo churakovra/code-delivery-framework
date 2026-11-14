@@ -500,6 +500,38 @@
       "license": "Protocol reference only; original probe implementation, no documentation prose reused",
       "used_for": "Isolated initialize and skills/list discovery check without model execution or live configuration mutation.",
       "installation": "research only"
+    },
+    {
+      "id": "openai-noninteractive-pr1",
+      "url": "https://learn.chatgpt.com/docs/non-interactive-mode",
+      "revision": "Web page inspected 2026-11-13; no immutable revision supplied by publisher. Local target codex-cli 0.167.0-alpha.4.1 help also inspected.",
+      "license": "Official documentation reference; no text or code reused",
+      "used_for": "Check the existing exec --json runner contract and distinguish a real turn from static instruction validation.",
+      "installation": "research only"
+    },
+    {
+      "id": "openai-auth-pr1-live",
+      "url": "https://learn.chatgpt.com/docs/auth",
+      "revision": "Web page inspected 2026-11-13; publisher supplies no immutable revision.",
+      "license": "Official documentation reference; no text or code reused",
+      "used_for": "Explicit temporary auth-cache reuse for authorized native CLI behavioral evaluations; credentials never archived or written back.",
+      "installation": "research only"
+    },
+    {
+      "id": "openai-native-agents-pr3",
+      "url": "https://learn.chatgpt.com/docs/agent-configuration/subagents",
+      "revision": "Unversioned official documentation inspected 2026-11-13; native probes codex-cli 0.167.0-alpha.4.1.",
+      "license": "Protocol/configuration reference only; no prose or code reused",
+      "used_for": "Standard custom-agent TOMLs; model/list availability is separate from observed child execution.",
+      "installation": "research only"
+    },
+    {
+      "id": "openai-hooks-pr4",
+      "url": "https://learn.chatgpt.com/docs/hooks",
+      "revision": "Unversioned official page inspected 2026-11-14; native schema and probes codex-cli 0.167.0-alpha.4.1.",
+      "license": "Protocol/configuration reference only; original implementation, no prose or code reused",
+      "used_for": "Native hook events, metadata privacy, explicit native trust and hooks/list diagnostics. Packaging compatibility reference: https://developers.openai.com/plugins/build/plugins (same inspection date).",
+      "installation": "research only"
     }
   ]
 }

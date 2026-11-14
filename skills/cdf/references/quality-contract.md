@@ -44,3 +44,6 @@ Check the requested artifact or operation itself before reporting completion. Fo
 | Original defect repaired | Original reproduction on the active route/version plus regressions | Unrelated green unit tests |
 
 Return the artifact path when an artifact is requested. Missing required runtime or visual evidence leaves PARTIAL; do not require subjective visual acceptance for a nonvisual change. A safe implementation can be ready mechanically while behavioral improvement remains unproven.
+
+## Design evidence and implementation evidence
+Before costly implementation, assess whether the recommended solution meets observed contracts with minimal complexity. A sound diff cannot rescue an unsupported architecture. Review the design against reuse, alternatives, scope and first experiment separately from code correctness. Static validation proves instruction integrity; only observed agent actions can establish method application or behavioral quality.

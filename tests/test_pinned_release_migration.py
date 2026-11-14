@@ -14,6 +14,7 @@ from cdf_installer import core
 
 ROOT = Path(__file__).resolve().parents[1]
 PINNED_RELEASES = {
+    '1.5.0': 'e7181a4b3f6f2a8288f4547c774539cb8c30d2b4',  # Local pre-PR-0 baseline, not a published-release claim.
     '1.2.1': '0409be3c724e27efc9f33e6fa93f6259ace2a26e',
     '1.3.0': 'c0c1b72f5f1e6f2b56b86602d0aa12261ce62930',  # User-approved local single-entry baseline, not a published release.
 }
@@ -25,6 +26,42 @@ def snapshot(root):
 
 
 class PinnedReleaseMigrationTests(unittest.TestCase):
+    def test_exact_150_interrupted_upgrade_recovers_original_files(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary).resolve()
+            source = self.source(PINNED_RELEASES['1.5.0'], base / 'source')
+            for scope in ('project', 'global'):
+                home = base / (scope + '-home'); home.mkdir()
+                target = home if scope == 'global' else base / 'project'; target.mkdir(exist_ok=True)
+                agents = target / ('.codex/AGENTS.md' if scope == 'global' else 'AGENTS.md')
+                agents.parent.mkdir(parents=True, exist_ok=True)
+                agents.write_bytes(b'User text\r\n')
+                env = {'PATH': os.environ.get('PATH', os.defpath), 'HOME': str(home),
+                       'CODEX_HOME': str(home / '.codex'), 'PYTHONDONTWRITEBYTECODE': '1'}
+                command = [sys.executable, str(source / 'scripts/cdf.py'), 'install',
+                           '--target', str(target), '--scope', scope, '--json']
+                if scope == 'global': command += ['--home', str(home)]
+                result = subprocess.run(command, env=env, cwd=source, capture_output=True, timeout=30)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                (target / 'user-data').write_bytes(b'keep\x00')
+                before = snapshot(target)
+                real_apply = core.apply_file
+                def crash(*args):
+                    real_apply(*args)
+                    raise KeyboardInterrupt('after first actual replacement')
+                with patch.object(Path, 'home', return_value=home), patch.dict(os.environ, env):
+                    with patch.object(core, 'apply_file', side_effect=crash):
+                        with self.assertRaises(KeyboardInterrupt): core.perform(target, scope, 'upgrade')
+                    self.assertEqual(core.status(target, scope)['state'], 'recovery-required')
+                    interrupted = snapshot(target)
+                    core.perform(target, scope, 'recover', dry=True)
+                    self.assertEqual(snapshot(target), interrupted)
+                    self.assertEqual(core.perform(target, scope, 'recover')['state'], 'recovered')
+                    restored = snapshot(target)
+                    self.assertEqual({k: v[:2] for k, v in restored.items()},
+                                     {k: v[:2] for k, v in before.items()})
+                    self.assertEqual(core.status(target, scope)['files'], 'clean')
+
     def source(self, revision, destination):
         found = subprocess.run(['git', 'cat-file', '-e', revision + '^{commit}'], cwd=ROOT,
                                capture_output=True, timeout=10)

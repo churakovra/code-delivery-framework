@@ -12,7 +12,7 @@ import tomllib
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from cdf_runtime.contracts import validate_record
-from cdf_registry import CORE, EXTRAS, NATIVE_AGENTS
+from cdf_registry import CORE, EXTRAS, NATIVE_AGENTS, PROFILE_AGENTS
 
 
 def validate_source(root=ROOT):
@@ -50,7 +50,7 @@ def validate_source(root=ROOT):
             raise ValueError(f'{key}: invalid pinned revision')
         if not item['cdf_skills'] or not set(item['cdf_skills']) <= expected:
             raise ValueError(f'{key}: invalid primary owner')
-    for name in NATIVE_AGENTS:
+    for name in PROFILE_AGENTS:
         fields = tomllib.loads((root / 'templates' / f'{name}.toml').read_text())
         if fields.get('name') != name or not all(fields.get(k) for k in ('description', 'developer_instructions')):
             raise ValueError(f'{name}: invalid native agent')
@@ -60,7 +60,7 @@ def validate_source(root=ROOT):
     for example, schema in [('handoff', 'handoff'), ('install-plan', 'install-plan'), ('task-checkpoint', 'task-state')]:
         validate_record(schema, json.loads((examples / f'{example}.example.json').read_text()))
     return {'state': 'passed', 'core_skills': len(CORE), 'optional_skills': sum(map(len, EXTRAS.values())),
-            'community_candidates': len(candidates), 'native_agent_templates': len(NATIVE_AGENTS),
+            'community_candidates': len(candidates), 'native_agent_templates': len(PROFILE_AGENTS),
             'runtime_behavior': 'not_evaluated', 'network': 'not_used'}
 
 

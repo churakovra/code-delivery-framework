@@ -1,12 +1,18 @@
-# Adaptive delivery
+# Decision-first delivery
 
 Distinguish explain/explore/audit/plan from implement/operate. Read-only work and a plan do not authorize code changes. Implementation does not authorize publication or global configuration changes.
 
 - SIMPLE: a known local, low-risk change → inspect the relevant context, edit, focused check, diff inspection. No mandatory plan, question, child or full suite.
-- STANDARD: connected modules or meaningful uncertainty → compact acceptance in context, reversible increments ordered by dependencies, relevant contract/integration checks and risk-based review.
+- STANDARD: connected modules or meaningful uncertainty → evidence packet, recommended minimal solution and brief critique before dependent edits; then reversible increments and relevant contract checks.
 - COMPLEX: authorization, sensitive data, migrations, concurrency or difficult rollback → explicit invariants and alternatives, resolve material choices, validate adverse paths and obtain independent review.
 
 Change mode when evidence changes risk. A file count or the word API does not determine complexity. Prefer established helpers and conventions; coordinate shared contracts before parallel edits. A plan records outcome, boundaries, dependencies and acceptance-to-check mapping, not a new runtime.
+
+## Proposal before implementation plan
+
+A solution proposal explains the outcome, observed contracts/reuse, recommendation, credible alternatives, boundaries and first disconfirming check. Use cdf-architecture for consequential choices. An implementation plan orders work only after this choice. Do not turn an unapproved recommendation into a user decision. No mandatory file or approval for routine engineering choices.
+
+Before introducing an abstraction, identify its required contract or observed risk, the concrete mismatch with reuse, maintenance cost and first validating scenario. Without that evidence prefer the simpler path. If an operational question surfaces after dependent edits, stop those edits, disclose the assumption and resolve it before further work; retain safe independent work.
 
 ## Adaptive strategy selection
 

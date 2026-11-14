@@ -1,13 +1,13 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "code-delivery-framework",
-  "description": "Focused engineering delivery skills with evidence-based verification.",
+  "description": "Engineering partner skills for evidence-backed decisions before implementation and outcome verification.",
   "extensions": {
     "com.openai": {
       "interface": {
         "displayName": "Code Delivery Framework",
-        "shortDescription": "Verified engineering delivery",
-        "longDescription": "One CDF skill with focused engineering modules for requirements, research, implementation, debugging, review, documentation, verification, and optional learning. Guides load on demand. Model calibration is explicit-only. The separate offline installer manages project policy and native agent templates.",
+        "shortDescription": "Decide, build, verify",
+        "longDescription": "Standalone CDF skills for requirements, architecture, research, implementation, debugging, review and verification. Guides apply on demand. Optional learning and model calibration are included only when selected at build time. This portable package installs no hooks, project policy or native agent configuration.",
         "category": "Developer Tools",
         "brandColor": "#2563EB",
         "composerIcon": "./assets/icon.png",
