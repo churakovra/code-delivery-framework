@@ -160,12 +160,47 @@ class SingleSkillTests(unittest.TestCase):
                 with self.assertRaises(core.CDFError): core.manifest_read(self.target, 'project')
         path.write_bytes(original)
 
-    def test_plugin_has_same_single_skill_payload_without_policy_or_native_agents(self):
+    def test_portable_plugin_omits_disabled_extras_and_rejects_nested_skills(self):
+        output = self.base / 'default-plugin'
+        result = build_plugin(output)
+        self.assertEqual({p.parent.name for p in output.rglob('SKILL.md')}, set(CORE))
+        self.assertEqual(result['visible_skills'], len(CORE))
+        self.assertFalse((output / 'skills/cdf/modules').exists())
+        for name in CORE:
+            self.assertEqual((output / 'skills' / name / 'SKILL.md').read_bytes(),
+                             (ROOT / 'skills' / name / 'SKILL.md').read_bytes())
+        files, block = core.bundle(standalone=True)
+        files['.agents/skills/cdf/references/accidental/SKILL.md'] = b'---\nname: accidental\ndescription: Bad nesting.\n---\n'
+        with patch('scripts.package_cdf_plugin.core.bundle', return_value=(files, block)):
+            with self.assertRaisesRegex(ValueError, 'nested'):
+                build_plugin(self.base / 'bad-plugin')
+        self.assertFalse((self.base / 'bad-plugin').exists())
+
+    def test_portable_skill_catalog_and_declared_local_references_exist(self):
+        import re
+        output = self.base / 'portable-links'
+        build_plugin(output)
+        catalog = output / 'skills/cdf/subskills.catalog.json'
+        self.assertTrue(catalog.is_file())
+        for skill in (output / 'skills').glob('*/SKILL.md'):
+            text = skill.read_text()
+            if 'Resolve candidates through the bundled catalog' in text:
+                self.assertIn('skills/cdf/subskills.catalog.json', text)
+                self.assertTrue(catalog.is_file(), skill)
+            for relative in re.findall(r'\]\(([^)#]+\.md)\)', text):
+                if relative.startswith(('http:', 'https:')):
+                    continue
+                self.assertTrue((skill.parent / relative).resolve().is_file(),
+                                f'{skill.relative_to(output)} -> {relative}')
+        with self.assertRaisesRegex(ValueError, 'portable'):
+            build_plugin(self.base / 'unknown-profile', profile='desktop')
+
+    def test_plugin_retains_standalone_source_skills_without_policy_or_native_agents(self):
         output = self.base / 'plugin'
         result = build_plugin(output, ('learning', 'operator'))
-        self.assertEqual(result['visible_skills'], 1)
-        self.assertEqual([p.relative_to(output).as_posix() for p in output.rglob('SKILL.md')], ['skills/cdf/SKILL.md'])
-        files, _ = core.bundle(extras=('learning', 'operator'))
+        self.assertEqual(result['visible_skills'], len(CORE) + sum(map(len, EXTRAS.values())))
+        self.assertEqual({p.parent.name for p in output.rglob('SKILL.md')}, set(CORE) | set(sum(EXTRAS.values(), ())))
+        files, _ = core.bundle(extras=('learning', 'operator'), standalone=True)
         for path, contents in files.items():
             if path.startswith('.agents/skills/'):
                 self.assertEqual((output / 'skills' / path.removeprefix('.agents/skills/')).read_bytes(), contents)

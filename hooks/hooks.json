@@ -1,0 +1,8 @@
+{
+  "description": "Optional CDF metadata observation; no enforcement or model calls.",
+  "hooks": {
+    "SessionStart": [{"hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/hooks/observe.py\"", "timeout": 2}]}],
+    "SubagentStart": [{"matcher": "^cdf_", "hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/hooks/observe.py\"", "timeout": 2}]}],
+    "SubagentStop": [{"matcher": "^cdf_", "hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/hooks/observe.py\"", "timeout": 2}]}]
+  }
+}

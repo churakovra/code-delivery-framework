@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / 'tests/fixtures/legacy-cdf-11.json'
 FIXTURE_SHA256 = '5c7d5489b63d2e0db778a63c7512c6c6871bfe70509f5d42078ce369a292b21b'
 FUTURE_CORE = (
-    'cdf', 'cdf-backend', 'cdf-code-review', 'cdf-codebase-research',
+    'cdf', 'cdf-architecture', 'cdf-backend', 'cdf-code-review', 'cdf-codebase-research',
     'cdf-debugging', 'cdf-documentation', 'cdf-frontend', 'cdf-requirements',
     'cdf-ui-design', 'cdf-verification',
 )
@@ -166,13 +166,13 @@ class MigrationTests(unittest.TestCase):
                     actual = {p.split('/')[4] for p in manifest['owned_files']
                               if p.startswith('.agents/skills/cdf/modules/') and p.endswith('/GUIDE.md')}
                     self.assertEqual(actual, modules)
-                    self.assertEqual(len(actual), 12)
+                    self.assertEqual(len(actual), 13)
                     for name in modules:
                         self.assertFalse((target / f'.agents/skills/{name}/SKILL.md').exists())
                         self.assertTrue((target / f'.agents/skills/cdf/modules/{name}/GUIDE.md').is_file())
                 else:
                     self.assertEqual(names, set(FUTURE_CORE) | set(sum(EXTRAS.values(), ())))
-                    self.assertEqual(len(names), 13)
+                    self.assertEqual(len(names), 14)
                 self.assertEqual(core.status(target, scope)['files'], 'clean')
                 for name in RETIRED:
                     self.assertFalse((target / f'.agents/skills/{name}/SKILL.md').exists())

@@ -4,19 +4,21 @@ import argparse
 import json
 import os
 from pathlib import Path
-import select
 import subprocess
 import sys
 import tempfile
-import time
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from cdf_installer import core
+from cdf_runtime.codex import app_server
+from cdf_registry import CORE, EXTRAS
+from scripts.package_cdf_plugin import build_plugin
 
 
-def probe(binary):
+def probe(binary, *, plugin=False, extras=None):
+    extras = tuple(extras if extras is not None else (() if plugin else ("learning", "operator")))
     with tempfile.TemporaryDirectory(prefix='cdf-discovery-') as temporary:
         base = Path(temporary).resolve()
         home = base / 'home'
@@ -25,79 +27,60 @@ def probe(binary):
         target.mkdir()
         env = {'HOME': str(home), 'CODEX_HOME': str(home / '.codex'),
                'PATH': os.environ.get('PATH', ''), 'TMPDIR': str(base)}
-        with patch.object(Path, 'home', return_value=home), patch.dict(os.environ, {'CODEX_HOME': env['CODEX_HOME']}):
-            core.perform(target, 'project', 'install', enable=('learning', 'operator'))
-        with (base / 'stderr.log').open('w+b') as errors:
-            process = subprocess.Popen([str(binary), 'app-server', '--listen', 'stdio://'],
-                                       cwd=target, env=env, stdin=subprocess.PIPE,
-                                       stdout=subprocess.PIPE, stderr=errors)
-            pending = b''
-
-            def send(message):
-                process.stdin.write((json.dumps(message) + '\n').encode())
-                process.stdin.flush()
-
-            def receive(request_id):
-                nonlocal pending
-                deadline = time.monotonic() + 20
-                while time.monotonic() < deadline:
-                    if b'\n' in pending:
-                        line, pending = pending.split(b'\n', 1)
-                        message = json.loads(line)
-                        if message.get('id') == request_id:
-                            if 'error' in message:
-                                raise ValueError(str(message['error']))
-                            return message['result']
-                        continue
-                    if select.select([process.stdout], [], [], max(0, deadline - time.monotonic()))[0]:
-                        data = os.read(process.stdout.fileno(), 65536)
-                        if not data:
-                            errors.seek(0)
-                            raise ValueError('App-server exited: ' + errors.read(2000).decode(errors='replace'))
-                        pending += data
-                raise ValueError('App-server request timed out')
-
-            try:
-                send({'id': 1, 'method': 'initialize', 'params': {
-                    'clientInfo': {'name': 'cdf_discovery_probe', 'version': '1.0.0'},
-                    'capabilities': {'experimentalApi': True}}})
-                initialized = receive(1)
-                send({'method': 'initialized', 'params': {}})
-                send({'id': 2, 'method': 'skills/list', 'params': {
-                    'cwds': [str(target)], 'forceReload': True}})
-                rows = receive(2)['data']
-                skills = [skill for row in rows for skill in row['skills']
-                          if skill['name'] == 'cdf' or skill['name'].startswith('cdf-')]
-                local_errors = [error for row in rows for error in row.get('errors', [])]
-                if [skill['name'] for skill in skills] != ['cdf'] or local_errors:
-                    raise ValueError('Unexpected discovery entries or errors')
-                skill = skills[0]
-                interface = skill.get('interface') or {}
-                if not skill.get('enabled') or not all(
-                    Path(interface.get(key, '')).is_file() for key in ('iconSmall', 'iconLarge')
-                ):
-                    raise ValueError('CDF is disabled or its icon paths are unavailable')
-                return {'state': 'passed', 'probe': 'skills/list', 'cdf_entries': ['cdf'],
-                        'enabled': True, 'small_icon': Path(interface['iconSmall']).suffix,
-                        'large_icon': Path(interface['iconLarge']).suffix, 'errors': [],
-                        'model_runs': 0, 'home': 'temporary', 'client': initialized.get('userAgent')}
-            finally:
-                process.terminate()
-                try:
-                    process.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    process.kill()
-                    process.wait()
-                process.stdin.close()
-                process.stdout.close()
+        installation = []
+        if plugin:
+            marketplace = base / 'marketplace'
+            (marketplace / '.agents/plugins').mkdir(parents=True)
+            (marketplace / 'plugins').mkdir()
+            build_plugin(marketplace / 'plugins/cdf', extras)
+            (marketplace / '.agents/plugins/marketplace.json').write_text(json.dumps({
+                'name': 'cdf-probe', 'plugins': [{'name': 'code-delivery-framework',
+                'source': {'source': 'local', 'path': './plugins/cdf'},
+                'policy': {'installation': 'AVAILABLE', 'authentication': 'ON_INSTALL'},
+                'category': 'Developer Tools'}]}))
+            for arguments in (['plugin', 'marketplace', 'add', str(marketplace), '--json'],
+                              ['plugin', 'add', 'code-delivery-framework@cdf-probe', '--json']):
+                result = subprocess.run([str(binary), *arguments], cwd=target, env=env,
+                                        capture_output=True, text=True, timeout=20)
+                if result.returncode:
+                    raise ValueError('Native plugin setup failed: ' + result.stderr[:2000])
+                installation.append(json.loads(result.stdout))
+        else:
+            with patch.object(Path, 'home', return_value=home), patch.dict(os.environ, {'CODEX_HOME': env['CODEX_HOME']}):
+                core.perform(target, 'project', 'install', enable=extras)
+        with app_server(binary, cwd=target, env=env) as (request, initialized):
+            rows = request('skills/list', {'cwds': [str(target)], 'forceReload': True})['data']
+            skills = [skill for row in rows for skill in row['skills']
+                      if skill['name'] == 'cdf' or skill['name'].startswith(('cdf-', 'code-delivery-framework:', 'code-delivery-framework-desktop:'))]
+            local_errors = [error for row in rows for error in row.get('errors', [])]
+            expected = {'code-delivery-framework:' + name for name in (set(CORE) | {name for extra in extras for name in EXTRAS[extra]})} if plugin else {'cdf'}
+            if len(skills) != len(expected) or {skill['name'] for skill in skills} != expected or local_errors:
+                raise ValueError('Unexpected discovery entries or errors: ' + json.dumps({'skills': skills, 'errors': local_errors}))
+            if not all(skill.get('enabled') for skill in skills):
+                raise ValueError('A CDF skill is disabled')
+            kernel = next(skill for skill in skills if skill['name'] == ('code-delivery-framework:cdf' if plugin else 'cdf'))
+            interface = kernel.get('interface') or {}
+            if not all(Path(interface.get(key, '')).is_file() for key in ('iconSmall', 'iconLarge')):
+                raise ValueError('CDF icon paths are unavailable')
+            return {'state': 'passed', 'probe': 'skills/list', 'cdf_entries': sorted(expected),
+                    'enabled': True, 'small_icon': Path(interface['iconSmall']).suffix,
+                    'large_icon': Path(interface['iconLarge']).suffix, 'errors': [],
+                    'model_runs': 0, 'home': 'temporary', 'client': initialized.get('userAgent'),
+                    'distribution': 'portable-plugin' if plugin else 'legacy-single',
+                    'installation': installation, 'skills_response': skills,
+                    'method_application': 'NOT_OBSERVED'}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--codex', type=Path, required=True, help='Path to a Codex executable supporting app-server')
+    parser.add_argument('--plugin-portable', action='store_true', help='Install a portable plugin in a disposable HOME')
+    parser.add_argument('--with-learning', action='store_true')
+    parser.add_argument('--with-operator', action='store_true')
     args = parser.parse_args()
     try:
-        result = probe(args.codex.expanduser().resolve())
+        extras = [name for name in ('learning', 'operator') if getattr(args, 'with_' + name)] if args.plugin_portable else None
+        result = probe(args.codex.expanduser().resolve(), plugin=args.plugin_portable, extras=extras)
     except (OSError, ValueError, KeyError) as exc:
         print(json.dumps({'state': 'unavailable', 'message': str(exc)}))
         return 2

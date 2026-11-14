@@ -175,3 +175,46 @@ def resolve_child(policy, *, role, tier, catalog=None, override_supported=False,
     else:
         state, reason = 'unavailable', 'Policy forbids unverified fallback'
     return ModelResolution(role, tier, *(pair or (None, None)), *(request or (None, None)), *obs, state, reason)
+
+
+def native_profile_plan(path, *, profile=None, capabilities=None, root=None):
+    """Render explicit native role candidates; catalog checks are not execution proof."""
+    import hashlib
+    import json
+    from cdf_registry import PROFILE_AGENTS
+    source = Path(path).read_bytes()
+    data = tomllib.loads(source.decode('utf-8'))
+    if (set(data) != {'schema', 'selected_profile', 'fallback', 'profiles'}
+            or type(data['schema']) is not int or data['schema'] != 1 or data['fallback'] != 'block'
+            or not isinstance(data['profiles'], dict) or set(data['profiles']) != {'budget', 'balanced', 'quality'}):
+        raise ValueError('Unsupported native profile policy')
+    selected = profile or data['selected_profile']
+    if not isinstance(selected, str) or selected not in data['profiles']:
+        raise ValueError('Unknown native profile')
+    for entry in data['profiles'].values():
+        if not isinstance(entry, dict) or set(entry) != set(PROFILE_AGENTS):
+            raise ValueError('Native profiles must define exactly the supported CDF roles')
+        for candidate in entry.values():
+            if not isinstance(candidate, str) or len(candidate.split(':')) != 2 or any(
+                    not part or any(char.isspace() for char in part) for part in candidate.split(':')):
+                raise ValueError('Native profiles require explicit model:effort pairs')
+    root = Path(root) if root is not None else Path(__file__).resolve().parents[1]
+    catalog = {tuple(pair) for pair in capabilities['pairs']} if capabilities is not None else None
+    roles = {}
+    for role, candidate in data['profiles'][selected].items():
+        model, effort = candidate.split(':')
+        fields = tomllib.loads((root / 'templates' / f'{role}.toml').read_text())
+        if (set(fields) != {'name', 'description', 'developer_instructions'} or fields['name'] != role
+                or not all(isinstance(value, str) and value for value in fields.values())):
+            raise ValueError('Invalid native role template')
+        fields.update(model=model, model_reasoning_effort=effort)
+        text = '\n'.join(key + ' = ' + json.dumps(value, ensure_ascii=False) for key, value in fields.items()) + '\n'
+        state = ('NOT_CHECKED' if catalog is None else
+                 'AVAILABLE_ADVERTISED' if (model, effort) in catalog and capabilities['agents_enabled']
+                 else 'UNAVAILABLE')
+        roles[role] = {'path': f'.codex/agents/{role}.toml', 'content': text,
+                       'model_requested': model, 'effort_requested': effort,
+                       'model_observed': None, 'effort_observed': None, 'state': state}
+    return {'schema': 1, 'profile': selected, 'policy_sha256': hashlib.sha256(source).hexdigest(),
+            'roles': roles, 'fallback': 'block', 'native_config_applied': False,
+            'runtime_routing': 'NOT_OBSERVED'}

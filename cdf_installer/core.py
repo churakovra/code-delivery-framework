@@ -18,7 +18,7 @@ import tomllib
 import uuid
 
 from cdf_runtime.contracts import validate_record
-from cdf_registry import CORE, EXTRAS, LEGACY_CORE_11
+from cdf_registry import CORE, EXTRAS, LEGACY_CORE_11, LEGACY_CORE_15, PROFILE_AGENTS
 from cdf_installer.packaging import compact_skills
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -96,7 +96,8 @@ def allowed(path, agents):
     p = relative_path(path)
     parts = p.parts
     return (path == agents or path == '.codex/cdf/subskills.catalog.json'
-            or path in ('.codex/agents/cdf_reviewer.toml', '.codex/agents/cdf_diagnostician.toml')
+            or path in {f'.codex/agents/{name}.toml' for name in PROFILE_AGENTS}
+            or path == '.codex/cdf/backups/native-agents.json'
             or path in ('.codex/cdf/backups/AGENTS.original', '.codex/cdf/backups/AGENTS.absent')
             or (len(parts) >= 4 and parts[:2] == ('.agents', 'skills')
                 and parts[2] in set(CORE) | set(LEGACY_CORE_11) | set(sum(EXTRAS.values(), ()))))
@@ -298,7 +299,7 @@ def bundle_layout(root):
         raise CDFError('INVALID_BUNDLE', f'Invalid bundle layout: {exc}') from exc
 
 
-def bundle(root=ROOT, extras=()):
+def bundle(root=ROOT, extras=(), *, standalone=False):
     result = {}
     selected = list(CORE)
     for extra in sorted(extras):
@@ -333,7 +334,7 @@ def bundle(root=ROOT, extras=()):
         if block.count(START) != 1 or block.count(END) != 1 or not block.startswith(START) or not block.rstrip(b'\r\n').endswith(END):
             raise CDFError('INVALID_BUNDLE', 'Invalid managed block template.')
         block = block.rstrip(b'\r\n') + b'\n'
-        if bundle_layout(root) == 'single':
+        if bundle_layout(root) == 'single' and not standalone:
             result = compact_skills(result, selected)
         return result, block
     except (OSError, UnicodeError, ValueError, tomllib.TOMLDecodeError) as exc:
@@ -395,12 +396,12 @@ def manifest_read(root, scope):
                           if p.startswith('.agents/skills/')}
         optional = {name for extra in m['selected_extras'] for name in EXTRAS[extra]}
         inventories = ([{'cdf'}] if layout == 'single' else
-                       [set(names) | optional for names in (CORE, LEGACY_CORE_11)])
+                       [set(names) | optional for names in (CORE, LEGACY_CORE_11, LEGACY_CORE_15)])
         if layout == 'single':
-            modules = set(CORE) - {'cdf'} | optional
+            module_inventories = [set(names) - {'cdf'} | optional for names in (CORE, LEGACY_CORE_15)]
             actual_modules = {p.split('/')[4] for p in m['owned_files']
                               if p.startswith('.agents/skills/cdf/modules/') and len(p.split('/')) > 5}
-            if not actual_modules <= modules:
+            if not any(actual_modules <= names for names in module_inventories):
                 raise ValueError('unknown or undeclared CDF module')
             if any(p.endswith('/SKILL.md') and p != '.agents/skills/cdf/SKILL.md'
                    for p in m['owned_files']):
@@ -412,7 +413,9 @@ def manifest_read(root, scope):
                 raise ValueError('installed manifest has an unknown skill inventory')
             required_files = {f'.agents/skills/{name}/SKILL.md' for name in present_skills}
             if layout == 'single':
-                required_files.update(f'.agents/skills/cdf/modules/{name}/GUIDE.md' for name in modules)
+                if actual_modules not in module_inventories:
+                    raise ValueError('installed manifest has an unknown module inventory')
+                required_files.update(f'.agents/skills/cdf/modules/{name}/GUIDE.md' for name in actual_modules)
                 required_files.update({'.agents/skills/cdf/modules/index.md',
                                        '.agents/skills/cdf/subskills.catalog.json'})
             required_files.update({'.codex/agents/cdf_reviewer.toml',

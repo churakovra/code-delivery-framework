@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install and maintain CDF without network or model calls.
+"""Install and maintain CDF. Legacy lifecycle stays offline; explicit profile checks query native capabilities, never a model.
 
 For global scope, --target must equal the current home directory. Supply
 --home with --target to select a different, explicitly named home (for example,
@@ -38,6 +38,11 @@ def parser():
         q.add_argument('--json', action='store_true')
         if action in ('install', 'upgrade', 'uninstall', 'recover'):
             q.add_argument('--dry-run', action='store_true')
+        if action == 'doctor':
+            q.add_argument('--runtime', action='store_true', help='Read native hook discovery; never enable or trust hooks')
+            q.add_argument('--codex', type=Path)
+            q.add_argument('--plugin-data', type=Path, help='Explicit desktop plugin data directory; only events.jsonl is read')
+            q.add_argument('--session-id', help='Filter selected historical hook records')
         if action == 'uninstall':
             q.add_argument('--release-modified-skills', action='store_true', help='Preserve modified skill files and release their ownership')
         if action in ('install', 'upgrade'):
@@ -45,6 +50,19 @@ def parser():
                 g = q.add_mutually_exclusive_group()
                 g.add_argument('--with-' + extra, action='store_true')
                 if action == 'upgrade': g.add_argument('--without-' + extra, action='store_true')
+    q = sub.add_parser('profile')
+    q.add_argument('--target', required=True)
+    q.add_argument('--scope', choices=('project', 'global'), default='project')
+    q.add_argument('--home', help='Explicit alternative home for isolated global setup')
+    q.add_argument('--policy', type=Path, help='Explicit native candidate policy')
+    q.add_argument('--profile', choices=('budget', 'balanced', 'quality'))
+    q.add_argument('--codex', type=Path, help='Native Codex executable for capability checks')
+    q.add_argument('--json', action='store_true')
+    q.add_argument('--dry-run', action='store_true', help='Preview only; default when no action is selected')
+    choice = q.add_mutually_exclusive_group()
+    choice.add_argument('--check', action='store_true', help='Check advertised model/effort support, not effective role execution')
+    choice.add_argument('--apply', action='store_true', help='Install native role files after a capability check')
+    choice.add_argument('--rollback', action='store_true', help='Remove CDF-created role files; does not restore the previous successful profile')
     i = sub.add_parser('integrations')
     nested = i.add_subparsers(dest='integration_action', required=True, parser_class=Parser)
     for name in ('list', 'plan'):
@@ -83,10 +101,42 @@ def run(args):
     if args.home and args.scope != 'global':
         raise core.CDFError('INVALID_REQUEST', '--home is only valid with global scope.')
     root = core.target_root(args.target, args.scope, args.home)
+    if args.action == 'profile':
+        from cdf_installer.agents import perform_profile
+        from cdf_runtime.policy import native_profile_plan
+        from cdf_runtime.codex import model_capabilities
+        if args.rollback:
+            return perform_profile(root, args.scope, dry=args.dry_run, rollback=True)
+        if args.policy is None:
+            raise core.CDFError('INVALID_REQUEST', 'An explicit native --policy is required.')
+        rendered = native_profile_plan(args.policy, profile=args.profile)
+        # Resolve local conflicts before any native capability query.
+        perform_profile(root, args.scope, rendered, dry=True)
+        capabilities = None
+        if args.check or (args.apply and not args.dry_run):
+            binary = args.codex or shutil.which('codex')
+            if binary is None:
+                raise core.CDFError('RUNTIME_UNAVAILABLE', 'Native Codex executable unavailable.')
+            runtime_env = None
+            if args.scope == 'global' and args.home:
+                import os
+                runtime_env = dict(os.environ, HOME=str(root), CODEX_HOME=str(root / '.codex'))
+            try:
+                capabilities = model_capabilities(binary, cwd=root, env=runtime_env)
+            except (OSError, ValueError, KeyError, subprocess.SubprocessError):
+                raise core.CDFError('RUNTIME_UNAVAILABLE', 'Native capability probe unavailable; no profile was applied.', exit_code=4) from None
+        if capabilities is not None:
+            rendered = native_profile_plan(args.policy, profile=args.profile, capabilities=capabilities)
+        if args.check:
+            plan = perform_profile(root, args.scope, rendered, dry=True)
+            plan.update(state='available_advertised' if all(role['state'] == 'AVAILABLE_ADVERTISED' for role in rendered['roles'].values()) else 'unavailable',
+                        capabilities=capabilities, runtime_routing='NOT_OBSERVED')
+            return plan
+        return perform_profile(root, args.scope, rendered, dry=not args.apply or args.dry_run)
     if args.action == 'status': return core.status(root, args.scope)
     if args.action == 'doctor':
         result = core.status(root, args.scope)
-        executable = shutil.which('codex')
+        executable = args.codex or shutil.which('codex')
         result['binary_available'] = bool(executable)
         result['version_observed'] = None
         if executable:
@@ -96,6 +146,11 @@ def run(args):
             except (subprocess.SubprocessError, OSError):
                 pass
         result['agent_schema_supported'] = 'unverified'
+        if args.runtime:
+            from cdf_runtime.hooks import runtime_status
+            import os
+            runtime_env = dict(os.environ, HOME=str(root), CODEX_HOME=str(root / '.codex')) if args.scope == 'global' and args.home else None
+            result['runtime'] = runtime_status(args.codex or executable or 'codex', cwd=root, env=runtime_env, plugin_data=args.plugin_data, session_id=args.session_id)
         return result
     enabled = [n for n in ('learning', 'operator') if getattr(args, 'with_' + n, False)]
     disabled = [n for n in ('learning', 'operator') if getattr(args, 'without_' + n, False)]
@@ -108,7 +163,7 @@ def main(argv=None):
         args = parser().parse_args(argv)
         result = run(args)
         print(json.dumps(result, indent=2, sort_keys=True))
-        return 0
+        return 4 if args.action == 'profile' and args.check and result.get('state') == 'unavailable' else 0
     except core.CDFError as exc:
         conflicts = {'PATH_COLLISION', 'MANAGED_FILE_MODIFIED', 'MANAGED_BLOCK_MODIFIED',
                      'MANIFEST_UNSUPPORTED', 'RECOVERY_REQUIRED',

@@ -1,0 +1,11 @@
+{
+  "name": "cdf-local",
+  "plugins": [
+    {
+      "name": "code-delivery-framework",
+      "source": {"source": "local", "path": "./build/cdf-plugin-portable"},
+      "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+      "category": "Developer Tools"
+    }
+  ]
+}
