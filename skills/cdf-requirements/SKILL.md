@@ -26,7 +26,7 @@ For each material question, state the observed gap, consequence, alternatives, a
 - `references/interview-patterns.md` when the decision tree is large, consequential or needs a durable checkpoint.
 
 ## Optional subskills
-Resolve candidates through the bundled catalog only when needed. A portable plugin keeps it at `skills/cdf/subskills.catalog.json`; the legacy installer places it at `.codex/cdf/subskills.catalog.json`. Confirm native discovery and use the local fallback when absent; never install automatically.
+Resolve candidates through the bundled catalog only when needed. The Codex plugin keeps it at `skills/cdf/subskills.catalog.json`. Confirm native discovery and use the local fallback when absent; never install automatically.
 
 - `matt-grilling`: multilevel dependent business decisions; use rounds, not compulsory relentless questioning.
 - `superpowers-brainstorming`: uncertain product direction or large design alternatives; adapt its approval step to user authority and task size.

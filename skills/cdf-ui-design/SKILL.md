@@ -14,7 +14,7 @@ description: Design or substantially redesign a user interface based on audience
 Make the handoff testable: name component/token reuse, key actions, responsive behavior and keyboard/error states. Separate an accepted visual direction from optional proposals; a routine behavior fix does not authorize redesign. Rendered acceptance and remaining human judgment must be reported separately.
 
 ## Optional subskills
-Resolve candidates through the bundled catalog only when needed. A portable plugin keeps it at `skills/cdf/subskills.catalog.json`; the legacy installer places it at `.codex/cdf/subskills.catalog.json`. Confirm native discovery and use the local fallback when absent; never install automatically.
+Resolve candidates through the bundled catalog only when needed. The Codex plugin keeps it at `skills/cdf/subskills.catalog.json`. Confirm native discovery and use the local fallback when absent; never install automatically.
 
 - `anthropic-frontend-design`: distinctive visual direction for greenfield or major redesigns.
 - `vercel-web-guidelines`: targeted existing UI accessibility/UX audit.

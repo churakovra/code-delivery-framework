@@ -775,27 +775,20 @@ class CliTests(unittest.TestCase):
         self.assertEqual(json.loads(p.stdout)['code'], 'INVALID_REQUEST')
         self.assertEqual(p.stderr, '')
 
-    def test_install_dry_run_conflict_returns_plan_envelope(self):
+    def test_install_command_is_not_available(self):
         with tempfile.TemporaryDirectory() as d:
             target = Path(d).resolve()
-            agent = target / '.codex/agents/cdf_reviewer.toml'
-            agent.parent.mkdir(parents=True)
-            agent.write_text('user-owned')
-            before = agent.read_bytes()
             p = isolated_cli(Path(self.temp_codex.name), 'install', '--target', str(target), '--dry-run', '--json')
             self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
             result = json.loads(p.stdout)
-            self.assertEqual(set(result), {'schema', 'action', 'state', 'scope', 'target',
-                                           'planned_actions', 'conflicts', 'warnings'})
-            self.assertEqual(result['state'], 'conflict')
-            self.assertIn('.codex/agents/cdf_reviewer.toml', result['conflicts'])
-            self.assertEqual(agent.read_bytes(), before)
+            self.assertEqual(result['code'], 'INVALID_REQUEST')
+            self.assertIn('invalid choice', result['message'])
             self.assertFalse((target / core.MANIFEST).exists())
 
-    def test_status_missing_target_is_clean_json_error(self):
+    def test_status_command_is_not_available(self):
         p = subprocess.run([sys.executable, str(ROOT / 'scripts/cdf.py'), 'status', '--target', '/definitely/missing/cdf-target', '--json'], text=True, capture_output=True)
         self.assertEqual(p.returncode, 2)
-        self.assertEqual(json.loads(p.stdout)['code'], 'UNSAFE_TARGET')
+        self.assertEqual(json.loads(p.stdout)['code'], 'INVALID_REQUEST')
 
 
 if __name__ == '__main__': unittest.main()

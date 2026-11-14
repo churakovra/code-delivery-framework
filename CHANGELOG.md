@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.1
+
+- Make native Codex plugin installation the only supported CDF installation path.
+- Keep legacy inventory and fixtures for historical ownership and migration evaluation.
+- Remove legacy install, upgrade, status, and uninstall commands from the CLI; retain transaction recovery for optional native-role setup.
+- Update installation guidance, plugin discovery checks, and skill references for the plugin-only path.
+
 ## 2.0.0 — stable source version
 
 - Add decision-before-code reasoning, minimality critique and architecture method.

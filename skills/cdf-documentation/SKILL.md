@@ -14,7 +14,7 @@ description: Create or update only documentation that users, maintainers or oper
 Choose how-to, reference, explanation or tutorial for the reader’s actual task without reorganizing unrelated documentation. For consequential setup/upgrade/runbooks include prerequisites, commands, expected state and recovery. Run a fresh-reader check: can someone without hidden chat context reproduce it on a disposable target? Mark commands that were not executed.
 
 ## Optional subskills
-Resolve candidates through the bundled catalog only when needed. A portable plugin keeps it at `skills/cdf/subskills.catalog.json`; the legacy installer places it at `.codex/cdf/subskills.catalog.json`. Confirm native discovery and use the local fallback when absent; never install automatically.
+Resolve candidates through the bundled catalog only when needed. The Codex plugin keeps it at `skills/cdf/subskills.catalog.json`. Confirm native discovery and use the local fallback when absent; never install automatically.
 
 - `anthropic-doc-coauthoring`: substantial RFC, design document or externally read technical spec; avoid full process for a README correction.
 - `vercel-writing-guidelines`: requested editorial consistency audit; may fetch external rules and requires permission.
