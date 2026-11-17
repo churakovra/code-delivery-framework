@@ -58,6 +58,10 @@ def read_run(folder, record):
         # Archived records remain readable; derive their timeout from immutable
         # command evidence rather than guessing an absent environment field.
         environment = dict(environment, timeout_seconds=timeout)
+        if environment.get('guidance_distribution') == 'native-plugin':
+            package = condition / 'guidance-package'
+            if not package.is_dir() or _hash_snapshot(_snapshot(package, skip_git=True)) != environment.get('guidance_sha256'):
+                raise ValueError('Packaged native guidance differs from recorded hash')
         case = load_case(original['case_id'])
         if environment.get('case_sha256') != _case_hash(case): raise ValueError('Case identity differs from recorded run')
         if original['condition'] == 'CANDIDATE_CDF' and environment.get('activation_rubric_sha256') != activation_rubric_hash(case, original['condition']):
@@ -125,6 +129,9 @@ def group_parity(group, evidence, regime='standardized'):
             return 'UNVERIFIED', 'effective timeout unavailable'
         if len(set(timeouts)) != 1:
             return 'MISMATCH', 'timeout_seconds differs'
+    surfaces = {group[name][0]['environment'].get('guidance_distribution') for name in required if name != 'BASE'}
+    if regime == 'standardized' and 'native-plugin' in surfaces and len(surfaces) > 1:
+        return 'UNVERIFIED', 'native plugin and historical guidance use different loading surfaces'
     for field in ('case_sha256','fixture_sha256','fixture_git_head'):
         values = [r['environment'].get(field) for r in rows]
         if any(v is None for v in values): return 'UNVERIFIED', f'{field} unavailable'

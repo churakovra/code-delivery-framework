@@ -55,16 +55,38 @@ def _env(home: Path):
 
 
 
-def _install_v2(workspace: Path, env):
-    # Exercise the actual offline installer against a disposable fixture only.
-    command = [sys.executable, '-B', str(ROOT / 'scripts/cdf.py'), 'install',
-               '--target', str(workspace), '--scope', 'project', '--json']
-    proc = subprocess.run(command, cwd=workspace, env=env, capture_output=True, timeout=30)
-    if proc.returncode:
-        raise RuntimeError('Could not install CDF into fixture: ' + proc.stderr.decode(errors='replace'))
-    try: result = json.loads(proc.stdout)
-    except ValueError as exc: raise RuntimeError('Invalid CDF installer output') from exc
-    if result.get('state') == 'error': raise RuntimeError('CDF installer reported an error')
+def _install_v2(workspace: Path, env, binary):
+    """Use the native plugin manager in this run's isolated home only."""
+    from scripts.package_cdf_plugin import build_plugin
+    marketplace = Path(env['HOME']) / 'marketplace'
+    (marketplace / '.agents/plugins').mkdir(parents=True)
+    package = marketplace / 'cdf-plugin'
+    identity = build_plugin(package, codex=binary)
+    shutil.copyfile(ROOT / 'templates/cdf-marketplace.example.json',
+                    marketplace / '.agents/plugins/marketplace.json')
+    installation = []
+    for args in (['plugin', 'marketplace', 'add', str(marketplace), '--json'],
+                 ['plugin', 'add', 'code-delivery-framework@cdf-local', '--json']):
+        command = [str(binary), *args]
+        proc = subprocess.run(command, cwd=workspace, env=env, capture_output=True, text=True, timeout=30)
+        installation.append({'argv': command, 'exit_code': proc.returncode,
+                             'stdout': proc.stdout, 'stderr': proc.stderr})
+        if proc.returncode:
+            raise RuntimeError('Could not install native CDF plugin in temporary home: ' + proc.stderr[:2000])
+    try:
+        receipt = json.loads(installation[-1]['stdout'])
+        installed = Path(receipt['installedPath']).resolve()
+        if not installed.is_relative_to(Path(env['CODEX_HOME']).resolve()):
+            raise ValueError('Installed plugin is outside the isolated Codex home')
+        # Bind evidence to actual installed bytes, not just a successful command.
+        for source in package.rglob('*'):
+            if source.is_file():
+                target = installed / source.relative_to(package)
+                if target.is_symlink() or target.read_bytes() != source.read_bytes():
+                    raise ValueError('Installed CDF plugin differs from the packaged source')
+    except (KeyError, OSError, ValueError) as exc:
+        raise RuntimeError('Native CDF installation identity could not be verified') from exc
+    return package, {'package': identity, 'installation': installation, 'receipt': receipt}
 
 
 def _runtime_version(adapter, kind):
@@ -245,11 +267,6 @@ def candidate_rubric(case):
             any(not isinstance(name, str) or not name.startswith('activate:') for name in item[key])
             for key in ('must', 'must_not'))):
         raise ValueError('Invalid candidate activation assertions')
-    if any(name.startswith('activate:cdf-') for name in item['must']):
-        if 'activate:cdf' in item['must_not']:
-            raise ValueError('Specialist activation cannot forbid the CDF entrypoint')
-        if 'activate:cdf' not in item['must']:
-            item = dict(item, must=['activate:cdf', *item['must']])
     return item
 
 
@@ -337,7 +354,10 @@ def preflight(case_id, conditions, adapter, kind, protocol='prompt-v1', declared
             selected_snapshot(condition, legacy_snapshot, legacy_sha256)
         rubric_names(case, condition)
     if 'CANDIDATE_CDF' in conditions:
-        if not (ROOT / 'scripts' / 'cdf.py').is_file(): raise ValueError('Missing CDF installer')
+        if not (ROOT / 'scripts' / 'package_cdf_plugin.py').is_file(): raise ValueError('Missing native CDF packager')
+        native = adapter if kind == 'codex' else shutil.which('codex')
+        if native is None:
+            raise ValueError('Candidate evaluation requires native Codex plugin setup; no AGENTS.md fallback is provided')
         for name in CORE:
             if not (ROOT / 'skills' / name / 'SKILL.md').is_file():
                 raise ValueError(f'Missing CDF skill: {name}')
@@ -421,7 +441,7 @@ def _native_feedback(adapter, workspace, env, folder, initial, feedback, timeout
         _json(Path(str(prefix) + '.before.json'), _snapshot_metadata(current))
         _save(Path(str(prefix) + '.before.diff'), _diff(baseline, current))
         _save(Path(str(prefix) + '.stdin.txt'), turn['message'])
-        command = [str(adapter), 'exec', 'resume', thread, '-', '--json', '--ignore-user-config',
+        command = [str(adapter), 'exec', 'resume', thread, '-', '--json',
                    '--skip-git-repo-check', '-c', 'sandbox_mode="workspace-write"']
         if model: command += ['--model', model]
         if effort: command += ['-c', 'model_reasoning_effort=' + json.dumps(effort)]
@@ -475,7 +495,7 @@ def _native_followups(adapter, workspace, home_env, folder, initial, answers, ti
         if not question:
             return ('runner-error', None, stdout, stderr + b'\nNo question marker; answer withheld because dialogue is unverified.\n', elapsed), outputs
         _save(folder / 'turns' / f'{index}.stdin.txt', answer)
-        command=[str(adapter),'exec','resume',thread,'-','--json','--ignore-user-config',
+        command=[str(adapter),'exec','resume',thread,'-','--json',
                  '--skip-git-repo-check','-c','sandbox_mode="workspace-write"']
         if model: command += ['--model',model]
         if effort: command += ['-c','model_reasoning_effort='+json.dumps(effort)]
@@ -503,11 +523,20 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
         fixture_initial = _snapshot(workspace, skip_git=True)
         fixture_hash = _hash_snapshot(fixture_initial)
         snapshot_identity = None
+        package = None
+        distribution = 'none'
         if condition == 'CANDIDATE_CDF':
-            _install_v2(workspace, env)
+            native = adapter if kind == 'codex' else shutil.which('codex', path=env['PATH'])
+            if native is None:
+                raise ValueError('Native Codex plugin manager unavailable for candidate setup')
+            package, installation = _install_v2(workspace, env, native)
+            _json(folder / 'plugin-installation.json', installation)
+            shutil.copytree(package, folder / 'guidance-package')
+            distribution = 'native-plugin'
         elif condition in ('CDF_20', 'LEGACY_CDF_11'):
             frozen, frozen_hash = selected_snapshot(condition, legacy_snapshot, legacy_sha256)
             install_snapshot(workspace, frozen)
+            distribution = 'historical-guidance-materialization'
             frozen_path = ROOT / 'evals/baselines/cdf-20.json' if condition == 'CDF_20' else Path(legacy_snapshot)
             _save(folder / 'guidance-snapshot.json', frozen_path.read_bytes())
             snapshot_identity = {'sha256': frozen_hash, 'source_revision': frozen['source_revision'],
@@ -518,6 +547,8 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
             raise ValueError('Unknown condition')
         before = _snapshot(workspace, skip_git=True)
         guidance = {path: value for path, value in before.items() if path not in fixture_initial}
+        if package is not None:
+            guidance = _snapshot(folder / 'guidance-package', skip_git=True)
         guidance_hash = _hash_snapshot(guidance)
         git_initial = _git_identity(workspace, env)
         git_metadata_before = _git_policy_snapshot(workspace)
@@ -528,7 +559,7 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
         _json(folder / 'environment.json', {'condition': condition, 'fixture_revision': case['fixture_revision'],
               'fixture_sha256': fixture_hash, 'case_sha256': _case_hash(case),
               'fixture_git_head': git_head,
-              'guidance_sha256': guidance_hash, 'snapshot_identity': snapshot_identity,
+              'guidance_sha256': guidance_hash, 'guidance_distribution': distribution, 'snapshot_identity': snapshot_identity,
               'activation_rubric_sha256': activation_rubric_hash(case, condition), 'home_isolated': True, 'credentials_inherited': False,
               'runtime_version': runtime_version, 'model_requested': model, 'model_observed': None,
               'effort_requested': effort, 'effort_observed': None,
@@ -539,13 +570,14 @@ def run_one(case, condition, output, adapter, kind, seed, timeout, model=None, e
                                       'native_resume_unverified' if kind == 'codex' and (case.get('scripted_answers') or case.get('feedback_turns')) else 'unsupported'),
               'agent_availability': 'unverified', 'skill_discovery': 'unverified',
               'codebase_memory': 'not_installed_or_probed',
-              'parity_limitations': ['Runtime model, tools and agent discovery are not verified.'],
+              'parity_limitations': ['Runtime model, tools and agent discovery are not verified.',
+                                     'Historical guidance materialization differs from native plugin loading; compare descriptively.'],
               'os_sandbox': 'external adapter responsibility', 'usage_measurement': 'see_run_record'})
         command = [str(adapter)]
         if kind == 'codex':
             command += ['exec', '--json']
             if not (case.get('scripted_answers') or case.get('feedback_turns')): command += ['--ephemeral']
-            command += ['--ignore-user-config', '--skip-git-repo-check',
+            command += ['--skip-git-repo-check',
                         '--sandbox', 'workspace-write']
             if model: command += ['--model', model]
             if effort: command += ['-c', 'model_reasoning_effort=' + json.dumps(effort)]

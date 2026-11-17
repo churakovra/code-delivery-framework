@@ -7,12 +7,13 @@
       "interface": {
         "displayName": "Code Delivery Framework",
         "shortDescription": "Decide, build, verify",
-        "longDescription": "Standalone CDF skills for requirements, architecture, research, implementation, debugging, review and verification. Guides apply on demand. Teaching, explanation and meaningful test design are standard. Model calibration is an explicit optional build selection. This portable package installs no hooks, project policy or native agent configuration.",
+        "longDescription": "Engineering Partner context at session start, each user turn and child start, plus 14 focused CDF skills. Hooks require native trust. Skills remain available without hooks. Native permissions govern actions; context delivery is not proof of method application. Optional model calibration requires explicit selection.",
         "category": "Developer Tools",
         "brandColor": "#2563EB",
         "composerIcon": "./assets/icon.png",
         "logo": "./assets/icon.png"
-      }
+      },
+      "hooks": "./hooks/hooks.json"
     }
   }
 }

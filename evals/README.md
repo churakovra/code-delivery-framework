@@ -7,7 +7,7 @@ These prompts and rubrics have not been live model-evaluated. Offline tests exer
 | `BASE` | Fixture only |
 | `CDF_20` | Historical guidance frozen from repository revision `20d926054faf9bda8aad3ce521155484c89c6590`, package version recorded in the snapshot; never relabeled as 1.1.0 |
 | `LEGACY_CDF_11` | Explicitly selected frozen 1.1.0 repository guidance and expected SHA-256; a pinned snapshot is bundled for comparisons |
-| `CANDIDATE_CDF` | Current source installed by the actual offline installer |
+| `CANDIDATE_CDF` | Current package installed by native Codex plugin manager in an isolated home |
 
 The historical API/CLI default remains `BASE CDF_20` for compatibility. New candidate comparisons explicitly select `BASE LEGACY_CDF_11 CANDIDATE_CDF`. Frozen snapshots materialize guidance data only; they do not execute snapshot code or test the old installer's lifecycle.
 
@@ -127,7 +127,14 @@ statistical significance is established by this repository's local test results.
 
 ## Single-entry CDF candidate
 
-The current installer exposes one `cdf` skill and packages specialists as guides under `cdf/modules/`. For current `CANDIDATE_CDF` traces, a specialist `activate:cdf-debugging`-style rubric label requires observed reading/application of the corresponding guide after loading CDF; it does not require a separately discoverable skill. Absence of an unrelated specialist means its guide was not loaded. Frozen historical baselines retain their original independent-skill meaning. Routing assertions and packaged files do not count as live behavioral evidence; positive/negative module routing and explicit-only calibration still require model traces.
+Current CANDIDATE_CDF setup packages 14 standalone skills and native context hooks,
+then installs them through the native plugin manager in a fresh home. External
+adapters also require native Codex on PATH for setup; they must use the supplied
+home, and actual loading remains unverified until traced. No AGENTS fallback is
+provided. A narrow specialist may load directly without loading the kernel.
+Record skill reads/application separately from hook discovery and stdout emission.
+Hooks remain subject to native trust; the runner does not grant trust or bypass it.
+A run with untrusted hooks is not evidence of persistent-context activation.
 
 ## Outcome evidence and improvement
 
@@ -163,3 +170,19 @@ Use these existing cases as the pilot starting points, with equal criteria acros
 Inspect each prompt before selecting it: these existing fixtures do not yet constitute a dedicated large multi-feature or schema-migration benchmark. Those live coverage gaps remain open. Review time to first credible result, completion time, unnecessary actions/questions, repair iterations, premature stopping, repeated broad checks, and accepted outcome quality separately from safety. Use retained timestamps, tool events and token usage only where available; leave unavailable measures unobserved. Record discovery, entrypoint read, reference loads and observed method separately. Guidance text and passing packaging tests establish none of these behaviors.
 
 Run a small pilot, blind outcome review where possible, and repeat ambiguous cases. Equal quality at greater cost is a negative signal; one successful run does not establish an advantage. No live adaptive-delivery pilot, host rendering observation or efficiency improvement is claimed.
+
+## Native candidate setup
+
+Current setup no longer invokes the removed `scripts/cdf.py install` action.
+It preserves `guidance-package/` bytes and a `plugin-installation.json` receipt
+inside the operator-selected run output, not the source repository. Installed
+file bytes are checked against the build and the guidance hash covers the real
+plugin package. All native turns retain the isolated home's plugin settings.
+The historical snapshots remain guidance materialization; no historical version
+is renamed. Mixed materialized/native surfaces cannot establish standardized
+parity; installed-system comparisons remain descriptive. A context-emission
+record is not model receipt or meaningful skill application evidence.
+
+No new behavioral cases or model runs accompany this integration repair.
+Historical tests that call removed lifecycle commands still require separate
+maintenance. Do not restore those commands to the production CLI for tests.

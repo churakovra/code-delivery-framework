@@ -45,5 +45,7 @@ Official OpenAI custom-agent, hooks and plugin-packaging references informed PR-
 Ponytail was inspected at 356918eba965ee1eac64bd3a7f0dd02108350de5 (MIT),
 including its skill, child hook and license. No Ponytail code, prose or artwork
 is redistributed. Its benchmark figures are not evidence for CDF. Official
-OpenAI hook documentation informed capability assessment only; no new hook or
-documentation excerpt is bundled.
+OpenAI hook and plugin packaging documentation informed the original CDF
+context handler, native manifest compatibility and diagnostics. No upstream
+code or documentation excerpt is bundled. Exact references and the separately
+observed native-client limitation are recorded in sources.json.

@@ -192,7 +192,7 @@ class SingleSkillTests(unittest.TestCase):
                     continue
                 self.assertTrue((skill.parent / relative).resolve().is_file(),
                                 f'{skill.relative_to(output)} -> {relative}')
-        with self.assertRaisesRegex(ValueError, 'portable'):
+        with self.assertRaisesRegex(ValueError, 'profile'):
             build_plugin(self.base / 'unknown-profile', profile='desktop')
 
     def test_plugin_retains_standalone_source_skills_without_policy_or_native_agents(self):
