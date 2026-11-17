@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import patch
 
 from cdf_installer import core
-from cdf_registry import CORE, EXTRAS
+from cdf_registry import CORE, EXTRAS, LEGACY_CORE_15, LEGACY_CORE_20
 from scripts.package_cdf_plugin import build_plugin
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -153,7 +153,7 @@ class SingleSkillTests(unittest.TestCase):
             with self.subTest(mode=mode):
                 m = json.loads(original)
                 if mode == 'missing': del m['owned_files']['.agents/skills/cdf/modules/cdf-debugging/GUIDE.md']
-                if mode == 'extra': m['owned_files']['.agents/skills/cdf/modules/cdf-teach/GUIDE.md'] = {'sha256': 'a'*64, 'mode': 420}
+                if mode == 'extra': m['owned_files']['.agents/skills/cdf/modules/cdf-model-calibration/GUIDE.md'] = {'sha256': 'a'*64, 'mode': 420}
                 if mode == 'nested-skill': m['owned_files']['.agents/skills/cdf/modules/cdf-debugging/SKILL.md'] = {'sha256': 'a'*64, 'mode': 420}
                 if mode == 'layout': m['layout'] = 'unknown'
                 path.write_text(json.dumps(m))
@@ -192,7 +192,7 @@ class SingleSkillTests(unittest.TestCase):
                     continue
                 self.assertTrue((skill.parent / relative).resolve().is_file(),
                                 f'{skill.relative_to(output)} -> {relative}')
-        with self.assertRaisesRegex(ValueError, 'portable'):
+        with self.assertRaisesRegex(ValueError, 'profile'):
             build_plugin(self.base / 'unknown-profile', profile='desktop')
 
     def test_plugin_retains_standalone_source_skills_without_policy_or_native_agents(self):
@@ -209,6 +209,39 @@ class SingleSkillTests(unittest.TestCase):
         before = snapshot(output)
         with self.assertRaises(ValueError): build_plugin(output)
         self.assertEqual(snapshot(output), before)
+
+
+    def test_default_and_deprecated_alias_have_identical_skill_bytes(self):
+        default, alias = self.base / 'default', self.base / 'alias'
+        self.assertEqual(build_plugin(default)['visible_skills'], 14)
+        self.assertEqual(build_plugin(alias, ('learning',))['visible_skills'], 14)
+        for skill in CORE:
+            relative = Path('skills') / skill / 'SKILL.md'
+            self.assertEqual((default / relative).read_bytes(), (alias / relative).read_bytes())
+        self.assertEqual(len(LEGACY_CORE_15), 10)
+        self.assertEqual(len(LEGACY_CORE_20), 11)
+        self.assertNotIn('cdf-testing', LEGACY_CORE_20)
+
+
+    def test_20_learning_ownership_upgrades_without_losing_user_policy(self):
+        from cdf_installer import core
+        from cdf_registry import LEGACY_EXTRAS
+        for layout in ('flat', 'single'):
+            target = self.base / layout; target.mkdir()
+            original = b'User policy without newline'
+            (target / 'AGENTS.md').write_bytes(original)
+            with patch.object(Path, 'home', return_value=self.base), patch.dict('os.environ', {'CODEX_HOME': str(self.base / 'codex')}):
+                with patch.object(core, 'CORE', LEGACY_CORE_20), patch.object(core, 'EXTRAS', LEGACY_EXTRAS), patch.object(core, 'bundle_layout', return_value=layout):
+                    self.assertEqual(core.perform(target, 'project', 'install', enable=('learning',))['state'], 'installed')
+                self.assertEqual(core.status(target, 'project')['files'], 'clean')
+                self.assertEqual(core.perform(target, 'project', 'upgrade', disable=('learning',))['state'], 'installed')
+                manifest = core.manifest_read(target, 'project')
+                self.assertEqual(manifest['selected_extras'], [])
+                self.assertIn('.agents/skills/cdf/modules/cdf-teach/GUIDE.md', manifest['owned_files'])
+                self.assertIn('.agents/skills/cdf/modules/cdf-testing/GUIDE.md', manifest['owned_files'])
+                self.assertEqual(core.perform(target, 'project', 'uninstall')['state'], 'absent')
+                self.assertEqual((target / 'AGENTS.md').read_bytes(), original)
+
 
 
 if __name__ == '__main__':

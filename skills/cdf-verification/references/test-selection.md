@@ -1,16 +1,15 @@
-# Choosing the cheapest credible verification
+# Claim-to-evidence map
 
-| Changed behavior | Primary evidence | Escalation |
-|---|---|---|
-| Pure function | Focused unit assertions including edge case | Property-based checks for complex invariants |
-| HTTP/API contract | Request/response integration or contract test | Compatibility suite if public interface changes |
-| DB transaction/migration | Real DB integration and integrity checks | Upgrade/rollback rehearsal if consequential |
-| Async/event processing | Deterministic duplicate, cancellation, timeout or partial-failure test | Controlled integration across queue/DB boundary |
-| UI interaction | Real component interaction + type/build checks | Browser keyboard/visual check for significant UX |
-| Documentation-only | Link/path/command checks as relevant | Do not run unrelated application suites |
+Use cdf-testing for designing, changing or removing tests. Verification owns authoritative commands, fresh output, environment, revision and evidence gaps.
 
-Tests should fail for the bug being addressed, not just assert current implementation details. Prefer existing fixtures and production paths. Do not impose a full new testing framework to cover a tiny change. A passing mocked test does not prove behavior at an unmocked boundary. Report the checked revision, commands, exit codes and skipped/unavailable tests.
+| Claim | Credible evidence |
+| --- | --- |
+| Pure transformation | Focused unit results |
+| HTTP/auth contract | Real request path with realistic dependencies |
+| Database uniqueness/transaction | Real database constraints and transaction results |
+| Event retries/recovery | Durable state, claims, retry timing and adapter boundary |
+| External provider | Local transport tests establish only the local contract; live behavior needs live evidence |
+| UI journey | Actual interaction and rendered evidence appropriate to the claim |
+| Documentation | Relevant path/link/command check |
 
-Select checks at the boundary of the claim. Geometry bounds, replay and local reachability do not establish perceived difficulty or whole-course playability. Likewise a mocked client response does not establish a real API or persistence contract. Use a bounded production-path observation and name sample limits. When a failed check passes on retry, retain both results and use controlled inputs or a baseline to investigate; do not report only the successful rerun.
-
-Use AC → changed path → check → observed result → gap for consequential work. Missing browser evidence limits a visual claim; it does not block a documentation fix. Missing database access blocks an unsafe migration step when its invariant cannot otherwise be established.
+Use AC → changed path → check → observed result → gap for consequential claims. A screenshot cannot establish usability; a mocked client cannot establish database behavior. Preserve failed and successful retry results and investigate intermittency. Missing browser evidence limits visual claims; missing database safety evidence can block a migration. Do not run unrelated suites for a trivial change.

@@ -1,47 +1,69 @@
 # Architecture and contribution guide
 
-CDF is instruction-led. Skills supply focused methods, logical roles supply responsibility, and Codex owns active models, threads, tools and permissions. CDF does not add an agent engine.
+CDF supplies engineering guidance through one native plugin,
+`code-delivery-framework`. Codex owns models, tools, permissions, approvals,
+hook trust and the agent lifecycle. CDF adds no agent engine or enforcement layer.
 
-`skills/cdf/` and `skills/cdf-*/` are the canonical skill source. `cdf_registry.py` defines 11 core skills and three optional skills. The on-demand kernel owns authority, adaptive delivery and coordination. Requirements owns material decisions and readiness; architecture owns solution proposals and self-critique before dependent implementation; research owns tracing/reuse; debugging owns causal experiments; domain skills own their techniques; verification owns observed checks; review owns independent findings.
+## Skills and package
 
-The root owns user communication, accepted decisions, integration and completion. Native worker/explorer are conditional execution choices. Two custom templates add review and diagnosis without model pins. Required independent review needs a separate actor. Runtime sandbox controls remain authoritative.
+`skills/*/SKILL.md` is canonical method content. `cdf_registry.py` selects 14
+standard skills and explicit optional model calibration. `cdf` owns interaction
+intent, authority and delivery depth; specialists own their methods. Teaching,
+explanation and meaningful testing are standard. The learning flag is a no-op
+compatibility alias. Source skill bytes and references survive packaging.
 
-Codex's native plugin manager is the only CDF installation path. `scripts/package_cdf_plugin.py` builds a plugin package but does not install it; the user registers the local marketplace and adds the plugin through Codex. `scripts/cdf.py` provides source validation, optional native-role setup, and desktop-hook diagnostics. It has no plugin or skill installation command.
+`scripts/package_cdf_plugin.py` builds assets, standalone skills and hooks from
+the existing templates; it does not install them. Root `plugin.json` uses the
+official `extensions.com.openai.hooks` path. Its compatibility overlay points
+to the same file and has the same identity. Native loaders select one source.
+For known native clients that suppress hook discovery in the presence of a root
+manifest, target-client detection emits compatibility-only layout. This is a
+loader workaround within the same product, not a second desktop distribution.
+Old profile flags remain aliases. Unknown-client discovery is not assumed.
 
-`CORE` selects the source skills. Native plugin packages keep each skill independently discoverable and include the catalog under `skills/cdf/`. The kernel and specialists retain their source frontmatter, references and presentation metadata. Optional learning skills add two entries; operator adds explicit model calibration. Frozen legacy inventories and fixtures remain historical evidence, not installable skills. The kernel references document current authority, workflow, quality and delegation methods.
+## Native context and observation
 
-`cdf_runtime/contracts.py` validates the bundled schema vocabulary and task invariants. `cdf_runtime/policy.py` resolves advisory candidates and renders explicit native profile proposals. Neither launches agents. Schemas live under `schemas/`; executable examples live under `templates/examples/`.
+`hooks/hooks.json` declares one handler per event. `hooks/cdf_context.py`
+returns deterministic English additionalContext for SessionStart (including
+startup/resume/clear/compact/fork), UserPromptSubmit and SubagentStart. The core
+contract supplies intent/authority, minimal solution, skill loading, completion
+and evidence rules. The turn reminder routes only relevant methods. The child
+context preserves bounded authority; parents still supply concrete decisions.
+The full methods remain in skills, which are not all loaded automatically.
 
-`evals/` owns fixtures, the controlled runner and result normalization. Historical `CDF_20` retains frozen guidance and rubrics. New comparisons separate `BASE`, an explicitly supplied frozen `LEGACY_CDF_11` snapshot, and `CANDIDATE_CDF`. Match fixtures, runtime settings, tools and permissions; attest provenance and preserve raw evidence. Candidate activation expectations live separately from historical cases. Static assertions or a fixture check cannot prove skill selection, independent review or allowance savings. See the [evaluation protocol](../evals/README.md) for execution prerequisites and limits.
+The handler uses only Python standard library. It does not inspect prompts,
+source or transcripts, classify intent with regex, call external services,
+change Codex permissions, or run a loop. No PreToolUse or Stop gate is added.
+After flushing context JSON to stdout, `hooks/observe.py` can append bounded
+allowlisted event/session/time/hash history in host PLUGIN_DATA. Missing or full
+history does not prevent context output. No prompt, model, source or tool data
+is retained. Trust and sandbox remain native boundaries.
 
-For contributions, identify the owning contract, inspect source, callers and tests, add only useful task-specific guidance, and verify positive and negative scenarios. Run the commands in the repository README. Use disposable targets for native-role setup. Record inspected revisions, licenses and reused content in `sources.json` and `THIRD_PARTY_NOTICES`. Never mark unavailable evidence passed.
+`cdf_runtime/hooks.py` reads plugin/list, skills/list and hooks/list, plus only
+an explicitly selected bounded history file. Doctor separates installation,
+discovery, trust, duplicates, execution history, context emission, receipt and
+method application. Neither metadata nor stdout establishes intellectual use.
+It never grants trust or modifies live configuration.
 
-`scripts/package_cdf_plugin.py` creates a portable multi-skill plugin from source skills and `templates/cdf-plugin.json`. The optional desktop-controlled profile adds metadata hooks. Packages exclude managed policy blocks and native agent configuration and refuse existing outputs. Packaging has no model-quality claim or registration side effect.
+## Existing lifecycle and evaluation
 
-Native role setup is optional configuration over standard Codex TOMLs.
-`cdf_installer/agents.py` uses a small receipt for created-role ownership and
-transaction helpers. It does not install CDF skills or policy blocks.
-`cdf_runtime/codex.py` shares bounded read-only RPC handling between discovery
-and catalog checks. Catalog support, configured files and observed execution
-remain distinct. Profile rollback removes owned setup rather than retaining a
-history of successful profiles. See [installation](installation.md) for setup
-and trust boundaries.
+Frozen 1.1, 1.2–1.5 and 2.0 ownership inventories and historical learning extras
+remain available for recovery. `cdf_installer/agents.py` manages only explicitly
+requested role setup, using existing recoverable transactions. Model policies
+and configured TOMLs do not prove native role execution.
 
-The experimental desktop build adds one standalone metadata observer under
-`hooks/`. It uses native hook discovery/trust, not an alternative event engine.
-`cdf_runtime/hooks.py` reads native `hooks/list` and optionally an explicitly
-selected bounded log; it never scans session transcripts or grants trust.
-History is not current enforcement evidence. The desktop compatibility manifest
-is selected by an explicit build profile; portable output remains unchanged.
-Runtime behavior and overhead must be checked on the intended host; discovery
-is not execution proof.
+`evals/runner.py` uses the packager and native plugin manager in a fresh isolated
+home for CANDIDATE_CDF. It verifies installed file bytes and archives packaged
+guidance and installation receipts. It never replaces candidate setup with an
+AGENTS block. External adapters require native Codex for installation and must
+honor that home; their actual loading still needs evidence. Historical
+snapshots/rubrics remain separate and unchanged. Native versus historical
+materialization uses different loading surfaces, so comparison remains
+descriptive; standardized parity cannot silently treat them as equivalent.
 
-SessionStart reads only bounded known CDF manifest/receipt metadata and returns a
-compact version/profile/mode context. Role-file detection is not availability or
-routing; no user source or session transcript is read. PostToolUse, PreToolUse
-and Stop remain omitted by the accepted necessity decision. There is no hook
-engine, automatic trust, semantic command parser or enforcement claim.
-
-See [installation and removal](installation.md) for supported setup and removal.
-Skills, profiles and hooks are guidance and optional native integration, not an
-enforcement engine.
+No new behavioral cases, runner service or model evaluations are added. Existing
+historical tests calling retired CLI actions remain separate maintenance work.
+Use only bounded technical checks for this change; manual model behavior and
+comparative quality belong to the user. Preserve original notices and provenance
+in `sources.json` and `THIRD_PARTY_NOTICES`. See [installation](installation.md)
+for the single GitHub/native-manager workflow and trust review.

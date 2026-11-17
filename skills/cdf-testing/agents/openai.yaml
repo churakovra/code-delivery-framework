@@ -1,0 +1,3 @@
+interface:
+  display_name: "CDF Testing"
+  short_description: "Design tests that detect meaningful regressions"

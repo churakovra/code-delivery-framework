@@ -28,3 +28,5 @@ Resolve candidates through the bundled catalog only when needed. The Codex plugi
 Fallback: the targeted diff/contract/failure-path review above.
 
 Report EVIDENCE_GAP when a claimed user-facing outcome has only proxy checks: for example, host icon rendering inferred from YAML or an explorer inferred from a summary. Name the missing runtime observation. Keep visual preference separate from correctness and security findings.
+
+For structural work, assess solution-fit separately from implementation-correctness: code can correctly implement an unnecessary solution. Ground any objection in accepted scope, observed needs and reuse, not aesthetic preference. For substantive test cleanup, use cdf-testing to inspect the guarantee ledger: verify where every retained unique invariant now lives, and flag lost guarantees even if coverage stays green. Formatting-only requests need no defect-review ceremony.

@@ -115,7 +115,7 @@
       "license_note": "MIT",
       "activation": "Complex behavior change with deterministic failing regression to guide implementation",
       "cdf_skills": [
-        "cdf-verification"
+        "cdf-testing"
       ],
       "cost_risk": "Medium",
       "adoption": "optional; install separately after review; do not vendor or auto-install",
@@ -388,7 +388,7 @@
       "license_note": "MIT",
       "activation": "Complex Python tests, pytest fixtures, mocking and integration setup",
       "cdf_skills": [
-        "cdf-verification"
+        "cdf-testing"
       ],
       "cost_risk": "Low",
       "adoption": "optional; install separately after review; do not vendor or auto-install",

@@ -12,7 +12,6 @@
     },
     "G02": {
       "must": [
-        "activate:cdf",
         "activate:cdf-requirements"
       ],
       "must_not": [],
@@ -32,7 +31,6 @@
     },
     "G05": {
       "must": [
-        "activate:cdf",
         "activate:cdf-backend",
         "activate:cdf-verification"
       ],
@@ -41,7 +39,6 @@
     },
     "G06": {
       "must": [
-        "activate:cdf",
         "activate:cdf-debugging",
         "activate:cdf-backend",
         "activate:cdf-verification"
@@ -53,7 +50,6 @@
     },
     "G07": {
       "must": [
-        "activate:cdf",
         "activate:cdf-frontend"
       ],
       "must_not": [
@@ -63,7 +59,6 @@
     },
     "G08": {
       "must": [
-        "activate:cdf",
         "activate:cdf-frontend",
         "activate:cdf-backend"
       ],
@@ -72,7 +67,6 @@
     },
     "G09": {
       "must": [
-        "activate:cdf",
         "activate:cdf-verification"
       ],
       "must_not": [],
@@ -80,7 +74,6 @@
     },
     "G10": {
       "must": [
-        "activate:cdf",
         "activate:cdf-verification"
       ],
       "must_not": [],
@@ -88,7 +81,6 @@
     },
     "G11": {
       "must": [
-        "activate:cdf",
         "activate:cdf-debugging"
       ],
       "must_not": [],
@@ -96,7 +88,6 @@
     },
     "G12": {
       "must": [
-        "activate:cdf",
         "activate:cdf-codebase-research"
       ],
       "must_not": [],
@@ -104,7 +95,6 @@
     },
     "G13": {
       "must": [
-        "activate:cdf",
         "activate:cdf-verification"
       ],
       "must_not": [],
@@ -112,7 +102,6 @@
     },
     "G14": {
       "must": [
-        "activate:cdf",
         "activate:cdf-debugging"
       ],
       "must_not": [],
@@ -120,7 +109,6 @@
     },
     "G15": {
       "must": [
-        "activate:cdf",
         "activate:cdf-code-review"
       ],
       "must_not": [],
@@ -137,7 +125,6 @@
     },
     "G17": {
       "must": [
-        "activate:cdf",
         "activate:cdf-code-review"
       ],
       "must_not": [],
@@ -145,7 +132,6 @@
     },
     "G18": {
       "must": [
-        "activate:cdf",
         "activate:cdf-documentation"
       ],
       "must_not": [
@@ -155,8 +141,7 @@
     },
     "G19": {
       "must": [
-        "activate:cdf-requirements",
-        "activate:cdf"
+        "activate:cdf-requirements"
       ],
       "must_not": [],
       "rationale": "Single-entry candidate: activate CDF, then read the required specialist guides. Historical rubrics stay frozen."
@@ -225,7 +210,6 @@
     },
     "A01P": {
       "must": [
-        "activate:cdf",
         "activate:cdf-backend"
       ],
       "must_not": [],
@@ -238,7 +222,6 @@
     },
     "A02P": {
       "must": [
-        "activate:cdf",
         "activate:cdf-code-review"
       ],
       "must_not": [],
@@ -253,7 +236,6 @@
     },
     "A03P": {
       "must": [
-        "activate:cdf",
         "activate:cdf-codebase-research"
       ],
       "must_not": [],
@@ -268,7 +250,6 @@
     },
     "A04P": {
       "must": [
-        "activate:cdf",
         "activate:cdf-debugging"
       ],
       "must_not": [],
@@ -283,7 +264,6 @@
     },
     "A05P": {
       "must": [
-        "activate:cdf",
         "activate:cdf-documentation"
       ],
       "must_not": [],
@@ -296,7 +276,6 @@
     },
     "A06P": {
       "must": [
-        "activate:cdf",
         "activate:cdf-frontend"
       ],
       "must_not": [],
@@ -349,7 +328,6 @@
     },
     "A10P": {
       "must": [
-        "activate:cdf",
         "activate:cdf-requirements"
       ],
       "must_not": [],
@@ -364,7 +342,6 @@
     },
     "A11P": {
       "must": [
-        "activate:cdf",
         "activate:cdf-ui-design"
       ],
       "must_not": [],
@@ -377,7 +354,6 @@
     },
     "A12P": {
       "must": [
-        "activate:cdf",
         "activate:cdf-verification"
       ],
       "must_not": [],

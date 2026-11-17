@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.1.0 — candidate, behavioral acceptance pending
+
+- Interpret interaction intent before delivery depth; preserve teaching and read-only authority across follow-ups.
+- Include teaching, explanation and new meaningful-testing guidance in the 14-skill standard plugin. Keep `--with-learning` as a deprecated no-op alias.
+- Strengthen minimal sufficient solution, reference adaptation, test guarantee preservation and truthful method reporting.
+- Preserve historical ownership inventories and learning selections for recovery.
+- Unify the plugin under one identity with SessionStart, UserPromptSubmit and SubagentStart operating context; old profile flags remain aliases.
+- Add bounded context-emission metadata and doctor distinctions for installation, discovery, trust, execution and method application.
+- Support the known native compatibility-layout requirement without a second desktop plugin; keep the official root manifest canonical.
+- Install evaluation candidates through the native plugin manager in isolated homes; preserve package identity and historical snapshots.
+- No behavioral evaluation cases, paid model runs, global installation, tag or release. Effectiveness and overhead remain for user acceptance.
+
 ## 2.0.1
 
 - Make native Codex plugin installation the only supported CDF installation path.

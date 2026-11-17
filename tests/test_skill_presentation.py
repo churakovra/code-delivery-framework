@@ -59,8 +59,8 @@ class SkillPresentationTests(unittest.TestCase):
             self.assertTrue(interface[key].startswith('./assets/'))
             self.assertEqual(packaged_icon[:8], b'\x89PNG\r\n\x1a\n')
             self.assertEqual(packaged_icon, (ROOT / 'skills/cdf/assets/icon.png').read_bytes())
-        # No unexpected tool connections or hooks in the skills-only package.
-        self.assertEqual(set(manifest['extensions']['com.openai']), {'interface'})
+        # The single plugin declares context hooks, with no unexpected tool connections.
+        self.assertEqual(set(manifest['extensions']['com.openai']), {'interface', 'hooks'})
 
 
 if __name__ == '__main__':

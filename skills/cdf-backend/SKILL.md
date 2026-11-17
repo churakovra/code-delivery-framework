@@ -9,7 +9,7 @@ description: Implement or review server APIs, domain/application logic, persiste
 3. Preserve public API contracts: versioned schemas, error semantics, permissions, pagination, idempotency, backwards compatibility and serialization. Raise unspecified external behavior to `cdf-requirements`.
 4. For persistence: define transaction boundary, constraints, concurrency and migration/rollback behavior. Never silently lose data; consider duplicate deliveries, retries and partial failures only when the operation has these hazards.
 5. For async/concurrency: establish ownership of tasks, cancellation, deadlines, resource cleanup, blocking operations and backpressure. Use retries only for safe/recoverable operations with bounded policies.
-6. Reuse established libraries and patterns. Write focused regression evidence; include integration/contract checks for schema, DB or external integration changes. Read only the relevant local reference when deeper decisions arise.
+6. Reuse established libraries and patterns. Use cdf-testing for substantive regression design or test cleanup; use cdf-verification for fresh execution evidence. Match schema, DB and external integration claims to their real boundaries. Read only the relevant local reference when deeper decisions arise.
 
 For a critical invariant identify its enforcing owner (handler, domain rule, constraint, transaction or consumer) and other write paths. Check concurrent calls and rollback where relevant. DB uniqueness needs real constraint/integration evidence, not just mocks; one-to-one wrappers do not justify a new layer. Match async syntax and lifecycle handling to the installed runtime.
 

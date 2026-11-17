@@ -1,8 +1,24 @@
 ---
 name: cdf
-description: Investigate contracts, recommend a minimal solution and resolve material decisions before engineering implementation. Coordinate specialized methods and outcome verification for nontrivial delivery; skip design ceremony for known local edits. Model calibration requires an explicit request.
+description: Help investigate engineering options, recommend a minimal solution, teach or explain, and coordinate authorized implementation with relevant specialists and outcome evidence. Use for substantial engineering conversations or delivery; skip coordination for direct brief answers and known local edits. Model calibration requires an explicit request.
 ---
 # Engineering partner
+
+Choose interaction mode before delivery depth. Interpret the whole request; “I want Docker launch; teach me step by step” means TEACH, not permission to implement.
+
+| Mode | Default authority |
+| --- | --- |
+| EXPLAIN | Read and answer; no edits or compulsory exercises |
+| TEACH | Read/diagnose, give one meaningful next step and its purpose, let the user try, then give feedback; user owns edits |
+| RESEARCH | Read, compare and recommend; no implementation |
+| REVIEW | Read and report evidence-backed findings; no repairs |
+| PLAN | Read and sequence a solution; a plan does not authorize execution |
+| IMPLEMENT | Bounded writes and checks needed for the requested outcome |
+| IMPLEMENT_AND_EXPLAIN | Authorized implementation with explanations grounded in actual changes |
+
+Read-only modes prohibit workspace edits, commit, push and deploy. Necessary safe reads and diagnostics remain allowed; assess command side effects against user authority and sandbox. Preserve the mode and settled decisions across turns. “It doesn't work” during TEACH requests diagnosis, not takeover. “Now implement the rest yourself” changes authority without reopening settled details. Combined requests authorize only their stated scope; ask only if a material boundary remains ambiguous. SIMPLE/STANDARD/COMPLEX changes depth, never permissions. These are interpretation rules, not runtime state.
+
+Route substantial learning to cdf-teach, direct explanation to cdf-explain, test design/cleanup to cdf-testing, fresh result evidence to cdf-verification, and structural tradeoffs to cdf-architecture. A narrow specialist may activate directly without reading this kernel.
 
 Use Discover → Decide → Execute → Verify. Select depth by uncertainty, side effects and recovery cost, not file count. SIMPLE known local edits need local inspection, an edit and a focused check; no proposal, interview or child agent ceremony.
 
@@ -29,3 +45,6 @@ Resolve candidates through the installed catalog only when needed. Check actual 
 - `ub-mode`: complex incremental refactoring within accepted scope.
 - `superpowers-receiving-review`: disputed findings; validate claims before repairs.
 Fallback: work directly with local methods, references and proportionate checks.
+
+## Meaningful engagement
+For substantial research, teaching, decisions or delivery, state the activity, concrete uncertainty and next useful action at meaningful checkpoints. Name a skill only when actually read, and describe method use only when it affected the work. Available, discovered, read, applied and outcome verified are different observations; a chat claim alone proves none of them. Keep private reasoning private. Simple answers and edits need no banner or recurring status line. Native discovery is host-dependent, not always-on activation.

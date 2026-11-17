@@ -28,7 +28,7 @@ def probe(binary, extras=()):
         marketplace = base / 'marketplace'
         (marketplace / '.agents/plugins').mkdir(parents=True)
         (marketplace / 'plugins').mkdir()
-        build_plugin(marketplace / 'plugins/cdf', extras)
+        build_plugin(marketplace / 'plugins/cdf', extras, codex=binary)
         (marketplace / '.agents/plugins/marketplace.json').write_text(json.dumps({
             'name': 'cdf-probe', 'plugins': [{'name': 'code-delivery-framework',
             'source': {'source': 'local', 'path': './plugins/cdf'},
@@ -43,6 +43,11 @@ def probe(binary, extras=()):
                 raise ValueError('Native plugin setup failed: ' + result.stderr[:2000])
             installation.append(json.loads(result.stdout))
         with app_server(binary, cwd=target, env=env) as (request, initialized):
+            hook_rows = request('hooks/list', {'cwds': [str(target)]})['data']
+            cdf_hooks = [h for row in hook_rows for h in row.get('hooks', [])
+                         if (h.get('pluginId') or '').split('@')[0] == 'code-delivery-framework']
+            hook_counts = {name: sum(h.get('eventName') == name for h in cdf_hooks)
+                           for name in ('sessionStart', 'userPromptSubmit', 'subagentStart')}
             rows = request('skills/list', {'cwds': [str(target)], 'forceReload': True})['data']
             skills = [skill for row in rows for skill in row['skills']
                       if skill['name'] == 'cdf' or skill['name'].startswith(('cdf-', 'code-delivery-framework:', 'code-delivery-framework-desktop:'))]
@@ -56,19 +61,23 @@ def probe(binary, extras=()):
             interface = kernel.get('interface') or {}
             if not all(Path(interface.get(key, '')).is_file() for key in ('iconSmall', 'iconLarge')):
                 raise ValueError('CDF icon paths are unavailable')
-            return {'state': 'passed', 'probe': 'skills/list', 'cdf_entries': sorted(expected),
+            return {'state': 'passed' if all(n == 1 for n in hook_counts.values()) and len(cdf_hooks) == 3 else 'partial',
+                    'probe': 'skills/list + hooks/list', 'cdf_entries': sorted(expected),
                     'enabled': True, 'small_icon': Path(interface['iconSmall']).suffix,
                     'large_icon': Path(interface['iconLarge']).suffix, 'errors': [],
                     'model_runs': 0, 'home': 'temporary', 'client': initialized.get('userAgent'),
-                    'distribution': 'portable-plugin',
+                    'distribution': 'native-plugin',
                     'installation': installation, 'skills_response': skills,
+                    'hooks': hook_counts, 'hook_duplicates': any(n > 1 for n in hook_counts.values()),
+                    'hook_trust': sorted({h.get('trustStatus', 'unknown') for h in cdf_hooks}),
+                    'hook_execution': 'NOT_OBSERVED', 'context_receipt': 'NOT_OBSERVED',
                     'method_application': 'NOT_OBSERVED'}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--codex', type=Path, required=True, help='Path to a Codex executable supporting app-server')
-    parser.add_argument('--with-learning', action='store_true')
+    parser.add_argument('--with-learning', action='store_true', help='Deprecated compatibility alias; teaching and explanation are standard')
     parser.add_argument('--with-operator', action='store_true')
     args = parser.parse_args()
     try:
@@ -78,7 +87,7 @@ def main():
         print(json.dumps({'state': 'unavailable', 'message': str(exc)}))
         return 2
     print(json.dumps(result, indent=2))
-    return 0
+    return 0 if result['state'] == 'passed' else 2
 
 
 if __name__ == '__main__':

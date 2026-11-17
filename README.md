@@ -2,46 +2,59 @@
 
 CDF provides focused delivery skills for Codex. The root agent resolves material requirements, reuses project code, works directly by default, and delegates bounded work when independent review or another concrete benefit warrants it. The package version is defined in `[project].version` in `pyproject.toml`.
 
-Adaptive delivery selects the next action from the accepted outcome, main uncertainty and risk. New functionality can start with a working vertical slice, then continue through the remaining scope. See [delivery strategy](skills/cdf/references/delivery-workflow.md). The current source is `2.0.0`. It is ready for installation and user acceptance; final native behavioral acceptance and comparative value are not established.
+Adaptive delivery selects the next action from the accepted outcome, main uncertainty and risk. New functionality can start with a working vertical slice, then continue through the remaining scope. See [delivery strategy](skills/cdf/references/delivery-workflow.md). The current source is the `2.1.0` candidate. Packaging and runtime discovery are checked separately from behavioral acceptance; comparative value remains unestablished.
 
 Ask naturally, for example: “Add order export using the existing access rules.” The agent inspects the current path, asks about material decisions the code and prior answers do not settle, implements a bounded change, and reports observed checks and gaps. The `cdf` kernel handles nontrivial delivery on demand. Known local edits can proceed directly. No mandatory plan file, JSON checkpoint, subagent or external skill installation is required.
 
-## Install the Codex plugin
+Interaction intent comes before delivery depth. Explanation, teaching, research, review and planning use safe reads and diagnostics without autonomous project edits. Implementation requests allow scoped changes. Teaching leaves steps to the learner; a failure report preserves that mode, while an explicit request to implement switches authority without reopening settled choices. These instructions guide behavior; they do not enforce permissions.
 
-CDF has one installation path: a native Codex plugin. The portable profile provides eleven standalone skills without hooks, native roles, or managed `AGENTS.md` guidance. Use Python 3.11 or newer on POSIX to build a local package and marketplace catalog:
+`cdf-testing` owns regression design, credible test boundaries and preservation of unique guarantees during cleanup. `cdf-verification` owns fresh command/results evidence. Architecture guidance filters reference features by target requirements and challenges speculative complexity.
 
-```sh
-mkdir -p /path/to/marketplace/build /path/to/marketplace/.agents/plugins
-python3 scripts/package_cdf_plugin.py --profile portable --output /path/to/marketplace/build/cdf-plugin-portable
-cp templates/cdf-marketplace.example.json /path/to/marketplace/.agents/plugins/marketplace.json
-```
+## Install from GitHub
 
-Ensure the catalog's local source path points to the built package, then install it with Codex:
+CDF has one plugin identity, `code-delivery-framework`: 14 core skills and
+three native context hooks. Install Python 3.11+ and a Codex client with native
+plugin support. For this candidate, use the PR branch:
 
 ```sh
-codex plugin marketplace add /path/to/marketplace --json
+git clone --branch codex/cdf-2.1.0 https://github.com/churakovra/code-delivery-framework.git
+cd code-delivery-framework
+mkdir -p build/marketplace/.agents/plugins
+python3 scripts/package_cdf_plugin.py --output build/marketplace/cdf-plugin
+cp templates/cdf-marketplace.example.json build/marketplace/.agents/plugins/marketplace.json
+codex plugin marketplace add "$PWD/build/marketplace" --json
 codex plugin add code-delivery-framework@cdf-local --json
-codex plugin list --json
 ```
 
-Restart Codex. Use `$cdf` to invoke the kernel explicitly. Without a mention, Codex may select a relevant discovered specialist based on the request; plugin installation does not force global CDF activation.
+This uses the existing packager and native plugin manager. No generated bundle,
+installer service, global AGENTS policy or native roles are committed/installed.
+The output directory must be new. The builder identifies `codex` on PATH;
+`--codex /absolute/path/to/codex` selects the target client explicitly.
+The canonical manifest uses root `plugin.json` and
+`extensions.com.openai.hooks`, plus a compatibility overlay referring to the
+same hook file. For the observed 0.167.0-alpha.4.1 and 0.169.0-alpha.11.1 clients,
+root manifests suppress hook discovery; the builder emits compatibility-only
+layout with the same identity. No distribution-profile choice is needed.
+Old `--profile portable` / `--profile desktop-controlled` flags are aliases for
+this single plugin. `--with-learning` is a deprecated no-op; `--with-operator`
+explicitly adds model calibration. Source skill bytes and references are retained.
 
-CDF includes display metadata and SVG/PNG assets. Host rendering varies;
-resolved asset paths alone do not prove the appearance of a skill-picker row.
-
-The output parent must exist; an existing output is refused. The package contains root `plugin.json`, assets, and eleven `skills/<name>/SKILL.md` entries. Learning adds two entries; operator adds explicit model calibration. Disabled extras are absent. Native plugin skills retain source bytes and references. The kernel also includes the optional-subskill catalog. No hooks, native agent configuration, private installer state or managed AGENTS policy is included. This command builds only; it does not register, install or publish.
-
-For a local marketplace, place the built plugin at `build/cdf-plugin-portable` under a chosen marketplace root and copy [the example catalog](templates/cdf-marketplace.example.json) to that root's `.agents/plugins/marketplace.json`. Paths resolve from the marketplace root. Install explicitly with the target client's supported commands:
+Restart Codex and review/trust the three commands using `/hooks` (or Settings >
+Hooks / Review hooks in the desktop app). Installation does not grant hook trust.
+If an old `code-delivery-framework-desktop` plugin is enabled, remove it explicitly;
+CDF never changes another installation automatically. Without trusted hooks,
+skills remain available on demand, including explicit `$cdf`, but the ongoing
+Engineering Partner context is not delivered.
 
 ```sh
-codex plugin marketplace add /path/to/marketplace-root --json
-codex plugin add code-delivery-framework@cdf-local --json
-codex plugin list --json
+python3 scripts/cdf.py doctor --target "$PWD" --runtime --json
 ```
 
-Those installation commands change the selected Codex home's plugin settings. Development probes use disposable HOME/CODEX_HOME only. The installed CLI uses `plugin add`, not `plugin install`. See the [official packaging contract](https://developers.openai.com/plugins/build/plugins).
-
-The observed native names use the plugin namespace, for example `code-delivery-framework:cdf-architecture`. A specialist's metadata/discovery is distinct from an observed method result. Model calibration remains explicit-only. CLI/app-server discovery is verified separately from Desktop UI or other host surfaces; host behavior must be checked separately.
+Doctor separates installation, 14-skill discovery, hook trust, execution history,
+context emission and method application. Use `--plugin-data /explicit/native/data`
+and optionally `--session-id ID` to inspect only selected bounded history.
+`READY_NOT_EXECUTION_PROOF` is capability readiness, not proof that a model
+received context or applied a skill. See [installation and update details](docs/installation.md).
 
 ## Optional tools and model policy
 
@@ -54,7 +67,7 @@ The observed native names use the plugin namespace, for example `code-delivery-f
 `policies/native-agents.example.toml` contains editable candidates for three
 standard Codex roles: `cdf_explorer`, `cdf_reviewer`, and `cdf_diagnostician`.
 `budget`, `balanced`, and `quality` are selection labels, not measured rankings.
-The portable plugin does not install these files automatically.
+The plugin does not install these files automatically.
 
 ```sh
 python3 scripts/cdf.py profile --target /path/to/project --policy policies/native-agents.example.toml --dry-run --json
@@ -87,44 +100,30 @@ block. It does **not** restore the last successfully applied profile after a
 profile change; reselect a preserved policy/profile explicitly for that purpose.
 Interrupted operations can restore their preimages through `recover`.
 
-## Optional desktop observation (bounded runtime support)
+## Native Engineering Partner context
 
-The optional `desktop-controlled` build adds three metadata-only hooks:
-SessionStart and CDF SubagentStart/Stop. It is separately named
-`code-delivery-framework-desktop`. It uses the documented compatibility manifest
-`.codex-plugin/plugin.json`: the tested native client ignored bundled hooks in
-root `plugin.json`. The portable profile remains hook-free.
+`SessionStart` supplies a compact operating contract: intent and authority first,
+decisions before code, relevant skills before substantial work, completion of
+accepted outcomes and evidence before claims. It covers startup, resume, clear,
+compact and fork. `UserPromptSubmit` refreshes intent, settled decisions and
+specialist routing. `SubagentStart` supplies bounded child guidance; the parent
+still passes concrete tasks, authority, decisions and completion criteria.
 
-```sh
-python3 scripts/package_cdf_plugin.py --profile desktop-controlled --output /existing/parent/cdf-desktop
-python3 scripts/cdf.py doctor --target /path/to/project --runtime --codex /path/to/codex --json
-python3 scripts/cdf.py doctor --target /path/to/project --runtime --codex /path/to/codex --plugin-data /explicit/native/plugin/data --session-id ID --json
-```
+One Python standard-library handler emits deterministic `additionalContext`.
+It does not classify prompts, read source/transcripts, call models or services,
+load every skill or grant permissions. Codex permissions, approvals and sandbox
+remain authoritative. No PreToolUse/Stop guard or custom orchestration is added.
 
-Building does not register the plugin or grant trust. Review hooks through the
-host's native `/hooks` flow. Do not enable both CDF plugin variants in ordinary
-use; their skill inventories overlap. Existing installations are never disabled
-automatically. Native discovery distinguishes enabled/trusted from execution;
-selected log records establish historical observations only. No enforcement or
-skill activation is inferred. Effective model is stored only when an actual
-hook supplies it; effort stays unknown.
-
-The observer writes only allowlisted IDs, role, model, event and timestamp to
-`PLUGIN_DATA/events.jsonl` (0600). It never reads source/transcripts or stores
-commands, tool output or assistant messages. The reserved log stops at about
-1 MiB and reports degradation instead of deleting history. Doctor also reports
-a full valid log as degraded while retaining its historical observations. Inspect/archive or
-remove that file explicitly to start a new log. A two-second native timeout
-bounds each hook. The observer requires only Python standard-library features; the framework CLI/doctor requires Python ≥3.11. Confirm the interpreter in the actual Codex shell. Windows is unverified. No PostToolUse collector or guardrail is shipped.
-
-SessionStart returns compact version/profile/mode context; configured role files
-are not proof of agent availability or routing. New host behavior, warning
-rendering and full-host overhead require runtime acceptance. See
-[installation and removal](docs/installation.md).
+After stdout emission, allowlisted event/session/time/context-hash metadata may
+be appended to native `PLUGIN_DATA/events.jsonl` (0600, about 1 MiB maximum).
+No prompts, model answers, source, tool arguments or transcripts are stored.
+Missing/full history does not prevent context output and is reported separately.
+History is not current model receipt or intellectual application. Windows and
+other unobserved clients remain unverified. Behavior testing belongs to the user.
 
 ## Verification and development
 
-The optional evaluation runner and synthetic fixtures are maintained separately on local branch `codex/cdf-2-evaluation-tooling` at commit `ec6c789d0724558eda6402f1bedf8a8567ad640e`. To inspect it, use `git worktree add /path/to/cdf-evaluation-tooling codex/cdf-2-evaluation-tooling`. Installation and runtime do not depend on that branch.
+Existing evaluation tooling is described in [the evaluation protocol](evals/README.md). The candidate runner packages and installs the native plugin in an isolated Codex home; it adds no behavioral cases. Manual behavioral acceptance remains pending.
 
 ```sh
 python3 scripts/validate_cdf.py
@@ -138,13 +137,13 @@ To check discovery without a model call or live configuration changes, run:
 python3 scripts/check_cdf_discovery.py --codex /path/to/codex
 ```
 
-This installs the portable plugin in a temporary home and calls app-server `skills/list`. It checks the expected enabled plugin skills and valid icon paths. It does not test desktop rendering or specialist selection by a model.
+This installs the unified plugin in a temporary home and calls native `skills/list` and `hooks/list`. It checks enabled skills, icon paths, hook counts and trust without granting trust or invoking a model.
 
 See the [architecture guide](docs/architecture.md) and [evaluation protocol](evals/README.md). Static checks and fake adapters test mechanics, not model compliance. Live evaluations require explicit execution flags and trusted code. No verified OS sandbox provider, broad behavioral acceptance, or subscription savings measurement is claimed.
 
 CDF checks the requested artifact or operation, with separate semantic, functional and visual evidence where applicable. Supported native progress reports meaningful checkpoints; skills cannot guarantee a particular host status line. No custom status runtime is installed. Prefer compatible installed visual specialists for new visual direction; absence uses the local fallback without downloads. Discovery, reading a guide, applying its method and observing an outcome are separate claims.
 
-Completion reports distinguish COMPLETE (required acceptance and review observed), PARTIAL (named evidence or acceptance gaps), and BLOCKED (a missing decision, permission or capability prevents safe dependent work). Optional task-state schema enums remain internal. Hooks are not required; only the experimental desktop profile bundles them.
+Completion reports distinguish COMPLETE (required acceptance and review observed), PARTIAL (named evidence or acceptance gaps), and BLOCKED (a missing decision, permission or capability prevents safe dependent work). Optional task-state schema enums remain internal. Hook trust is required for ongoing context delivery; skills remain available without hooks.
 
 No root `LICENSE` is selected for this repository. Resolve licensing with the copyright owner before public distribution; MIT is a common option for an open-source Python/skills project, but must not be applied without that decision.
 
@@ -154,9 +153,9 @@ Native profile routing has narrow runtime evidence; broad behavioral impact rema
 
 ## Version and supported scope
 
-`2.0.0` is the source/package version. It does not claim that all behavioral acceptance gates passed. The tested native client is
-`codex-cli 0.167.0-alpha.4.1`. CLI/app-server plugin discovery, named-role routing
-and optional Desktop event capture have separate bounded evidence. Other client
+`2.1.0` is the source/package candidate version. It does not claim that all behavioral acceptance gates passed. The tested native client is
+`codex-cli 0.167.0-alpha.4.1` for prior role/hook observations; candidate plugin discovery was checked with `codex-cli 0.169.0-alpha.11.1`. CLI/app-server plugin discovery, named-role routing
+and hook discovery have separate bounded evidence. Other client
 versions, Windows and full Desktop error-warning rendering are not established.
 Skills guide the model; neither skills nor hooks provide a security boundary.
 
@@ -167,5 +166,5 @@ Use the explicit `profile --dry-run/--check/--apply` and `doctor --runtime`
 examples above for configuration; those states are not execution proof.
 
 See [installation and removal](docs/installation.md) for setup,
-trust boundaries, recovery and removal. Final runtime acceptance remains open;
+trust boundaries, recovery and removal. Manual behavioral acceptance remains open;
 no comparative quality or usage-saving claim is made.

@@ -1,8 +1,38 @@
 {
-  "description": "Optional CDF metadata observation; no enforcement or model calls.",
+  "description": "CDF Engineering Partner context. Native trust required; no permission enforcement or model calls.",
   "hooks": {
-    "SessionStart": [{"hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/hooks/observe.py\"", "timeout": 2}]}],
-    "SubagentStart": [{"matcher": "^cdf_", "hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/hooks/observe.py\"", "timeout": 2}]}],
-    "SubagentStop": [{"matcher": "^cdf_", "hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/hooks/observe.py\"", "timeout": 2}]}]
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -B \"${PLUGIN_ROOT}/hooks/cdf_context.py\"",
+            "timeout": 2
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -B \"${PLUGIN_ROOT}/hooks/cdf_context.py\"",
+            "timeout": 2
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -B \"${PLUGIN_ROOT}/hooks/cdf_context.py\"",
+            "timeout": 2
+          }
+        ]
+      }
+    ]
   }
 }
