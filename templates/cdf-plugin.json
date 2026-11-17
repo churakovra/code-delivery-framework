@@ -7,7 +7,7 @@
       "interface": {
         "displayName": "Code Delivery Framework",
         "shortDescription": "Decide, build, verify",
-        "longDescription": "Standalone CDF skills for requirements, architecture, research, implementation, debugging, review and verification. Guides apply on demand. Optional learning and model calibration are included only when selected at build time. This portable package installs no hooks, project policy or native agent configuration.",
+        "longDescription": "Standalone CDF skills for requirements, architecture, research, implementation, debugging, review and verification. Guides apply on demand. Teaching, explanation and meaningful test design are standard. Model calibration is an explicit optional build selection. This portable package installs no hooks, project policy or native agent configuration.",
         "category": "Developer Tools",
         "brandColor": "#2563EB",
         "composerIcon": "./assets/icon.png",

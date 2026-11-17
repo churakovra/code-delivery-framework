@@ -68,7 +68,7 @@ def probe(binary, extras=()):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--codex', type=Path, required=True, help='Path to a Codex executable supporting app-server')
-    parser.add_argument('--with-learning', action='store_true')
+    parser.add_argument('--with-learning', action='store_true', help='Deprecated compatibility alias; teaching and explanation are standard')
     parser.add_argument('--with-operator', action='store_true')
     args = parser.parse_args()
     try:

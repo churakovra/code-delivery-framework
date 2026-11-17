@@ -8,7 +8,7 @@ The root owns user communication, accepted decisions, integration and completion
 
 Codex's native plugin manager is the only CDF installation path. `scripts/package_cdf_plugin.py` builds a plugin package but does not install it; the user registers the local marketplace and adds the plugin through Codex. `scripts/cdf.py` provides source validation, optional native-role setup, and desktop-hook diagnostics. It has no plugin or skill installation command.
 
-`CORE` selects the source skills. Native plugin packages keep each skill independently discoverable and include the catalog under `skills/cdf/`. The kernel and specialists retain their source frontmatter, references and presentation metadata. Optional learning skills add two entries; operator adds explicit model calibration. Frozen legacy inventories and fixtures remain historical evidence, not installable skills. The kernel references document current authority, workflow, quality and delegation methods.
+`CORE` selects the source skills. Native plugin packages keep each skill independently discoverable and include the catalog under `skills/cdf/`. The kernel and specialists retain their source frontmatter, references and presentation metadata. Teaching, explanation and test design are standard; operator adds explicit model calibration. The deprecated learning build flag changes no skill entries. Frozen legacy inventories and fixtures remain historical evidence, not installable skills. The kernel references document current authority, workflow, quality and delegation methods.
 
 `cdf_runtime/contracts.py` validates the bundled schema vocabulary and task invariants. `cdf_runtime/policy.py` resolves advisory candidates and renders explicit native profile proposals. Neither launches agents. Schemas live under `schemas/`; executable examples live under `templates/examples/`.
 
@@ -45,3 +45,19 @@ engine, automatic trust, semantic command parser or enforcement claim.
 See [installation and removal](installation.md) for supported setup and removal.
 Skills, profiles and hooks are guidance and optional native integration, not an
 enforcement engine.
+
+## 2.1 responsibility boundaries
+
+The kernel interprets interaction intent and authorized scope before choosing
+SIMPLE/STANDARD/COMPLEX depth. Specialists can activate directly. Architecture
+owns minimal sufficient solution and reference adaptation; testing owns test
+design and guarantee preservation; verification owns fresh outcome evidence;
+review examines solution fit and implementation correctness independently.
+No enum/state machine, global mode persistence or orchestration runtime is added.
+
+Learning is standard, and the learning extra is an empty compatibility alias.
+Frozen 1.1, 1.2–1.5 and 2.0 inventories describe historical ownership, with
+historical learning extras interpreted independently from current installation
+selection. The portable bundle remains hook-free. Bounded handoffs carry mode,
+authority, settled decisions, owner, evidence and stop conditions rather than
+injecting every skill into every child.

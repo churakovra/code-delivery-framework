@@ -7,7 +7,7 @@ from pathlib import Path, PurePosixPath
 import re
 
 from cdf_installer import core
-from cdf_registry import LEGACY_CORE_11, EXTRAS
+from cdf_registry import LEGACY_CORE_11, LEGACY_EXTRAS
 
 ROOT = Path(__file__).resolve().parents[1]
 HISTORICAL_CONDITIONS = ('BASE', 'CDF_20')
@@ -47,7 +47,7 @@ def read_snapshot(path, expected_sha256, condition):
     files = data['files']
     if not isinstance(files, dict) or not all(isinstance(p, str) and isinstance(text, str) for p, text in files.items()):
         raise ValueError('Invalid snapshot payload')
-    names = set(LEGACY_CORE_11) | set(sum(EXTRAS.values(), ()))
+    names = set(LEGACY_CORE_11) | set(sum(LEGACY_EXTRAS.values(), ()))
     fixed = {'.codex/agents/cdf_reviewer.toml', '.codex/agents/cdf_diagnostician.toml', '.codex/cdf/subskills.catalog.json'}
     seen = set()
     for name in files:

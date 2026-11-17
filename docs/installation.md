@@ -1,6 +1,6 @@
 # Installation and removal
 
-CDF is installed in Codex as a native plugin. The portable profile is the standard choice: eleven standalone skills, no hooks, no native roles, and no managed `AGENTS.md`. The optional desktop-controlled profile packages the same skills with metadata observation hooks. Do not enable both profiles together.
+CDF is installed in Codex as a native plugin. The portable profile is the standard choice: fourteen standalone skills, no hooks, no native roles, and no managed `AGENTS.md`. The optional desktop-controlled profile packages the same skills with metadata observation hooks. Do not enable both profiles together.
 
 Skills and hooks do not provide a security boundary. Check model availability and host integration in the intended Codex client. Use Python 3.11 or newer on POSIX to build the package.
 
@@ -24,7 +24,7 @@ codex plugin list --json
 
 Restart Codex. Use `$cdf` to invoke the kernel explicitly. Without a mention, Codex may select a relevant discovered specialist based on the request; installing the plugin does not force global CDF activation. The package script builds only; Codex performs registration and installation. These commands change the selected Codex home's plugin settings.
 
-The package contains root `plugin.json`, assets, and eleven `skills/<name>/SKILL.md` entries. `--with-learning` adds two standalone skills; `--with-operator` adds explicit model calibration. Disabled extras are absent. The kernel includes the optional-subskill catalog. Plugin installation does not install native roles or third-party integrations.
+The package contains root `plugin.json`, assets, and fourteen `skills/<name>/SKILL.md` entries. Teaching, explanation and test design are standard. `--with-learning` remains a deprecated no-op alias; `--with-operator` adds explicit model calibration. Disabled operator skills are absent. The kernel includes the optional-subskill catalog. Plugin installation does not install native roles or third-party integrations.
 
 ## Optional native roles
 
@@ -79,10 +79,36 @@ For desktop-controlled, remove `code-delivery-framework-desktop@cdf-local`. Roll
 
 ## Evaluation tooling and license
 
-The optional evaluation runner and synthetic fixtures are maintained separately on local branch `codex/cdf-2-evaluation-tooling` at commit `ec6c789d0724558eda6402f1bedf8a8567ad640e`. Obtain it with:
-
-```sh
-git worktree add /path/to/cdf-evaluation-tooling codex/cdf-2-evaluation-tooling
-```
+The evaluation runner and sanitized fixtures are included in this checkout.
+See [the evaluation protocol](../evals/README.md). The earlier
+`codex/cdf-2-evaluation-tooling` branch is historical, not required setup.
 
 The plugin does not depend on it. This repository has no selected root license. Before public distribution, the copyright owner must choose and add licensing terms. MIT is a common option for an open-source Python/skills project, but no license is assumed here.
+
+## Candidate activation and updates
+
+The 2.1 candidate defaults to 14 standalone skills, including cdf-teach,
+cdf-explain and cdf-testing. Existing `--with-learning` build scripts remain
+valid; the flag is a deprecated no-op, so no duplicate entries appear. Build a
+new output directory and use the target client's plugin update/reinstall flow.
+CDF does not alter an installed plugin cache or live configuration during
+packaging. Historical ownership data and learning selections remain readable
+for recovery; legacy install/upgrade commands remain unsupported.
+
+Portable activation is on demand. `$cdf` explicitly invokes the kernel;
+narrow requests may select a specialist directly. Installed, discovered,
+read, applied and verified are different states. No claim of always-on
+participation or confirmed automatic model selection is made.
+
+Partner-active startup was investigated against the official SessionStart /
+SubagentStart context contract. Model receipt and child inheritance are
+NOT_OBSERVED on the candidate host, so no new bootstrap hook is shipped.
+The existing desktop-controlled metadata observer is unchanged. Use explicit
+invocation, or optionally add this short project instruction yourself:
+
+> For substantial engineering conversations, select relevant available CDF
+> methods after determining intent and authority. Preserve teaching/research/
+> review/plan write limits. Keep simple tasks brief.
+
+This snippet is user opt-in; packaging never writes it to a project or global
+AGENTS.md. Hook execution or emitted stdout alone is not model receipt evidence.

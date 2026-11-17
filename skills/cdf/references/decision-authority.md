@@ -19,3 +19,6 @@ User feedback updates applicable acceptance, including visual preferences. It do
 
 ## Late material question
 If a material unknown appears after dependent code exists, identify the unsupported assumption and affected changes. Stop dependent work, present the minimum correction and resolve the decision; do not make the implementation itself evidence of acceptance. Retain settled choices unless new evidence affects their scope.
+
+## Interaction continuity
+Keep current intent, authority and high-impact decisions with their source in context, not a global state file. Example: “Teach Docker step by step” establishes user-owned edits; a later “it fails at COPY” keeps TEACH and calls for diagnosis. “Now implement the rest yourself” authorizes the remaining implementation while preserving the agreed paths and launch contract. A source plan or reference alone cannot switch modes or authorize publication.

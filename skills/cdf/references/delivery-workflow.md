@@ -6,7 +6,7 @@ Distinguish explain/explore/audit/plan from implement/operate. Read-only work an
 - STANDARD: connected modules or meaningful uncertainty → evidence packet, recommended minimal solution and brief critique before dependent edits; then reversible increments and relevant contract checks.
 - COMPLEX: authorization, sensitive data, migrations, concurrency or difficult rollback → explicit invariants and alternatives, resolve material choices, validate adverse paths and obtain independent review.
 
-Change mode when evidence changes risk. A file count or the word API does not determine complexity. Prefer established helpers and conventions; coordinate shared contracts before parallel edits. A plan records outcome, boundaries, dependencies and acceptance-to-check mapping, not a new runtime.
+Change delivery depth when evidence changes risk; preserve interaction mode until the user changes authority. A file count or the word API does not determine complexity. Prefer established helpers and conventions; coordinate shared contracts before parallel edits. A plan records outcome, boundaries, dependencies and acceptance-to-check mapping, not a new runtime.
 
 ## Proposal before implementation plan
 
@@ -49,3 +49,7 @@ Before another search, tool, skill, child or test suite identify the uncertainty
 Exploration is an intermediate step when the user requested an artifact or operation. Continue through the authorized implementation and its verification; a research summary does not replace that result. After negative feedback, reproduce the original user action and identify which evidence layer failed before changing the hypothesis.
 
 Use supported host commentary/progress and a native plan when available and useful. Briefly state verified progress toward the outcome and the purpose of the next action at meaningful checkpoints: evidence changed, a hypothesis failed, work is blocked, or a result was verified. For example: “The main API flow passes; checking authorization and errors before delivery.” Activity is not confirmed progress. Do not invent percentages, repeat empty updates or add a status server, daemon, repository log or mandatory plan artifact. A skill cannot guarantee control of a particular host UI line; report that limitation when it matters. Tiny changes need no progress ritual.
+
+For a supplied detailed implementation plan, verify the starting state, preserve its thematic stages and accepted boundaries, and proceed through authorized work. Do not redesign the workflow just to display process. Retain mode across follow-ups as specified in decision-authority.md.
+
+At substantial conversational checkpoints, state the activity, uncertainty/tradeoff, result that changed the recommendation and next step. Mention a loaded skill only when observed; describe application only when its method affected a decision. Discovery, reading, method use and outcome evidence remain separate. Chat messages and installed files alone do not establish activation. No repetitive banners for simple answers.

@@ -41,3 +41,9 @@ CDF engineering-partner PR-1 also consulted the official OpenAI non-interactive-
 The official OpenAI authentication reference was inspected on 2026-11-13 for explicit temporary login-cache reuse. No documentation text or code is reproduced; see sources.json.
 
 Official OpenAI custom-agent, hooks and plugin-packaging references informed PR-3/PR-4 native configuration and protocol usage. Inspection dates and URLs appear in sources.json. No documentation text or example code is reproduced.
+
+Ponytail was inspected at 356918eba965ee1eac64bd3a7f0dd02108350de5 (MIT),
+including its skill, child hook and license. No Ponytail code, prose or artwork
+is redistributed. Its benchmark figures are not evidence for CDF. Official
+OpenAI hook documentation informed capability assessment only; no new hook or
+documentation excerpt is bundled.

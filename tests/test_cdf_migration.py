@@ -16,16 +16,12 @@ import unittest
 from unittest.mock import patch
 
 from cdf_installer import core
-from cdf_registry import EXTRAS, LEGACY_CORE_11
+from cdf_registry import CORE, EXTRAS, LEGACY_CORE_11
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / 'tests/fixtures/legacy-cdf-11.json'
 FIXTURE_SHA256 = '5c7d5489b63d2e0db778a63c7512c6c6871bfe70509f5d42078ce369a292b21b'
-FUTURE_CORE = (
-    'cdf', 'cdf-architecture', 'cdf-backend', 'cdf-code-review', 'cdf-codebase-research',
-    'cdf-debugging', 'cdf-documentation', 'cdf-frontend', 'cdf-requirements',
-    'cdf-ui-design', 'cdf-verification',
-)
+FUTURE_CORE = CORE
 RETIRED = ('cdf-implementation', 'cdf-orchestration', 'cdf-planning')
 
 
@@ -166,13 +162,13 @@ class MigrationTests(unittest.TestCase):
                     actual = {p.split('/')[4] for p in manifest['owned_files']
                               if p.startswith('.agents/skills/cdf/modules/') and p.endswith('/GUIDE.md')}
                     self.assertEqual(actual, modules)
-                    self.assertEqual(len(actual), 13)
+                    self.assertEqual(len(actual), len(modules))
                     for name in modules:
                         self.assertFalse((target / f'.agents/skills/{name}/SKILL.md').exists())
                         self.assertTrue((target / f'.agents/skills/cdf/modules/{name}/GUIDE.md').is_file())
                 else:
                     self.assertEqual(names, set(FUTURE_CORE) | set(sum(EXTRAS.values(), ())))
-                    self.assertEqual(len(names), 14)
+                    self.assertEqual(len(names), len(set(FUTURE_CORE).union(*EXTRAS.values())))
                 self.assertEqual(core.status(target, scope)['files'], 'clean')
                 for name in RETIRED:
                     self.assertFalse((target / f'.agents/skills/{name}/SKILL.md').exists())
@@ -191,10 +187,10 @@ class MigrationTests(unittest.TestCase):
         target = self.restore('project')
         self.action(target, 'project', 'upgrade', disable=('learning',))
         self.assertEqual(core.manifest_read(target, 'project')['selected_extras'], ['operator'])
-        self.assertFalse((target / '.agents/skills/cdf-explain/SKILL.md').exists())
+        self.assertEqual((target / '.agents/skills/cdf-explain/SKILL.md').exists(), core.bundle_layout(self.source) == 'flat')
         if core.bundle_layout(self.source) == 'single':
-            self.assertFalse((target / '.agents/skills/cdf/modules/cdf-explain/GUIDE.md').exists())
-            self.assertFalse((target / '.agents/skills/cdf/modules/cdf-teach/GUIDE.md').exists())
+            self.assertTrue((target / '.agents/skills/cdf/modules/cdf-explain/GUIDE.md').exists())
+            self.assertTrue((target / '.agents/skills/cdf/modules/cdf-teach/GUIDE.md').exists())
             self.assertTrue((target / '.agents/skills/cdf/modules/cdf-model-calibration/GUIDE.md').is_file())
         else:
             self.assertTrue((target / '.agents/skills/cdf-model-calibration/SKILL.md').exists())

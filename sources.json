@@ -532,6 +532,22 @@
       "license": "Protocol/configuration reference only; original implementation, no prose or code reused",
       "used_for": "Native hook events, metadata privacy, explicit native trust and hooks/list diagnostics. Packaging compatibility reference: https://developers.openai.com/plugins/build/plugins (same inspection date).",
       "installation": "research only"
+    },
+    {
+      "id": "ponytail-210-research",
+      "url": "https://github.com/DietrichGebert/ponytail/tree/356918eba965ee1eac64bd3a7f0dd02108350de5",
+      "revision": "356918eba965ee1eac64bd3a7f0dd02108350de5",
+      "license": "MIT; license inspected at pinned revision; no code or text reused",
+      "used_for": "Inspected skills/ponytail/SKILL.md and hooks/ponytail-subagent.js for minimality and child-context comparison. Original CDF adaptations only; benchmark claims not transferred. Main README browsing was not immutable evidence.",
+      "installation": "research only"
+    },
+    {
+      "id": "openai-hooks-210",
+      "url": "https://developers.openai.com/codex/hooks",
+      "revision": "Web documentation inspected 2026-11-17; redirects to https://learn.chatgpt.com/docs/hooks; no immutable publisher revision",
+      "license": "Documentation reference; no prose or code reused",
+      "used_for": "SessionStart and SubagentStart additionalContext protocol review. Documentation support does not establish candidate host/model receipt; no new hook shipped.",
+      "installation": "research only"
     }
   ]
 }

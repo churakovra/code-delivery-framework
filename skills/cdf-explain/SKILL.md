@@ -1,8 +1,8 @@
 ---
 name: cdf-explain
-description: Explain code, system behavior or technical ideas clearly with grounded paths and a concise example. Optional learning pack; use for direct explanations, not unsolicited coaching or implementation.
+description: Explain code, system behavior or technical ideas clearly with grounded paths and a concise example. Use for direct explanations of code, architecture or concepts; not unsolicited coaching, redesign or implementation.
 ---
-# Explain code and systems (optional)
+# Explain code and systems
 
 1. Answer the actual question first, at the requested depth. Define the relevant actors and data flow before detailed internals.
 2. For repository-specific explanations, inspect real code/test paths; load `cdf-codebase-research` only if tracing across modules is required.

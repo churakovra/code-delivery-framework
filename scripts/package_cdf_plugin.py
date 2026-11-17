@@ -85,7 +85,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--profile', choices=('portable', 'desktop-controlled'), default='portable')
     parser.add_argument('--output', required=True, help='New plugin directory in an existing parent')
-    parser.add_argument('--with-learning', action='store_true')
+    parser.add_argument('--with-learning', action='store_true', help='Deprecated compatibility alias; teaching and explanation are standard')
     parser.add_argument('--with-operator', action='store_true')
     args = parser.parse_args()
     extras = [name for name in ('learning', 'operator') if getattr(args, 'with_' + name)]

@@ -2,13 +2,17 @@
 
 CDF provides focused delivery skills for Codex. The root agent resolves material requirements, reuses project code, works directly by default, and delegates bounded work when independent review or another concrete benefit warrants it. The package version is defined in `[project].version` in `pyproject.toml`.
 
-Adaptive delivery selects the next action from the accepted outcome, main uncertainty and risk. New functionality can start with a working vertical slice, then continue through the remaining scope. See [delivery strategy](skills/cdf/references/delivery-workflow.md). The current source is `2.0.0`. It is ready for installation and user acceptance; final native behavioral acceptance and comparative value are not established.
+Adaptive delivery selects the next action from the accepted outcome, main uncertainty and risk. New functionality can start with a working vertical slice, then continue through the remaining scope. See [delivery strategy](skills/cdf/references/delivery-workflow.md). The current source is the `2.1.0` candidate. Packaging and runtime discovery are checked separately from behavioral acceptance; comparative value remains unestablished.
 
 Ask naturally, for example: “Add order export using the existing access rules.” The agent inspects the current path, asks about material decisions the code and prior answers do not settle, implements a bounded change, and reports observed checks and gaps. The `cdf` kernel handles nontrivial delivery on demand. Known local edits can proceed directly. No mandatory plan file, JSON checkpoint, subagent or external skill installation is required.
 
+Interaction intent comes before delivery depth. Explanation, teaching, research, review and planning use safe reads and diagnostics without autonomous project edits. Implementation requests allow scoped changes. Teaching leaves steps to the learner; a failure report preserves that mode, while an explicit request to implement switches authority without reopening settled choices. These instructions guide behavior; they do not enforce permissions.
+
+`cdf-testing` owns regression design, credible test boundaries and preservation of unique guarantees during cleanup. `cdf-verification` owns fresh command/results evidence. Architecture guidance filters reference features by target requirements and challenges speculative complexity.
+
 ## Install the Codex plugin
 
-CDF has one installation path: a native Codex plugin. The portable profile provides eleven standalone skills without hooks, native roles, or managed `AGENTS.md` guidance. Use Python 3.11 or newer on POSIX to build a local package and marketplace catalog:
+CDF has one installation path: a native Codex plugin. The portable profile provides fourteen standalone skills without hooks, native roles, or managed `AGENTS.md` guidance. Use Python 3.11 or newer on POSIX to build a local package and marketplace catalog:
 
 ```sh
 mkdir -p /path/to/marketplace/build /path/to/marketplace/.agents/plugins
@@ -29,7 +33,7 @@ Restart Codex. Use `$cdf` to invoke the kernel explicitly. Without a mention, Co
 CDF includes display metadata and SVG/PNG assets. Host rendering varies;
 resolved asset paths alone do not prove the appearance of a skill-picker row.
 
-The output parent must exist; an existing output is refused. The package contains root `plugin.json`, assets, and eleven `skills/<name>/SKILL.md` entries. Learning adds two entries; operator adds explicit model calibration. Disabled extras are absent. Native plugin skills retain source bytes and references. The kernel also includes the optional-subskill catalog. No hooks, native agent configuration, private installer state or managed AGENTS policy is included. This command builds only; it does not register, install or publish.
+The output parent must exist; an existing output is refused. The package contains root `plugin.json`, assets, and fourteen `skills/<name>/SKILL.md` entries. Teaching, explanation and test design are standard. `--with-learning` is a deprecated no-op alias; `--with-operator` adds explicit model calibration. Disabled operator skills are absent. Native plugin skills retain source bytes and references. The kernel also includes the optional-subskill catalog. No hooks, native agent configuration, private installer state or managed AGENTS policy is included. This command builds only; it does not register, install or publish.
 
 For a local marketplace, place the built plugin at `build/cdf-plugin-portable` under a chosen marketplace root and copy [the example catalog](templates/cdf-marketplace.example.json) to that root's `.agents/plugins/marketplace.json`. Paths resolve from the marketplace root. Install explicitly with the target client's supported commands:
 
@@ -124,7 +128,7 @@ rendering and full-host overhead require runtime acceptance. See
 
 ## Verification and development
 
-The optional evaluation runner and synthetic fixtures are maintained separately on local branch `codex/cdf-2-evaluation-tooling` at commit `ec6c789d0724558eda6402f1bedf8a8567ad640e`. To inspect it, use `git worktree add /path/to/cdf-evaluation-tooling codex/cdf-2-evaluation-tooling`. Installation and runtime do not depend on that branch.
+Existing evaluation tooling is described in [the evaluation protocol](evals/README.md). The 2.1.0 change adds no evaluation fixtures or runner extensions. Manual behavioral acceptance remains pending.
 
 ```sh
 python3 scripts/validate_cdf.py
@@ -154,8 +158,8 @@ Native profile routing has narrow runtime evidence; broad behavioral impact rema
 
 ## Version and supported scope
 
-`2.0.0` is the source/package version. It does not claim that all behavioral acceptance gates passed. The tested native client is
-`codex-cli 0.167.0-alpha.4.1`. CLI/app-server plugin discovery, named-role routing
+`2.1.0` is the source/package candidate version. It does not claim that all behavioral acceptance gates passed. The tested native client is
+`codex-cli 0.167.0-alpha.4.1` for prior role/hook observations; candidate portable discovery was checked with `codex-cli 0.169.0-alpha.11.1`. CLI/app-server plugin discovery, named-role routing
 and optional Desktop event capture have separate bounded evidence. Other client
 versions, Windows and full Desktop error-warning rendering are not established.
 Skills guide the model; neither skills nor hooks provide a security boundary.

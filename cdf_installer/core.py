@@ -18,7 +18,7 @@ import tomllib
 import uuid
 
 from cdf_runtime.contracts import validate_record
-from cdf_registry import CORE, EXTRAS, LEGACY_CORE_11, LEGACY_CORE_15, PROFILE_AGENTS
+from cdf_registry import CORE, EXTRAS, LEGACY_CORE_11, LEGACY_CORE_15, LEGACY_CORE_20, LEGACY_EXTRAS, PROFILE_AGENTS
 from cdf_installer.packaging import compact_skills
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -100,7 +100,7 @@ def allowed(path, agents):
             or path == '.codex/cdf/backups/native-agents.json'
             or path in ('.codex/cdf/backups/AGENTS.original', '.codex/cdf/backups/AGENTS.absent')
             or (len(parts) >= 4 and parts[:2] == ('.agents', 'skills')
-                and parts[2] in set(CORE) | set(LEGACY_CORE_11) | set(sum(EXTRAS.values(), ()))))
+                and parts[2] in set(CORE) | set(LEGACY_CORE_11) | set(sum(EXTRAS.values(), ())) | set(sum(LEGACY_EXTRAS.values(), ()))))
 
 
 def valid_created_directory(value):
@@ -112,7 +112,7 @@ def valid_created_directory(value):
         return True
     # An upgrade retains historical directory claims until uninstall. Only
     # recorded empty directories are removed; never broaden this to arbitrary skills.
-    names = set(CORE) | set(LEGACY_CORE_11) | set(sum(EXTRAS.values(), ()))
+    names = set(CORE) | set(LEGACY_CORE_11) | set(sum(EXTRAS.values(), ())) | set(sum(LEGACY_EXTRAS.values(), ()))
     return (len(parts) >= 3 and parts[:2] == ('.agents', 'skills')
             and parts[2] in names)
 
@@ -395,10 +395,13 @@ def manifest_read(root, scope):
         present_skills = {p.split('/')[2] for p in m['owned_files']
                           if p.startswith('.agents/skills/')}
         optional = {name for extra in m['selected_extras'] for name in EXTRAS[extra]}
+        historical_optional = {name for extra in m['selected_extras'] for name in LEGACY_EXTRAS[extra]}
         inventories = ([{'cdf'}] if layout == 'single' else
-                       [set(names) | optional for names in (CORE, LEGACY_CORE_11, LEGACY_CORE_15)])
+                       [set(CORE) | optional] + [set(names) | historical_optional
+                                               for names in (LEGACY_CORE_11, LEGACY_CORE_15, LEGACY_CORE_20)])
         if layout == 'single':
-            module_inventories = [set(names) - {'cdf'} | optional for names in (CORE, LEGACY_CORE_15)]
+            module_inventories = [set(CORE) - {'cdf'} | optional] + [set(names) - {'cdf'} | historical_optional
+                                                               for names in (LEGACY_CORE_15, LEGACY_CORE_20)]
             actual_modules = {p.split('/')[4] for p in m['owned_files']
                               if p.startswith('.agents/skills/cdf/modules/') and len(p.split('/')) > 5}
             if not any(actual_modules <= names for names in module_inventories):

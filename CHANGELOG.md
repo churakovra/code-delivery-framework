@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.0 — candidate, behavioral acceptance pending
+
+- Interpret interaction intent before delivery depth; preserve teaching and read-only authority across follow-ups.
+- Include teaching, explanation and new meaningful-testing guidance in the 14-skill standard plugin. Keep `--with-learning` as a deprecated no-op alias.
+- Strengthen minimal sufficient solution, reference adaptation, test guarantee preservation and truthful method reporting.
+- Preserve historical ownership inventories and learning selections for recovery.
+- No new activation hook, global installation, tag or release. Live comparative behavior and overhead remain NOT_OBSERVED.
+
 ## 2.0.1
 
 - Make native Codex plugin installation the only supported CDF installation path.
